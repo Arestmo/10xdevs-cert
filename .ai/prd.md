@@ -641,24 +641,6 @@ Kryteria akceptacji:
    - Sposób mierzenia: Zapytanie SQL agregujące fiszki po źródle (AI/manual)
    - Częstotliwość pomiaru: Miesięcznie
 
-### Metryki pomocnicze
-
-3. Średnia liczba fiszek na użytkownika
-   - Sposób mierzenia: COUNT(fiszki) / COUNT(DISTINCT użytkownicy)
-   - Cel: Rosnący trend
-
-4. Retencja użytkowników (D7)
-   - Definicja: Użytkownicy aktywni 7 dni po rejestracji / Nowi użytkownicy
-   - Sposób mierzenia: Zapytanie na bazie timestampów logowania
-   - Cel: > 30%
-
-5. Średnia liczba sesji nauki na użytkownika tygodniowo
-   - Sposób mierzenia: Zliczanie rozpoczętych sesji z podziałem na użytkowników
-   - Cel: >= 3 sesje/tydzień
-
-6. Wskaźnik ukończenia sesji nauki
-   - Definicja: Sesje zakończone / Sesje rozpoczęte
-   - Cel: > 80%
 
 ### Implementacja mierzenia
 
