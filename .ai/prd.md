@@ -656,4 +656,4 @@ Tabela: flashcards
 
 Zapytania SQL:
 - Wskaźnik akceptacji: SELECT (COUNT(CASE WHEN event_type IN ('zaakceptowana', 'edytowana') THEN 1 END) * 100.0 / NULLIF(COUNT(CASE WHEN event_type = 'wygenerowana' THEN 1 END), 0)) as acceptance_rate FROM generation_events WHERE created_at >= [okres]
-- Udział AI: SELECT (COUNT(CASE WHEN source = 'ai' THEN 1 END) * 100.0 / COUNT(*)) as ai_share FROM flashcards WHERE user_id = [user]
+- Udział AI: SELECT (COUNT(CASE WHEN source = 'ai' THEN 1 END) * 100.0 / NULLIF(COUNT(*), 0)) as ai_share FROM flashcards WHERE user_id = [user]
