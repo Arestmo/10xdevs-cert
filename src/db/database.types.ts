@@ -185,7 +185,15 @@ export interface Database {
       };
     };
     Views: Record<never, never>;
-    Functions: Record<never, never>;
+    Functions: {
+      increment_ai_usage: {
+        Args: {
+          p_user_id: string;
+          p_count: number;
+        };
+        Returns: undefined;
+      };
+    };
     Enums: {
       event_type: "GENERATED" | "ACCEPTED" | "REJECTED" | "EDITED";
       source_type: "ai" | "manual";
