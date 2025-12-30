@@ -22,6 +22,16 @@ export class DuplicateDeckError extends Error {
 }
 
 /**
+ * Custom error for deck not found or not owned by user
+ */
+export class DeckNotFoundError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "DeckNotFoundError";
+  }
+}
+
+/**
  * Parameters for listing decks with pagination and sorting
  */
 interface ListDecksParams {
@@ -169,5 +179,57 @@ export class DeckService {
     }
 
     return deck;
+  }
+
+  /**
+   * Retrieves a specific deck by ID with metadata.
+   *
+   * Flow:
+   * 1. Fetch deck from database filtering by id AND user_id (ownership validation)
+   * 2. Throw DeckNotFoundError if deck not found or not owned
+   * 3. Execute parallel queries to count total and due flashcards
+   * 4. Return DeckWithMetadataDTO
+   *
+   * @param userId - UUID of the authenticated user
+   * @param deckId - UUID of the deck to retrieve
+   * @returns Deck with computed metadata (flashcard counts)
+   * @throws {DeckNotFoundError} If deck not found or not owned by user
+   * @throws {Error} If database operation fails
+   */
+  async getDeckById(userId: string, deckId: string): Promise<DeckWithMetadataDTO> {
+    // Step 1: Fetch deck with ownership validation
+    const { data: deck, error: deckError } = await this.supabase
+      .from("decks")
+      .select("id, name, created_at, updated_at")
+      .eq("id", deckId)
+      .eq("user_id", userId)
+      .single();
+
+    // Guard clause: deck not found or not owned
+    if (deckError || !deck) {
+      throw new DeckNotFoundError("Deck not found");
+    }
+
+    // Step 2: Fetch flashcard counts in parallel
+    const now = new Date().toISOString();
+
+    const [totalResult, dueResult] = await Promise.all([
+      this.supabase.from("flashcards").select("*", { count: "exact", head: true }).eq("deck_id", deckId),
+      this.supabase
+        .from("flashcards")
+        .select("*", { count: "exact", head: true })
+        .eq("deck_id", deckId)
+        .lte("next_review", now),
+    ]);
+
+    // Step 3: Construct and return response
+    return {
+      id: deck.id,
+      name: deck.name,
+      created_at: deck.created_at,
+      updated_at: deck.updated_at,
+      total_flashcards: totalResult.count ?? 0,
+      due_flashcards: dueResult.count ?? 0,
+    };
   }
 }
