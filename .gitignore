@@ -25,6 +25,7 @@ pnpm-debug.log*
 
 # sesje planistyczne
 sesje_planistyczne/
+.ai/temp/
 
 # local test scripts
 test-*.mjs

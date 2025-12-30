@@ -4,12 +4,12 @@ Zanim zaczniemy, zapoznaj się z poniższymi informacjami:
 
 1. Route API specification:
 <route_api_specification>
-{{route-api-specification}} <- przekopiuj opis endpointa z api-plan.md
+@.ai/temp/temp-endpoint-plan.txt  
 </route_api_specification>
 
 2. Related database resources:
 <related_db_resources>
-{{db-resources}} <- przekopiuj z tabele i relacje z db-plan.md
+@.ai/temp/temp-endpoind-db.txt  
 </related_db_resources>
 
 3. Definicje typów:
@@ -103,4 +103,4 @@ Końcowym wynikiem powinien być dobrze zorganizowany plan wdrożenia w formacie
 
 Końcowe wyniki powinny składać się wyłącznie z planu wdrożenia w formacie markdown i nie powinny powielać ani powtarzać żadnej pracy wykonanej w sekcji analizy.
 
-Pamiętaj, aby zapisać swój plan wdrożenia jako .ai/view-implementation-plan.md. Upewnij się, że plan jest szczegółowy, przejrzysty i zapewnia kompleksowe wskazówki dla zespołu programistów.
+Pamiętaj, aby zapisać swój plan wdrożenia jako .ai/[TYP-Endpointu]-[nazwa endpointu]-implementation-plan.md. Upewnij się, że plan jest szczegółowy, przejrzysty i zapewnia kompleksowe wskazówki dla zespołu programistów.
