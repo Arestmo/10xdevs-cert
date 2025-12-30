@@ -9,7 +9,13 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/db/database.types";
-import type { DeckWithMetadataDTO, DecksListResponseDTO, CreateDeckRequestDTO, DeckDTO } from "@/types";
+import type {
+  DeckWithMetadataDTO,
+  DecksListResponseDTO,
+  CreateDeckRequestDTO,
+  DeckDTO,
+  UpdateDeckRequestDTO,
+} from "@/types";
 
 /**
  * Custom error for duplicate deck names
@@ -231,5 +237,51 @@ export class DeckService {
       total_flashcards: totalResult.count ?? 0,
       due_flashcards: dueResult.count ?? 0,
     };
+  }
+
+  /**
+   * Updates a deck's name.
+   *
+   * Flow:
+   * 1. Execute UPDATE with ownership validation (filter by id AND user_id)
+   * 2. Database validates UNIQUE(user_id, name) constraint
+   * 3. Database auto-updates updated_at timestamp
+   * 4. Throw DeckNotFoundError if no rows affected
+   * 5. Throw DuplicateDeckError if unique constraint violated
+   * 6. Return updated DeckDTO
+   *
+   * @param userId - UUID of the authenticated user
+   * @param deckId - UUID of the deck to update
+   * @param data - Update data (name only)
+   * @returns Updated deck with all fields
+   * @throws {DeckNotFoundError} If deck not found or not owned by user
+   * @throws {DuplicateDeckError} If deck with same name already exists
+   * @throws {Error} If database operation fails
+   */
+  async updateDeck(userId: string, deckId: string, data: UpdateDeckRequestDTO): Promise<DeckDTO> {
+    const { data: deck, error } = await this.supabase
+      .from("decks")
+      .update({ name: data.name })
+      .eq("id", deckId)
+      .eq("user_id", userId) // CRITICAL: ownership validation
+      .select()
+      .single();
+
+    // Guard clause: database error
+    if (error) {
+      // Check for unique constraint violation (duplicate name)
+      if (error.code === "23505") {
+        throw new DuplicateDeckError("A deck with this name already exists");
+      }
+      throw new Error(`Failed to update deck: ${error.message}`);
+    }
+
+    // Guard clause: deck not found or not owned
+    if (!deck) {
+      throw new DeckNotFoundError("Deck not found");
+    }
+
+    // Happy path
+    return deck;
   }
 }
