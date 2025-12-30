@@ -1,12 +1,7 @@
-import type { SupabaseClient } from '@supabase/supabase-js';
-import type { Database } from '@/db/database.types';
-import type {
-  CreateGenerationRequestDTO,
-  GenerationResponseDTO,
-  FlashcardDraftDTO,
-  Profile
-} from '@/types';
-import { openRouterService } from './openrouter.service';
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/db/database.types";
+import type { CreateGenerationRequestDTO, GenerationResponseDTO, FlashcardDraftDTO, Profile } from "@/types";
+import { openRouterService } from "./openrouter.service";
 
 type SupabaseClientType = SupabaseClient<Database>;
 
@@ -44,10 +39,7 @@ export class GenerationService {
    * @throws AILimitExceededError if monthly limit reached
    * @throws Error if OpenRouter API fails
    */
-  async generateFlashcards(
-    userId: string,
-    request: CreateGenerationRequestDTO
-  ): Promise<GenerationResponseDTO> {
+  async generateFlashcards(userId: string, request: CreateGenerationRequestDTO): Promise<GenerationResponseDTO> {
     // Step 1: Verify deck ownership
     await this.verifyDeckOwnership(userId, request.deck_id);
 
@@ -57,7 +49,7 @@ export class GenerationService {
     // Step 3: Generate flashcards via AI
     const drafts = await openRouterService.generateFlashcards({
       sourceText: request.source_text,
-      maxCards: 20
+      maxCards: 20,
     });
 
     const generatedCount = drafts.length;
@@ -76,7 +68,7 @@ export class GenerationService {
       generation_id,
       drafts,
       generated_count: generatedCount,
-      remaining_ai_limit: remaining
+      remaining_ai_limit: remaining,
     };
   }
 
@@ -91,11 +83,7 @@ export class GenerationService {
    * @throws DeckNotFoundError if deck not found or access denied
    */
   private async verifyDeckOwnership(userId: string, deckId: string): Promise<void> {
-    const { data: deck, error } = await this.supabase
-      .from('decks')
-      .select('id')
-      .eq('id', deckId)
-      .single();
+    const { data: deck, error } = await this.supabase.from("decks").select("id").eq("id", deckId).single();
 
     // Guard clause: deck not found or not owned by user (RLS filtered it out)
     if (error || !deck) {
@@ -118,15 +106,11 @@ export class GenerationService {
    */
   private async checkAndUpdateLimit(userId: string): Promise<Profile> {
     // Fetch user profile
-    const { data: profile, error } = await this.supabase
-      .from('profiles')
-      .select('*')
-      .eq('user_id', userId)
-      .single();
+    const { data: profile, error } = await this.supabase.from("profiles").select("*").eq("user_id", userId).single();
 
     // Guard clause: profile not found
     if (error || !profile) {
-      throw new Error('Profile not found');
+      throw new Error("Profile not found");
     }
 
     // Calculate dates for lazy reset
@@ -139,12 +123,12 @@ export class GenerationService {
     // Perform lazy reset if needed
     if (resetDate < startOfMonth) {
       await this.supabase
-        .from('profiles')
+        .from("profiles")
         .update({
           monthly_ai_flashcards_count: 0,
-          ai_limit_reset_date: startOfMonth.toISOString().split('T')[0]
+          ai_limit_reset_date: startOfMonth.toISOString().split("T")[0],
         })
-        .eq('user_id', userId);
+        .eq("user_id", userId);
 
       currentCount = 0;
       profile.monthly_ai_flashcards_count = 0;
@@ -169,14 +153,14 @@ export class GenerationService {
    * @throws Error if increment fails
    */
   private async incrementAIUsage(userId: string, count: number): Promise<void> {
-    const { error } = await this.supabase.rpc('increment_ai_usage', {
+    const { error } = await this.supabase.rpc("increment_ai_usage", {
       p_user_id: userId,
-      p_count: count
+      p_count: count,
     });
 
     // Guard clause: increment failed
     if (error) {
-      throw new Error('Failed to increment AI usage count');
+      throw new Error("Failed to increment AI usage count");
     }
   }
 
@@ -193,25 +177,19 @@ export class GenerationService {
    * @param generationId - Unique generation session ID
    * @param drafts - Array of generated flashcard drafts
    */
-  private async logGenerationEvents(
-    userId: string,
-    generationId: string,
-    drafts: FlashcardDraftDTO[]
-  ): Promise<void> {
+  private async logGenerationEvents(userId: string, generationId: string, drafts: FlashcardDraftDTO[]): Promise<void> {
     const events = drafts.map(() => ({
       user_id: userId,
       flashcard_id: null,
       generation_id: generationId,
-      event_type: 'GENERATED' as const
+      event_type: "GENERATED" as const,
     }));
 
-    const { error } = await this.supabase
-      .from('generation_events')
-      .insert(events);
+    const { error } = await this.supabase.from("generation_events").insert(events);
 
     // Non-critical error - log but don't throw
     if (error) {
-      console.error('Failed to log generation events:', error);
+      console.error("Failed to log generation events:", error);
     }
   }
 }
@@ -225,8 +203,8 @@ export class GenerationService {
  */
 export class DeckNotFoundError extends Error {
   constructor() {
-    super('Deck not found or access denied');
-    this.name = 'DeckNotFoundError';
+    super("Deck not found or access denied");
+    this.name = "DeckNotFoundError";
   }
 }
 
@@ -242,7 +220,7 @@ export class AILimitExceededError extends Error {
     public limit: number,
     public resetDate: Date
   ) {
-    super('Monthly AI generation limit exceeded');
-    this.name = 'AILimitExceededError';
+    super("Monthly AI generation limit exceeded");
+    this.name = "AILimitExceededError";
   }
 }
