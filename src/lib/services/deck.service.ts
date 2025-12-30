@@ -9,7 +9,17 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/db/database.types";
-import type { DeckWithMetadataDTO, DecksListResponseDTO } from "@/types";
+import type { DeckWithMetadataDTO, DecksListResponseDTO, CreateDeckRequestDTO, DeckDTO } from "@/types";
+
+/**
+ * Custom error for duplicate deck names
+ */
+export class DuplicateDeckError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "DuplicateDeckError";
+  }
+}
 
 /**
  * Parameters for listing decks with pagination and sorting
@@ -119,5 +129,45 @@ export class DeckService {
         has_more,
       },
     };
+  }
+
+  /**
+   * Creates a new deck for the specified user.
+   *
+   * Flow:
+   * 1. Insert deck with user_id and name
+   * 2. Database generates id, created_at, updated_at
+   * 3. Database validates UNIQUE(user_id, name) constraint
+   * 4. Return created deck
+   *
+   * @param userId - UUID of the authenticated user
+   * @param data - Deck creation data (name only)
+   * @returns Created deck with all fields
+   * @throws {DuplicateDeckError} If deck with same name already exists
+   * @throws {Error} If database operation fails
+   */
+  async createDeck(userId: string, data: CreateDeckRequestDTO): Promise<DeckDTO> {
+    const { data: deck, error } = await this.supabase
+      .from("decks")
+      .insert({
+        user_id: userId,
+        name: data.name,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      // Check for unique constraint violation (duplicate name)
+      if (error.code === "23505") {
+        throw new DuplicateDeckError("A deck with this name already exists");
+      }
+      throw new Error(`Failed to create deck: ${error.message}`);
+    }
+
+    if (!deck) {
+      throw new Error("Deck creation succeeded but no data returned");
+    }
+
+    return deck;
   }
 }
