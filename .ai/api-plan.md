@@ -172,8 +172,14 @@ Delete a deck and all its flashcards (cascade delete).
 **Response (204):** No content
 
 **Errors:**
+- `400 Bad Request` - Invalid deck ID format (not a valid UUID)
 - `401 Unauthorized` - User not authenticated
 - `404 Not Found` - Deck not found or not owned by user
+- `500 Internal Server Error` - Unexpected server error
+
+**Security Notes:**
+- Returns 404 for both non-existent decks AND decks not owned by user (IDOR protection)
+- Never returns 403 Forbidden to avoid information disclosure
 
 ---
 

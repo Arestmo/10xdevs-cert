@@ -284,4 +284,48 @@ export class DeckService {
     // Happy path
     return deck;
   }
+
+  /**
+   * Deletes a deck and all its flashcards (cascade delete).
+   *
+   * Flow:
+   * 1. Execute DELETE with ownership validation (filter by id AND user_id)
+   * 2. Database cascades deletion to flashcards (ON DELETE CASCADE)
+   * 3. Use RETURNING id to verify deletion occurred
+   * 4. Return false if no rows deleted (deck not found or not owned)
+   * 5. Return true on successful deletion
+   *
+   * Security:
+   * - CRITICAL: Always filter by both id AND user_id to prevent IDOR
+   * - Returns same result (false) whether deck doesn't exist or isn't owned
+   * - Prevents information disclosure about deck existence
+   *
+   * @param userId - UUID of the authenticated user
+   * @param deckId - UUID of the deck to delete
+   * @returns true if deleted successfully, false if not found or not owned
+   * @throws {Error} If database operation fails
+   */
+  async deleteDeck(userId: string, deckId: string): Promise<boolean> {
+    const { data, error } = await this.supabase
+      .from("decks")
+      .delete()
+      .eq("id", deckId)
+      .eq("user_id", userId) // CRITICAL: ownership validation (IDOR protection)
+      .select("id")
+      .single();
+
+    // Guard clause: database error (NOT including PGRST116 which means no rows)
+    if (error) {
+      // PGRST116 = no rows returned, which means deck not found or not owned
+      // This is expected, not an error - return false
+      if (error.code === "PGRST116") {
+        return false;
+      }
+      // Any other error is unexpected
+      throw new Error(`Failed to delete deck: ${error.message}`);
+    }
+
+    // Happy path: deletion successful if data exists
+    return !!data;
+  }
 }
