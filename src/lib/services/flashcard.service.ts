@@ -15,6 +15,7 @@ import type {
   CreateFlashcardRequestDTO,
   FlashcardDTO,
   EventType,
+  UpdateFlashcardRequestDTO,
 } from "@/types";
 
 /**
@@ -240,6 +241,106 @@ export class FlashcardService {
     const { decks, ...flashcard } = data;
 
     return flashcard;
+  }
+
+  /**
+   * Updates flashcard content (front and/or back) without affecting FSRS parameters.
+   *
+   * Flow:
+   * 1. Verify flashcard exists and belongs to user's deck
+   * 2. Update only front/back fields
+   * 3. Return updated flashcard
+   *
+   * Security:
+   * - CRITICAL: Verify ownership through deck relationship
+   * - Returns null for both non-existent and unauthorized flashcards
+   *
+   * @param flashcardId - UUID of flashcard to update
+   * @param userId - UUID of authenticated user
+   * @param updates - Partial updates (front and/or back)
+   * @returns Updated flashcard or null if not found/unauthorized
+   * @throws {Error} If database operation fails
+   */
+  async updateFlashcard(
+    flashcardId: string,
+    userId: string,
+    updates: UpdateFlashcardRequestDTO
+  ): Promise<FlashcardDTO | null> {
+    // Step 1: Verify ownership through deck relationship
+    const { data: existingFlashcard, error: fetchError } = await this.supabase
+      .from("flashcards")
+      .select("*, decks!inner(user_id)")
+      .eq("id", flashcardId)
+      .eq("decks.user_id", userId)
+      .single();
+
+    // Guard clause: not found or not owned
+    if (fetchError || !existingFlashcard) {
+      return null;
+    }
+
+    // Step 2: Update only content fields
+    const { data: updatedFlashcard, error: updateError } = await this.supabase
+      .from("flashcards")
+      .update({
+        ...(updates.front !== undefined && { front: updates.front }),
+        ...(updates.back !== undefined && { back: updates.back }),
+        // updated_at is automatically set by database trigger
+      })
+      .eq("id", flashcardId)
+      .select()
+      .single();
+
+    // Guard clause: update failed
+    if (updateError || !updatedFlashcard) {
+      throw new Error(`Failed to update flashcard: ${updateError?.message ?? "Unknown error"}`);
+    }
+
+    // Step 3: Return updated flashcard (happy path)
+    return updatedFlashcard;
+  }
+
+  /**
+   * Deletes a flashcard with ownership verification.
+   *
+   * Flow:
+   * 1. Verify flashcard exists and belongs to user's deck
+   * 2. Delete flashcard (cascade to generation_events handled by DB)
+   * 3. Return success/failure status
+   *
+   * Security:
+   * - CRITICAL: Verify ownership through deck relationship
+   * - Returns false for both non-existent and unauthorized flashcards
+   *
+   * @param flashcardId - UUID of flashcard to delete
+   * @param userId - UUID of authenticated user
+   * @returns true if deleted, false if not found or unauthorized
+   * @throws {Error} If database operation fails
+   */
+  async deleteFlashcard(flashcardId: string, userId: string): Promise<boolean> {
+    // Step 1: Verify ownership through deck relationship
+    const { data: flashcard, error: fetchError } = await this.supabase
+      .from("flashcards")
+      .select("id, decks!inner(user_id)")
+      .eq("id", flashcardId)
+      .eq("decks.user_id", userId)
+      .single();
+
+    // Guard clause: not found or not owned
+    if (fetchError || !flashcard) {
+      return false;
+    }
+
+    // Step 2: Delete flashcard (cascade handled by database)
+    const { error: deleteError } = await this.supabase.from("flashcards").delete().eq("id", flashcardId);
+
+    // Guard clause: deletion failed
+    if (deleteError) {
+      throw new Error(`Failed to delete flashcard: ${deleteError.message}`);
+    }
+
+    // Step 3: Return success (happy path)
+    return true;
   }
 
   /**
