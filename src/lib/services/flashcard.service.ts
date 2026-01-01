@@ -9,7 +9,13 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/db/database.types";
-import type { FlashcardsListResponseDTO, GetFlashcardsQueryDTO } from "@/types";
+import type {
+  FlashcardsListResponseDTO,
+  GetFlashcardsQueryDTO,
+  CreateFlashcardRequestDTO,
+  FlashcardDTO,
+  EventType,
+} from "@/types";
 
 /**
  * Custom error for deck not found or not owned by user
@@ -120,5 +126,115 @@ export class FlashcardService {
         has_more,
       },
     };
+  }
+
+  /**
+   * Creates a new flashcard in the system.
+   *
+   * Supports two creation modes:
+   * - Manual creation: User creates flashcard from scratch
+   * - AI-generated acceptance: User accepts (with optional edits) an AI draft
+   *
+   * Flow:
+   * 1. Validate deck ownership
+   * 2. Insert flashcard with default FSRS parameters
+   * 3. If source is "ai", log generation event (ACCEPTED or EDITED)
+   * 4. Return created flashcard
+   *
+   * Security:
+   * - CRITICAL: Always verify deck belongs to authenticated user
+   * - Prevents creating flashcards in other users' decks
+   *
+   * @param userId - UUID of the authenticated user
+   * @param data - Flashcard creation data
+   * @returns Created flashcard with default FSRS parameters
+   * @throws {DeckNotFoundError} If deck not found or not owned by user
+   * @throws {Error} If database operation fails
+   */
+  async createFlashcard(userId: string, data: CreateFlashcardRequestDTO): Promise<FlashcardDTO> {
+    // Step 1: Validate deck ownership
+    const { data: deck, error: deckError } = await this.supabase
+      .from("decks")
+      .select("id")
+      .eq("id", data.deck_id)
+      .eq("user_id", userId)
+      .single();
+
+    // Guard clause: deck not found or not owned
+    if (deckError || !deck) {
+      throw new DeckNotFoundError("Deck not found or access denied");
+    }
+
+    // Step 2: Insert flashcard with default FSRS parameters
+    const { data: flashcard, error: flashcardError } = await this.supabase
+      .from("flashcards")
+      .insert({
+        deck_id: data.deck_id,
+        front: data.front,
+        back: data.back,
+        source: data.source,
+        // Default FSRS parameters for new flashcards
+        stability: 0.0,
+        difficulty: 0.0,
+        elapsed_days: 0,
+        scheduled_days: 0,
+        reps: 0,
+        lapses: 0,
+        state: 0, // 0 = "new" state
+        last_review: null,
+        next_review: new Date().toISOString(), // Immediately available for study
+      })
+      .select()
+      .single();
+
+    // Guard clause: flashcard insertion failed
+    if (flashcardError || !flashcard) {
+      throw new Error(`Failed to create flashcard: ${flashcardError?.message ?? "Unknown error"}`);
+    }
+
+    // Step 3: Log generation event if AI-sourced
+    if (data.source === "ai" && data.generation_id) {
+      // Use non-blocking approach - log error but don't fail the request
+      await this.logGenerationEvent(userId, flashcard.id, data.generation_id, data.was_edited ? "EDITED" : "ACCEPTED");
+    }
+
+    // Step 4: Return created flashcard
+    return flashcard;
+  }
+
+  /**
+   * Logs a generation event for AI-generated flashcards.
+   *
+   * This method tracks AI usage analytics by recording when users:
+   * - Accept AI-generated flashcards without edits (ACCEPTED)
+   * - Accept AI-generated flashcards with edits (EDITED)
+   *
+   * Note: This is a fire-and-forget operation. Errors are logged but don't
+   * fail the parent operation to ensure flashcard creation always succeeds.
+   *
+   * @param userId - UUID of the user
+   * @param flashcardId - UUID of the created flashcard
+   * @param generationId - UUID of the AI generation session
+   * @param eventType - Type of event (ACCEPTED or EDITED)
+   * @returns Promise that resolves when event is logged
+   */
+  private async logGenerationEvent(
+    userId: string,
+    flashcardId: string,
+    generationId: string,
+    eventType: EventType
+  ): Promise<void> {
+    const { error } = await this.supabase.from("generation_events").insert({
+      user_id: userId,
+      flashcard_id: flashcardId,
+      generation_id: generationId,
+      event_type: eventType,
+    });
+
+    if (error) {
+      // Log error but don't throw - generation event logging is non-critical
+      // eslint-disable-next-line no-console
+      console.error("Failed to log generation event:", error);
+    }
   }
 }
