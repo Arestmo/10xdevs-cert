@@ -19,3 +19,13 @@ export const createGenerationRequestSchema = z.object({
  * Inferred TypeScript type from validation schema
  */
 export type CreateGenerationRequest = z.infer<typeof createGenerationRequestSchema>;
+
+/**
+ * Validation schema for POST /api/generations/{generationId}/reject request body
+ *
+ * Validates:
+ * - draft_index: non-negative integer
+ */
+export const rejectDraftRequestSchema = z.object({
+  draft_index: z.number().int().min(0, "Draft index must be a non-negative integer"),
+});

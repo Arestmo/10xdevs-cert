@@ -1,6 +1,12 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/db/database.types";
-import type { CreateGenerationRequestDTO, GenerationResponseDTO, FlashcardDraftDTO, Profile } from "@/types";
+import type {
+  CreateGenerationRequestDTO,
+  GenerationResponseDTO,
+  FlashcardDraftDTO,
+  Profile,
+  GenerationEventResponseDTO,
+} from "@/types";
 import { openRouterService } from "./openrouter.service";
 
 type SupabaseClientType = SupabaseClient<Database>;
@@ -192,6 +198,69 @@ export class GenerationService {
       console.error("Failed to log generation events:", error);
     }
   }
+
+  /**
+   * Log rejection of an AI-generated draft
+   *
+   * Steps:
+   * 1. Verify generation exists and belongs to user
+   * 2. Insert REJECTED event into generation_events
+   * 3. Return event details
+   *
+   * @param userId - Authenticated user's ID
+   * @param generationId - Generation session ID from URL path
+   * @param _draftIndex - Zero-based index of rejected draft (for client tracking only, not used in database)
+   * @returns Created event details
+   * @throws GenerationNotFoundError if generation doesn't exist or user doesn't own it
+   */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async rejectDraft(userId: string, generationId: string, _draftIndex: number): Promise<GenerationEventResponseDTO> {
+    // Note: draftIndex is accepted for API contract compliance but not used in database operations
+    // It's validated in the endpoint for client-side tracking purposes only
+
+    // Step 1: Verify generation exists and belongs to user
+    const { data: existingEvent, error: queryError } = await this.supabase
+      .from("generation_events")
+      .select("id")
+      .eq("generation_id", generationId)
+      .eq("user_id", userId)
+      .limit(1)
+      .single();
+
+    if (queryError || !existingEvent) {
+      throw new GenerationNotFoundError();
+    }
+
+    // Step 2: Insert REJECTED event
+    const { data: event, error: insertError } = await this.supabase
+      .from("generation_events")
+      .insert({
+        user_id: userId,
+        generation_id: generationId,
+        flashcard_id: null,
+        event_type: "REJECTED",
+      })
+      .select()
+      .single();
+
+    if (insertError || !event) {
+      console.error("Failed to insert rejection event:", insertError);
+      throw new Error("Failed to insert rejection event");
+    }
+
+    // Step 3: Return event details
+    // generation_id is guaranteed to be non-null because we just inserted it
+    if (!event.generation_id) {
+      throw new Error("Generation ID is missing from inserted event");
+    }
+
+    return {
+      id: event.id,
+      generation_id: event.generation_id,
+      event_type: event.event_type,
+      created_at: event.created_at,
+    };
+  }
 }
 
 /**
@@ -222,5 +291,19 @@ export class AILimitExceededError extends Error {
   ) {
     super("Monthly AI generation limit exceeded");
     this.name = "AILimitExceededError";
+  }
+}
+
+/**
+ * Custom error: Generation not found or not owned by user
+ *
+ * Thrown when:
+ * - Generation doesn't exist
+ * - Generation exists but doesn't belong to the user
+ */
+export class GenerationNotFoundError extends Error {
+  constructor() {
+    super("Generation not found or not owned by user");
+    this.name = "GenerationNotFoundError";
   }
 }
