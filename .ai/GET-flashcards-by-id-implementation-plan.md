@@ -57,8 +57,8 @@ export interface ErrorResponseDTO {
 ```typescript
 const GetFlashcardParamsSchema = z.object({
   flashcardId: z.string().uuid({
-    message: "Invalid flashcard ID format"
-  })
+    message: "Invalid flashcard ID format",
+  }),
 });
 ```
 
@@ -90,6 +90,7 @@ const GetFlashcardParamsSchema = z.object({
 ### Błędy:
 
 **400 Bad Request** - Nieprawidłowy format UUID:
+
 ```json
 {
   "error": {
@@ -104,6 +105,7 @@ const GetFlashcardParamsSchema = z.object({
 ```
 
 **401 Unauthorized** - Brak uwierzytelnienia:
+
 ```json
 {
   "error": {
@@ -114,6 +116,7 @@ const GetFlashcardParamsSchema = z.object({
 ```
 
 **404 Not Found** - Fiszka nie istnieje lub nie należy do użytkownika:
+
 ```json
 {
   "error": {
@@ -124,6 +127,7 @@ const GetFlashcardParamsSchema = z.object({
 ```
 
 **500 Internal Server Error** - Błąd serwera:
+
 ```json
 {
   "error": {
@@ -164,27 +168,32 @@ const GetFlashcardParamsSchema = z.object({
 ## 6. Względy bezpieczeństwa
 
 ### Uwierzytelnianie:
+
 - Endpoint wymaga aktywnej sesji użytkownika Supabase
 - Token JWT weryfikowany automatycznie przez middleware Supabase
 - Brak tokena lub wygasły token = 401 Unauthorized
 
 ### Autoryzacja (weryfikacja własności):
+
 - **KRYTYCZNE**: Fiszka musi należeć do talii użytkownika
 - Implementacja przez JOIN z tabelą `decks` i filtr na `user_id`
 - **Nigdy nie polegać tylko na RLS** - zawsze weryfikować własność w kodzie aplikacji
 - Zapobiega IDOR (Insecure Direct Object Reference) - użytkownik nie może dostać się do fiszek innych użytkowników poprzez zgadywanie UUID
 
 ### Walidacja danych wejściowych:
+
 - Walidacja UUID przy użyciu Zod zapobiega SQL injection
 - Walidacja na poziomie aplikacji przed wywołaniem bazy danych
 
 ### Information Disclosure:
+
 - Zwracanie identycznego komunikatu błędu 404 niezależnie od tego czy:
   - Fiszka nie istnieje w bazie
   - Fiszka istnieje ale należy do innego użytkownika
 - Zapobiega to wyciekowi informacji o istnieniu zasobów
 
 ### Row Level Security (RLS):
+
 - RLS na tabeli `flashcards` działa jako dodatkowa warstwa ochrony
 - Nie zastępuje walidacji na poziomie aplikacji
 
@@ -192,15 +201,15 @@ const GetFlashcardParamsSchema = z.object({
 
 ### Scenariusze błędów i odpowiedzi:
 
-| Scenariusz | Status | Code | Message | Działanie |
-|------------|--------|------|---------|-----------|
-| Brak tokena uwierzytelniającego | 401 | UNAUTHORIZED | Authentication required | Zwróć błąd natychmiast |
-| Token wygasły lub nieprawidłowy | 401 | UNAUTHORIZED | Authentication required | Zwróć błąd natychmiast |
-| Nieprawidłowy format UUID | 400 | VALIDATION_ERROR | Invalid flashcard ID format | Walidacja Zod, zwróć szczegóły |
-| Fiszka nie istnieje | 404 | FLASHCARD_NOT_FOUND | Flashcard not found or not owned by user | Zwróć po sprawdzeniu w bazie |
-| Fiszka należy do innego użytkownika | 404 | FLASHCARD_NOT_FOUND | Flashcard not found or not owned by user | Zwróć po sprawdzeniu własności |
-| Błąd połączenia z bazą danych | 500 | INTERNAL_SERVER_ERROR | An unexpected error occurred | Loguj szczegóły, zwróć ogólny błąd |
-| Nieoczekiwany wyjątek | 500 | INTERNAL_SERVER_ERROR | An unexpected error occurred | Loguj stack trace, zwróć ogólny błąd |
+| Scenariusz                          | Status | Code                  | Message                                  | Działanie                            |
+| ----------------------------------- | ------ | --------------------- | ---------------------------------------- | ------------------------------------ |
+| Brak tokena uwierzytelniającego     | 401    | UNAUTHORIZED          | Authentication required                  | Zwróć błąd natychmiast               |
+| Token wygasły lub nieprawidłowy     | 401    | UNAUTHORIZED          | Authentication required                  | Zwróć błąd natychmiast               |
+| Nieprawidłowy format UUID           | 400    | VALIDATION_ERROR      | Invalid flashcard ID format              | Walidacja Zod, zwróć szczegóły       |
+| Fiszka nie istnieje                 | 404    | FLASHCARD_NOT_FOUND   | Flashcard not found or not owned by user | Zwróć po sprawdzeniu w bazie         |
+| Fiszka należy do innego użytkownika | 404    | FLASHCARD_NOT_FOUND   | Flashcard not found or not owned by user | Zwróć po sprawdzeniu własności       |
+| Błąd połączenia z bazą danych       | 500    | INTERNAL_SERVER_ERROR | An unexpected error occurred             | Loguj szczegóły, zwróć ogólny błąd   |
+| Nieoczekiwany wyjątek               | 500    | INTERNAL_SERVER_ERROR | An unexpected error occurred             | Loguj stack trace, zwróć ogólny błąd |
 
 ### Error Handling Pattern:
 
@@ -208,35 +217,47 @@ const GetFlashcardParamsSchema = z.object({
 // 1. Walidacja danych wejściowych (Guard clause)
 const validation = GetFlashcardParamsSchema.safeParse({ flashcardId });
 if (!validation.success) {
-  return new Response(JSON.stringify({
-    error: {
-      code: "VALIDATION_ERROR",
-      message: "Invalid flashcard ID format",
-      details: validation.error.flatten()
-    }
-  }), { status: 400 });
+  return new Response(
+    JSON.stringify({
+      error: {
+        code: "VALIDATION_ERROR",
+        message: "Invalid flashcard ID format",
+        details: validation.error.flatten(),
+      },
+    }),
+    { status: 400 }
+  );
 }
 
 // 2. Uwierzytelnianie (Guard clause)
-const { data: { user }, error: authError } = await supabase.auth.getUser();
+const {
+  data: { user },
+  error: authError,
+} = await supabase.auth.getUser();
 if (authError || !user) {
-  return new Response(JSON.stringify({
-    error: {
-      code: "UNAUTHORIZED",
-      message: "Authentication required"
-    }
-  }), { status: 401 });
+  return new Response(
+    JSON.stringify({
+      error: {
+        code: "UNAUTHORIZED",
+        message: "Authentication required",
+      },
+    }),
+    { status: 401 }
+  );
 }
 
 // 3. Weryfikacja istnienia i własności (Guard clause)
 const flashcard = await flashcardService.getFlashcardByIdForUser(flashcardId, user.id);
 if (!flashcard) {
-  return new Response(JSON.stringify({
-    error: {
-      code: "FLASHCARD_NOT_FOUND",
-      message: "Flashcard not found or not owned by user"
-    }
-  }), { status: 404 });
+  return new Response(
+    JSON.stringify({
+      error: {
+        code: "FLASHCARD_NOT_FOUND",
+        message: "Flashcard not found or not owned by user",
+      },
+    }),
+    { status: 404 }
+  );
 }
 
 // 4. Happy path - zwróć dane
@@ -322,8 +343,8 @@ import { z } from "zod";
 
 const GetFlashcardParamsSchema = z.object({
   flashcardId: z.string().uuid({
-    message: "Invalid flashcard ID format"
-  })
+    message: "Invalid flashcard ID format",
+  }),
 });
 ```
 
@@ -342,7 +363,7 @@ export const GET: APIRoute = async ({ params, locals }) => {
   try {
     // 1. Walidacja parametru URL
     const validation = GetFlashcardParamsSchema.safeParse({
-      flashcardId: params.flashcardId
+      flashcardId: params.flashcardId,
     });
 
     if (!validation.success) {
@@ -350,50 +371,49 @@ export const GET: APIRoute = async ({ params, locals }) => {
         error: {
           code: "VALIDATION_ERROR",
           message: "Invalid flashcard ID format",
-          details: validation.error.flatten()
-        }
+          details: validation.error.flatten(),
+        },
       };
       return new Response(JSON.stringify(errorResponse), {
         status: 400,
-        headers: { "Content-Type": "application/json" }
+        headers: { "Content-Type": "application/json" },
       });
     }
 
     const { flashcardId } = validation.data;
 
     // 2. Uwierzytelnianie
-    const { data: { user }, error: authError } = await locals.supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await locals.supabase.auth.getUser();
 
     if (authError || !user) {
       const errorResponse: ErrorResponseDTO = {
         error: {
           code: "UNAUTHORIZED",
-          message: "Authentication required"
-        }
+          message: "Authentication required",
+        },
       };
       return new Response(JSON.stringify(errorResponse), {
         status: 401,
-        headers: { "Content-Type": "application/json" }
+        headers: { "Content-Type": "application/json" },
       });
     }
 
     // 3. Pobranie fiszki z weryfikacją własności
-    const flashcard = await getFlashcardByIdForUser(
-      locals.supabase,
-      flashcardId,
-      user.id
-    );
+    const flashcard = await getFlashcardByIdForUser(locals.supabase, flashcardId, user.id);
 
     if (!flashcard) {
       const errorResponse: ErrorResponseDTO = {
         error: {
           code: "FLASHCARD_NOT_FOUND",
-          message: "Flashcard not found or not owned by user"
-        }
+          message: "Flashcard not found or not owned by user",
+        },
       };
       return new Response(JSON.stringify(errorResponse), {
         status: 404,
-        headers: { "Content-Type": "application/json" }
+        headers: { "Content-Type": "application/json" },
       });
     }
 
@@ -401,9 +421,8 @@ export const GET: APIRoute = async ({ params, locals }) => {
     const response: FlashcardDTO = flashcard;
     return new Response(JSON.stringify(response), {
       status: 200,
-      headers: { "Content-Type": "application/json" }
+      headers: { "Content-Type": "application/json" },
     });
-
   } catch (error) {
     // 5. Obsługa nieoczekiwanych błędów
     console.error("Error fetching flashcard:", error);
@@ -411,12 +430,12 @@ export const GET: APIRoute = async ({ params, locals }) => {
     const errorResponse: ErrorResponseDTO = {
       error: {
         code: "INTERNAL_SERVER_ERROR",
-        message: "An unexpected error occurred"
-      }
+        message: "An unexpected error occurred",
+      },
     };
     return new Response(JSON.stringify(errorResponse), {
       status: 500,
-      headers: { "Content-Type": "application/json" }
+      headers: { "Content-Type": "application/json" },
     });
   }
 };
@@ -425,6 +444,7 @@ export const GET: APIRoute = async ({ params, locals }) => {
 ### Krok 4: Weryfikacja struktury plików
 
 Upewnić się, że istnieją następujące pliki:
+
 - `src/lib/services/flashcard.service.ts` (utworzony w kroku 1)
 - `src/pages/api/flashcards/[flashcardId].ts` (utworzony w kroku 3)
 - `src/types.ts` (już istnieje - zawiera FlashcardDTO)
@@ -433,6 +453,7 @@ Upewnić się, że istnieją następujące pliki:
 ### Krok 5: Testowanie endpointu
 
 **Test 1: Sukces (200)**
+
 ```bash
 curl -X GET \
   'http://localhost:3000/api/flashcards/{valid-flashcard-id}' \
@@ -440,6 +461,7 @@ curl -X GET \
 ```
 
 **Test 2: Nieprawidłowy UUID (400)**
+
 ```bash
 curl -X GET \
   'http://localhost:3000/api/flashcards/invalid-uuid' \
@@ -447,12 +469,14 @@ curl -X GET \
 ```
 
 **Test 3: Brak uwierzytelnienia (401)**
+
 ```bash
 curl -X GET \
   'http://localhost:3000/api/flashcards/{valid-flashcard-id}'
 ```
 
 **Test 4: Fiszka nie należy do użytkownika (404)**
+
 ```bash
 curl -X GET \
   'http://localhost:3000/api/flashcards/{someone-elses-flashcard-id}' \
@@ -460,6 +484,7 @@ curl -X GET \
 ```
 
 **Test 5: Fiszka nie istnieje (404)**
+
 ```bash
 curl -X GET \
   'http://localhost:3000/api/flashcards/00000000-0000-0000-0000-000000000000' \

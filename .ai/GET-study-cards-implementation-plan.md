@@ -5,6 +5,7 @@
 This endpoint retrieves flashcards that are due for review in a study session. It implements the core functionality of the spaced repetition system by querying cards where `next_review <= NOW()` and returning them sorted by review priority (oldest due first).
 
 **Key Features**:
+
 - Returns flashcards due for review based on FSRS scheduling
 - Optional filtering by specific deck
 - Configurable limit (1-200 cards, default 50)
@@ -24,6 +25,7 @@ This endpoint retrieves flashcards that are due for review in a study session. I
     - `limit` (integer, 1-200, default 50) - Maximum number of cards to return
 
 **Example Requests**:
+
 ```
 GET /api/study/cards
 GET /api/study/cards?limit=20
@@ -36,6 +38,7 @@ GET /api/study/cards?deck_id=550e8400-e29b-41d4-a716-446655440000&limit=100
 ### DTOs Used
 
 **StudyCardDTO** (from `src/types.ts`):
+
 ```typescript
 interface StudyCardDTO extends Omit<Flashcard, "created_at" | "updated_at"> {
   deck_name: string;
@@ -43,6 +46,7 @@ interface StudyCardDTO extends Omit<Flashcard, "created_at" | "updated_at"> {
 ```
 
 **StudyCardsResponseDTO** (from `src/types.ts`):
+
 ```typescript
 interface StudyCardsResponseDTO {
   data: StudyCardDTO[];
@@ -52,6 +56,7 @@ interface StudyCardsResponseDTO {
 ```
 
 **ErrorResponseDTO** (from `src/types.ts`):
+
 ```typescript
 interface ErrorResponseDTO {
   error: {
@@ -69,7 +74,7 @@ import { z } from "zod";
 
 const GetStudyCardsQuerySchema = z.object({
   deck_id: z.string().uuid().optional(),
-  limit: z.coerce.number().int().min(1).max(200).default(50)
+  limit: z.coerce.number().int().min(1).max(200).default(50),
 });
 ```
 
@@ -103,6 +108,7 @@ const GetStudyCardsQuerySchema = z.object({
 ```
 
 **Response Fields**:
+
 - `data`: Array of StudyCardDTO objects (flashcards with deck names)
 - `total_due`: Total count of all due cards (respecting deck_id filter if provided)
 - `returned_count`: Number of cards actually returned (limited by limit parameter)
@@ -110,6 +116,7 @@ const GetStudyCardsQuerySchema = z.object({
 ### Error Responses
 
 **400 Bad Request** - Invalid query parameters:
+
 ```json
 {
   "error": {
@@ -124,6 +131,7 @@ const GetStudyCardsQuerySchema = z.object({
 ```
 
 **401 Unauthorized** - User not authenticated:
+
 ```json
 {
   "error": {
@@ -134,6 +142,7 @@ const GetStudyCardsQuerySchema = z.object({
 ```
 
 **404 Not Found** - Deck not found or doesn't belong to user:
+
 ```json
 {
   "error": {
@@ -144,6 +153,7 @@ const GetStudyCardsQuerySchema = z.object({
 ```
 
 **500 Internal Server Error** - Server-side error:
+
 ```json
 {
   "error": {
@@ -175,6 +185,7 @@ const GetStudyCardsQuerySchema = z.object({
 ### Database Interactions
 
 **Main Query** (executed in service layer):
+
 ```sql
 SELECT
   f.id,
@@ -202,6 +213,7 @@ LIMIT $3;
 ```
 
 **Count Query**:
+
 ```sql
 SELECT COUNT(*)
 FROM flashcards f
@@ -212,6 +224,7 @@ WHERE f.next_review <= NOW()
 ```
 
 **Parameters**:
+
 - `$1`: userId (from session)
 - `$2`: deck_id (optional filter)
 - `$3`: limit (default 50)
@@ -221,16 +234,18 @@ WHERE f.next_review <= NOW()
 **File**: `src/lib/services/study.service.ts`
 
 **Function Signature**:
+
 ```typescript
 export async function getStudyCards(
   supabase: SupabaseClient<Database>,
   userId: string,
   deckId?: string,
   limit: number = 50
-): Promise<StudyCardsResponseDTO>
+): Promise<StudyCardsResponseDTO>;
 ```
 
 **Responsibilities**:
+
 - Execute database query to fetch due cards
 - Verify deck ownership if deck_id provided
 - Handle database errors gracefully
@@ -240,27 +255,32 @@ export async function getStudyCards(
 ## 6. Security Considerations
 
 ### Authentication
+
 - **Requirement**: User must be authenticated via Supabase Auth
 - **Implementation**: Check `context.locals.supabase.auth.getUser()`
 - **Error Response**: 401 Unauthorized if not authenticated
 
 ### Authorization
+
 - **Row-Level Security (RLS)**: Supabase RLS policies on `flashcards` and `decks` tables enforce user_id filtering
 - **Deck Ownership**: When `deck_id` is provided, verify deck belongs to user
 - **Implementation**: JOIN query ensures only user's decks are accessed
 
 ### Input Validation
+
 - **Zod Schema**: Strict validation of query parameters
 - **UUID Validation**: Ensure `deck_id` is valid UUID format
 - **Range Validation**: Enforce `limit` between 1-200
 - **SQL Injection Prevention**: Use Supabase client with parameterized queries
 
 ### Data Exposure
+
 - **Omit Sensitive Fields**: `created_at` and `updated_at` omitted from response (StudyCardDTO)
 - **User Isolation**: RLS ensures users only see their own flashcards
 - **No User IDs**: Response doesn't expose user_id fields
 
 ### Rate Limiting Considerations
+
 - **High Traffic Endpoint**: Study sessions may generate frequent requests
 - **Recommendation**: Implement rate limiting (e.g., 100 requests/minute per user)
 - **Implementation**: Consider Astro middleware or external service (e.g., Upstash Rate Limit)
@@ -270,11 +290,13 @@ export async function getStudyCards(
 ### Validation Errors (400 Bad Request)
 
 **Scenario**: Invalid query parameters
+
 - Invalid UUID format for `deck_id`
 - `limit` out of range (< 1 or > 200)
 - Non-numeric `limit` value
 
 **Handling**:
+
 ```typescript
 try {
   const validatedQuery = GetStudyCardsQuerySchema.parse(queryParams);
@@ -285,8 +307,8 @@ try {
         error: {
           code: "INVALID_REQUEST",
           message: "Invalid query parameters",
-          details: error.flatten().fieldErrors
-        }
+          details: error.flatten().fieldErrors,
+        },
       }),
       { status: 400, headers: { "Content-Type": "application/json" } }
     );
@@ -299,16 +321,20 @@ try {
 **Scenario**: User not logged in or session expired
 
 **Handling**:
+
 ```typescript
-const { data: { user }, error } = await supabase.auth.getUser();
+const {
+  data: { user },
+  error,
+} = await supabase.auth.getUser();
 
 if (error || !user) {
   return new Response(
     JSON.stringify({
       error: {
         code: "UNAUTHORIZED",
-        message: "Authentication required"
-      }
+        message: "Authentication required",
+      },
     }),
     { status: 401, headers: { "Content-Type": "application/json" } }
   );
@@ -320,6 +346,7 @@ if (error || !user) {
 **Scenario**: Deck specified in `deck_id` doesn't exist or doesn't belong to user
 
 **Handling**:
+
 ```typescript
 // In service layer, check if deck exists and belongs to user
 if (deckId) {
@@ -356,6 +383,7 @@ catch (error) {
 **Scenario**: Database connection issues, query failures, unexpected errors
 
 **Handling**:
+
 ```typescript
 catch (error) {
   console.error("Error fetching study cards:", error);
@@ -383,6 +411,7 @@ catch (error) {
 ### Database Performance
 
 **Indexes Required**:
+
 ```sql
 -- Index on next_review for efficient filtering and sorting
 CREATE INDEX idx_flashcards_next_review ON flashcards(next_review);
@@ -395,6 +424,7 @@ CREATE INDEX idx_decks_user_id ON decks(user_id);
 ```
 
 **Query Optimization**:
+
 - Use INNER JOIN instead of multiple queries
 - Limit results at database level (not application level)
 - Use `EXPLAIN ANALYZE` to verify query plan uses indexes
@@ -402,6 +432,7 @@ CREATE INDEX idx_decks_user_id ON decks(user_id);
 ### Caching Strategy
 
 **Not Recommended for This Endpoint**:
+
 - Study cards are time-sensitive (`next_review <= NOW()`)
 - Data changes frequently (after each review)
 - Real-time accuracy is critical for spaced repetition
@@ -411,20 +442,24 @@ CREATE INDEX idx_decks_user_id ON decks(user_id);
 ### Response Size
 
 **Typical Response**:
+
 - 50 cards × ~400 bytes per card = ~20 KB
 - Acceptable for REST API, no compression needed
 
 **Large Response Scenario**:
+
 - 200 cards (max limit) × ~400 bytes = ~80 KB
 - Still acceptable, but consider warning in docs
 
 ### Pagination Considerations
 
 **Current Design**: No offset-based pagination (intentional per spec)
+
 - `limit` controls batch size
 - `total_due` and `returned_count` provide progress metadata
 
 **Rationale**:
+
 - Study sessions are meant to be completed in one sitting
 - Cards are sorted by priority (next_review ASC)
 - Users review a batch, then endpoint is called again for next batch
@@ -441,6 +476,7 @@ CREATE INDEX idx_decks_user_id ON decks(user_id);
 **File**: `src/lib/services/study.service.ts`
 
 **Tasks**:
+
 1. Create new service file
 2. Import necessary types: `SupabaseClient`, `Database`, `StudyCardDTO`, `StudyCardsResponseDTO`
 3. Implement `getStudyCards()` function:
@@ -454,6 +490,7 @@ CREATE INDEX idx_decks_user_id ON decks(user_id);
 5. Add JSDoc documentation
 
 **Example Implementation**:
+
 ```typescript
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/db/database.types";
@@ -482,7 +519,8 @@ export async function getStudyCards(
   // Build query for due cards
   let query = supabase
     .from("flashcards")
-    .select(`
+    .select(
+      `
       id,
       deck_id,
       decks!inner(name),
@@ -498,7 +536,8 @@ export async function getStudyCards(
       state,
       last_review,
       next_review
-    `)
+    `
+    )
     .lte("next_review", new Date().toISOString())
     .eq("decks.user_id", userId)
     .order("next_review", { ascending: true })
@@ -547,13 +586,13 @@ export async function getStudyCards(
     lapses: card.lapses,
     state: card.state,
     last_review: card.last_review,
-    next_review: card.next_review
+    next_review: card.next_review,
   }));
 
   return {
     data: studyCards,
     total_due: count ?? 0,
-    returned_count: studyCards.length
+    returned_count: studyCards.length,
   };
 }
 ```
@@ -563,6 +602,7 @@ export async function getStudyCards(
 **File**: `src/pages/api/study/cards.ts`
 
 **Tasks**:
+
 1. Create new API endpoint file
 2. Add `export const prerender = false`
 3. Create Zod validation schema for query parameters
@@ -576,6 +616,7 @@ export async function getStudyCards(
 6. Set appropriate HTTP headers
 
 **Example Implementation**:
+
 ```typescript
 import type { APIContext } from "astro";
 import { z } from "zod";
@@ -586,7 +627,7 @@ export const prerender = false;
 
 const GetStudyCardsQuerySchema = z.object({
   deck_id: z.string().uuid().optional(),
-  limit: z.coerce.number().int().min(1).max(200).default(50)
+  limit: z.coerce.number().int().min(1).max(200).default(50),
 });
 
 export async function GET(context: APIContext): Promise<Response> {
@@ -598,18 +639,21 @@ export async function GET(context: APIContext): Promise<Response> {
     const validatedQuery = GetStudyCardsQuerySchema.parse(queryParams);
 
     // Check authentication
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
 
     if (authError || !user) {
       const errorResponse: ErrorResponseDTO = {
         error: {
           code: "UNAUTHORIZED",
-          message: "Authentication required"
-        }
+          message: "Authentication required",
+        },
       };
       return new Response(JSON.stringify(errorResponse), {
         status: 401,
-        headers: { "Content-Type": "application/json" }
+        headers: { "Content-Type": "application/json" },
       });
     }
 
@@ -623,9 +667,8 @@ export async function GET(context: APIContext): Promise<Response> {
 
     return new Response(JSON.stringify(response), {
       status: 200,
-      headers: { "Content-Type": "application/json" }
+      headers: { "Content-Type": "application/json" },
     });
-
   } catch (error) {
     // Handle validation errors
     if (error instanceof z.ZodError) {
@@ -633,12 +676,12 @@ export async function GET(context: APIContext): Promise<Response> {
         error: {
           code: "INVALID_REQUEST",
           message: "Invalid query parameters",
-          details: error.flatten().fieldErrors
-        }
+          details: error.flatten().fieldErrors,
+        },
       };
       return new Response(JSON.stringify(errorResponse), {
         status: 400,
-        headers: { "Content-Type": "application/json" }
+        headers: { "Content-Type": "application/json" },
       });
     }
 
@@ -647,12 +690,12 @@ export async function GET(context: APIContext): Promise<Response> {
       const errorResponse: ErrorResponseDTO = {
         error: {
           code: "DECK_NOT_FOUND",
-          message: "Deck not found"
-        }
+          message: "Deck not found",
+        },
       };
       return new Response(JSON.stringify(errorResponse), {
         status: 404,
-        headers: { "Content-Type": "application/json" }
+        headers: { "Content-Type": "application/json" },
       });
     }
 
@@ -661,12 +704,12 @@ export async function GET(context: APIContext): Promise<Response> {
     const errorResponse: ErrorResponseDTO = {
       error: {
         code: "INTERNAL_ERROR",
-        message: "An unexpected error occurred"
-      }
+        message: "An unexpected error occurred",
+      },
     };
     return new Response(JSON.stringify(errorResponse), {
       status: 500,
-      headers: { "Content-Type": "application/json" }
+      headers: { "Content-Type": "application/json" },
     });
   }
 }
@@ -677,12 +720,14 @@ export async function GET(context: APIContext): Promise<Response> {
 **File**: Create new migration file in `supabase/migrations/`
 
 **Tasks**:
+
 1. Create migration file with timestamp: `YYYYMMDDHHmmss_add_study_indexes.sql`
 2. Add index for `next_review` on flashcards table
 3. Add composite index for `deck_id` and `next_review`
 4. Verify indexes don't already exist before creating
 
 **Example Migration**:
+
 ```sql
 -- Migration: Add indexes for study session queries
 -- Purpose: Optimize GET /api/study/cards performance
@@ -708,6 +753,7 @@ comment on index idx_flashcards_deck_next_review is
 ### Step 4: Test the Endpoint
 
 **Manual Testing**:
+
 1. Start dev server: `npm run dev`
 2. Authenticate a user
 3. Test basic request: `GET /api/study/cards`
@@ -721,6 +767,7 @@ comment on index idx_flashcards_deck_next_review is
 7. Verify response structure matches `StudyCardsResponseDTO`
 
 **Edge Case Testing**:
+
 1. User with no due cards (should return empty array)
 2. User with fewer cards than limit
 3. User with more cards than limit (verify limit works)
@@ -729,6 +776,7 @@ comment on index idx_flashcards_deck_next_review is
 ### Step 5: Documentation
 
 **Tasks**:
+
 1. Add JSDoc comments to service function
 2. Add inline comments explaining complex logic
 3. Update API documentation (if separate docs exist)
@@ -737,6 +785,7 @@ comment on index idx_flashcards_deck_next_review is
 ### Step 6: Code Review Checklist
 
 **Before Submitting**:
+
 - [ ] Input validation with Zod schema implemented
 - [ ] Authentication check implemented
 - [ ] Authorization (deck ownership) verified
@@ -755,6 +804,7 @@ comment on index idx_flashcards_deck_next_review is
 ### Step 7: Performance Verification
 
 **Tasks**:
+
 1. Use `EXPLAIN ANALYZE` on database queries to verify index usage
 2. Test with large datasets (100+ due cards)
 3. Measure response times (should be < 200ms for typical queries)
@@ -763,6 +813,7 @@ comment on index idx_flashcards_deck_next_review is
 ### Step 8: Deploy and Monitor
 
 **Tasks**:
+
 1. Run migrations on production database
 2. Deploy code to production
 3. Monitor error logs for unexpected issues

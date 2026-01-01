@@ -12,6 +12,7 @@
 ### ✅ Scenario 1: Manual Flashcard Creation (Happy Path)
 
 **Request:**
+
 ```bash
 curl -X POST http://localhost:3000/api/flashcards \
   -H "Content-Type: application/json" \
@@ -26,6 +27,7 @@ curl -X POST http://localhost:3000/api/flashcards \
 ```
 
 **Expected Response:** `201 Created`
+
 ```json
 {
   "id": "uuid",
@@ -48,6 +50,7 @@ curl -X POST http://localhost:3000/api/flashcards \
 ```
 
 **Verify:**
+
 - Flashcard created in database
 - No generation_event logged
 - `next_review` is approximately now (within 1 second)
@@ -58,6 +61,7 @@ curl -X POST http://localhost:3000/api/flashcards \
 ### ✅ Scenario 2: AI Flashcard Acceptance (Not Edited)
 
 **Request:**
+
 ```bash
 curl -X POST http://localhost:3000/api/flashcards \
   -H "Content-Type: application/json" \
@@ -76,6 +80,7 @@ curl -X POST http://localhost:3000/api/flashcards \
 (Same structure as Scenario 1)
 
 **Verify:**
+
 - Flashcard created in database
 - Generation event logged with:
   - `event_type`: "ACCEPTED"
@@ -88,6 +93,7 @@ curl -X POST http://localhost:3000/api/flashcards \
 ### ✅ Scenario 3: AI Flashcard Acceptance (Edited)
 
 **Request:**
+
 ```bash
 curl -X POST http://localhost:3000/api/flashcards \
   -H "Content-Type: application/json" \
@@ -105,6 +111,7 @@ curl -X POST http://localhost:3000/api/flashcards \
 **Expected Response:** `201 Created`
 
 **Verify:**
+
 - Flashcard created in database
 - Generation event logged with:
   - `event_type`: "EDITED"
@@ -115,6 +122,7 @@ curl -X POST http://localhost:3000/api/flashcards \
 ### ❌ Scenario 4: Unauthenticated Request
 
 **Request:**
+
 ```bash
 curl -X POST http://localhost:3000/api/flashcards \
   -H "Content-Type: application/json" \
@@ -127,6 +135,7 @@ curl -X POST http://localhost:3000/api/flashcards \
 ```
 
 **Expected Response:** `401 Unauthorized`
+
 ```json
 {
   "error": {
@@ -141,6 +150,7 @@ curl -X POST http://localhost:3000/api/flashcards \
 ### ❌ Scenario 5: Invalid Deck ID (Non-existent)
 
 **Request:**
+
 ```bash
 curl -X POST http://localhost:3000/api/flashcards \
   -H "Content-Type: application/json" \
@@ -154,6 +164,7 @@ curl -X POST http://localhost:3000/api/flashcards \
 ```
 
 **Expected Response:** `404 Not Found`
+
 ```json
 {
   "error": {
@@ -168,6 +179,7 @@ curl -X POST http://localhost:3000/api/flashcards \
 ### ❌ Scenario 6: Deck Owned by Different User
 
 **Request:**
+
 ```bash
 curl -X POST http://localhost:3000/api/flashcards \
   -H "Content-Type: application/json" \
@@ -188,6 +200,7 @@ curl -X POST http://localhost:3000/api/flashcards \
 ### ❌ Scenario 7: Missing generation_id for AI Source
 
 **Request:**
+
 ```bash
 curl -X POST http://localhost:3000/api/flashcards \
   -H "Content-Type: application/json" \
@@ -201,6 +214,7 @@ curl -X POST http://localhost:3000/api/flashcards \
 ```
 
 **Expected Response:** `400 Bad Request`
+
 ```json
 {
   "error": {
@@ -219,6 +233,7 @@ curl -X POST http://localhost:3000/api/flashcards \
 ### ❌ Scenario 8: Front Content Too Long (>200 chars)
 
 **Request:**
+
 ```bash
 curl -X POST http://localhost:3000/api/flashcards \
   -H "Content-Type: application/json" \
@@ -232,6 +247,7 @@ curl -X POST http://localhost:3000/api/flashcards \
 ```
 
 **Expected Response:** `400 Bad Request`
+
 ```json
 {
   "error": {
@@ -250,6 +266,7 @@ curl -X POST http://localhost:3000/api/flashcards \
 ### ❌ Scenario 9: Back Content Too Long (>500 chars)
 
 **Request:**
+
 ```bash
 curl -X POST http://localhost:3000/api/flashcards \
   -H "Content-Type: application/json" \
@@ -263,6 +280,7 @@ curl -X POST http://localhost:3000/api/flashcards \
 ```
 
 **Expected Response:** `400 Bad Request`
+
 ```json
 {
   "error": {
@@ -281,6 +299,7 @@ curl -X POST http://localhost:3000/api/flashcards \
 ### ❌ Scenario 10: Invalid Source Enum
 
 **Request:**
+
 ```bash
 curl -X POST http://localhost:3000/api/flashcards \
   -H "Content-Type: application/json" \
@@ -294,6 +313,7 @@ curl -X POST http://localhost:3000/api/flashcards \
 ```
 
 **Expected Response:** `400 Bad Request`
+
 ```json
 {
   "error": {
@@ -312,6 +332,7 @@ curl -X POST http://localhost:3000/api/flashcards \
 ### ❌ Scenario 11: Invalid UUID Format
 
 **Request:**
+
 ```bash
 curl -X POST http://localhost:3000/api/flashcards \
   -H "Content-Type: application/json" \
@@ -325,6 +346,7 @@ curl -X POST http://localhost:3000/api/flashcards \
 ```
 
 **Expected Response:** `400 Bad Request`
+
 ```json
 {
   "error": {
@@ -343,6 +365,7 @@ curl -X POST http://localhost:3000/api/flashcards \
 ### ❌ Scenario 12: Empty Front Field
 
 **Request:**
+
 ```bash
 curl -X POST http://localhost:3000/api/flashcards \
   -H "Content-Type: application/json" \
@@ -356,6 +379,7 @@ curl -X POST http://localhost:3000/api/flashcards \
 ```
 
 **Expected Response:** `400 Bad Request`
+
 ```json
 {
   "error": {
@@ -374,6 +398,7 @@ curl -X POST http://localhost:3000/api/flashcards \
 ### ❌ Scenario 13: Invalid JSON Body
 
 **Request:**
+
 ```bash
 curl -X POST http://localhost:3000/api/flashcards \
   -H "Content-Type: application/json" \
@@ -382,6 +407,7 @@ curl -X POST http://localhost:3000/api/flashcards \
 ```
 
 **Expected Response:** `400 Bad Request`
+
 ```json
 {
   "error": {
@@ -398,18 +424,21 @@ curl -X POST http://localhost:3000/api/flashcards \
 After running tests, verify database state:
 
 ### Check flashcard created:
+
 ```sql
 SELECT * FROM flashcards
 WHERE id = 'CREATED_FLASHCARD_UUID';
 ```
 
 ### Check generation event logged (for AI scenarios):
+
 ```sql
 SELECT * FROM generation_events
 WHERE flashcard_id = 'CREATED_FLASHCARD_UUID';
 ```
 
 ### Verify FSRS parameters initialized correctly:
+
 ```sql
 SELECT
   id,
@@ -420,6 +449,7 @@ WHERE id = 'CREATED_FLASHCARD_UUID';
 ```
 
 Expected for new flashcard:
+
 - `stability`: 0.0
 - `difficulty`: 0.0
 - `elapsed_days`: 0

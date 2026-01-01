@@ -9,7 +9,7 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/db/database.types";
-import type { StudyCardsResponseDTO, StudyCardDTO } from "@/types";
+import type { StudyCardsResponseDTO, StudyCardDTO, StudySummaryResponseDTO, DeckSummaryDTO } from "@/types";
 
 /**
  * Custom error for deck not found or not owned by user
@@ -160,5 +160,101 @@ export async function getStudyCards(
     data: studyCards,
     total_due: count ?? 0,
     returned_count: studyCards.length,
+  };
+}
+
+/**
+ * Retrieves study summary for dashboard overview.
+ *
+ * Aggregates data across all user's decks to provide:
+ * - Total count of due flashcards
+ * - Next scheduled review date
+ * - Per-deck breakdown of due counts
+ *
+ * Flow:
+ * 1. Query decks with JOIN to flashcards to get due counts
+ * 2. Group results by deck and filter decks with due_count > 0
+ * 3. Query for earliest next_review date in the future
+ * 4. Calculate total_due by summing deck counts
+ * 5. Format and return StudySummaryResponseDTO
+ *
+ * Security:
+ * - All queries filter by user_id to ensure data isolation
+ * - RLS policies provide additional protection
+ *
+ * @param supabase - Authenticated Supabase client
+ * @param userId - UUID of authenticated user
+ * @returns Study summary with due counts and next review date
+ * @throws {Error} If database queries fail
+ */
+export async function getStudySummary(
+  supabase: SupabaseClient<Database>,
+  userId: string
+): Promise<StudySummaryResponseDTO> {
+  // Step 1: Query decks with due flashcards
+  // Using inner join to only get decks that have flashcards with next_review <= NOW()
+  const { data: decksWithFlashcards, error: decksError } = await supabase
+    .from("decks")
+    .select(
+      `
+      id,
+      name,
+      flashcards!inner(id)
+    `
+    )
+    .eq("user_id", userId)
+    .lte("flashcards.next_review", new Date().toISOString());
+
+  // Guard clause: database error
+  if (decksError) {
+    throw new Error(`Failed to fetch deck summaries: ${decksError.message}`);
+  }
+
+  // Step 2: Transform to DeckSummaryDTO with counts
+  // Group flashcards by deck_id and count them
+  const deckMap = new Map<string, { id: string; name: string; due_count: number }>();
+
+  decksWithFlashcards?.forEach((deck) => {
+    if (!deckMap.has(deck.id)) {
+      deckMap.set(deck.id, {
+        id: deck.id,
+        name: deck.name,
+        due_count: 0,
+      });
+    }
+    // Each row represents one flashcard due, so increment count
+    const deckData = deckMap.get(deck.id);
+    if (deckData) {
+      deckData.due_count++;
+    }
+  });
+
+  // Convert to array and sort alphabetically by name
+  const deckSummaries: DeckSummaryDTO[] = Array.from(deckMap.values()).sort((a, b) => a.name.localeCompare(b.name));
+
+  // Step 3: Query for next review date
+  // Find earliest next_review that is in the future
+  const { data: nextReviewData, error: nextReviewError } = await supabase
+    .from("flashcards")
+    .select("next_review, decks!inner(user_id)")
+    .eq("decks.user_id", userId)
+    .gt("next_review", new Date().toISOString())
+    .order("next_review", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+
+  // Guard clause: database error
+  if (nextReviewError) {
+    throw new Error(`Failed to fetch next review date: ${nextReviewError.message}`);
+  }
+
+  // Step 4: Calculate total_due by summing all deck counts
+  const total_due = deckSummaries.reduce((sum, deck) => sum + deck.due_count, 0);
+
+  // Step 5: Return StudySummaryResponseDTO (happy path)
+  return {
+    total_due,
+    next_review_date: nextReviewData?.next_review ?? null,
+    decks: deckSummaries,
   };
 }

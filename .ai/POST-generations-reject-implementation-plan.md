@@ -7,6 +7,7 @@ This endpoint allows authenticated users to log rejection of an AI-generated fla
 **Purpose**: Track which AI-generated drafts users reject (don't save) to analyze AI generation quality and user preferences.
 
 **Key Characteristics**:
+
 - Creates analytics event only (no flashcard is created)
 - Non-destructive operation (only inserts, never deletes)
 - Requires user authentication and ownership verification
@@ -22,9 +23,9 @@ POST /api/generations/{generationId}/reject
 
 ### Path Parameters
 
-| Parameter | Type | Required | Constraints | Description |
-|-----------|------|----------|-------------|-------------|
-| `generationId` | UUID | Yes | Valid UUID format | Identifies the AI generation session |
+| Parameter      | Type | Required | Constraints       | Description                          |
+| -------------- | ---- | -------- | ----------------- | ------------------------------------ |
+| `generationId` | UUID | Yes      | Valid UUID format | Identifies the AI generation session |
 
 ### Request Headers
 
@@ -43,11 +44,12 @@ Content-Type: application/json
 
 **Schema**:
 
-| Field | Type | Required | Constraints | Description |
-|-------|------|----------|-------------|-------------|
-| `draft_index` | integer | Yes | >= 0 | Zero-based index of the rejected draft (for client tracking) |
+| Field         | Type    | Required | Constraints | Description                                                  |
+| ------------- | ------- | -------- | ----------- | ------------------------------------------------------------ |
+| `draft_index` | integer | Yes      | >= 0        | Zero-based index of the rejected draft (for client tracking) |
 
 **Validation Rules**:
+
 - `draft_index` must be a non-negative integer
 - Request body must be valid JSON
 
@@ -265,6 +267,7 @@ export type EventType = Enums<"event_type">; // 'GENERATED' | 'ACCEPTED' | 'REJE
 5. **Service Layer Call**: Pass `userId`, `generationId`, and `draftIndex` to `GenerationService.rejectDraft()`
 
 6. **Ownership Verification** (in service):
+
    ```typescript
    const { data, error } = await supabase
      .from("generation_events")
@@ -280,6 +283,7 @@ export type EventType = Enums<"event_type">; // 'GENERATED' | 'ACCEPTED' | 'REJE
    ```
 
 7. **Event Insertion** (in service):
+
    ```typescript
    const { data, error } = await supabase
      .from("generation_events")
@@ -315,8 +319,12 @@ Unlike the `/api/generations` endpoint, this endpoint does NOT interact with Ope
 **Requirement**: User MUST be authenticated with valid Supabase session.
 
 **Implementation**:
+
 ```typescript
-const { data: { user }, error: authError } = await context.locals.supabase.auth.getUser();
+const {
+  data: { user },
+  error: authError,
+} = await context.locals.supabase.auth.getUser();
 
 if (authError || !user) {
   return errorResponse("UNAUTHORIZED", "Authentication required", 401);
@@ -330,10 +338,12 @@ if (authError || !user) {
 **Requirement**: User can only reject drafts from their own generation sessions.
 
 **Implementation**: Query `generation_events` table to verify at least one event exists with both:
+
 - `generation_id = {generationId}` (from URL)
 - `user_id = {authenticated user's id}`
 
 **Why this works**:
+
 - Every generation session creates at least one `GENERATED` event when drafts are created
 - If no event exists with this generation_id + user_id combination, either:
   - Generation doesn't exist, OR
@@ -345,11 +355,13 @@ if (authError || !user) {
 ### Input Validation
 
 **Path Parameter**:
+
 - `generationId` must be valid UUID format
 - Prevents SQL injection (Supabase uses parameterized queries anyway)
 - Prevents malformed requests that could cause unexpected behavior
 
 **Request Body**:
+
 ```typescript
 const rejectDraftRequestSchema = z.object({
   draft_index: z.number().int().min(0),
@@ -357,6 +369,7 @@ const rejectDraftRequestSchema = z.object({
 ```
 
 **Validation protects against**:
+
 - Non-integer values (e.g., `1.5`, `"abc"`)
 - Negative values (e.g., `-1`)
 - Missing field
@@ -369,6 +382,7 @@ const rejectDraftRequestSchema = z.object({
 **Mitigation**: Supabase client uses parameterized queries automatically. All inputs are safely escaped.
 
 **Example safe query**:
+
 ```typescript
 .eq("generation_id", generationId) // Automatically parameterized
 ```
@@ -388,6 +402,7 @@ const rejectDraftRequestSchema = z.object({
 **Why**: Prevents attackers from enumerating valid generation IDs by observing different error messages.
 
 **Example**:
+
 ```typescript
 // Good: Same error for both cases
 if (!generationExists || !userOwnsGeneration) {
@@ -406,10 +421,12 @@ if (!userOwnsGeneration) {
 ### Row Level Security (RLS)
 
 **Database Level**: The `generation_events` table has RLS policies that ensure:
+
 - Users can only insert events for themselves (`user_id = auth.uid()`)
 - Users can only read their own events
 
 **Application Level**: We still verify ownership in application code for:
+
 - Better error messages
 - Consistency with API contract
 - Defense in depth
@@ -419,6 +436,7 @@ if (!userOwnsGeneration) {
 ### Error Handling Strategy
 
 Follow the **guard clause pattern** from CLAUDE.md:
+
 1. Handle errors first with early returns
 2. Place happy path last
 3. Avoid nested if statements
@@ -438,15 +456,15 @@ export class GenerationNotFoundError extends Error {
 
 ### Error Scenarios and Handling
 
-| Error Scenario | Detection Point | Handler Location | Response |
-|----------------|-----------------|------------------|----------|
-| Invalid generationId format | Endpoint (path param validation) | Endpoint try/catch | 400 INVALID_GENERATION_ID |
-| Invalid request body | Endpoint (Zod validation) | Endpoint try/catch (ZodError) | 400 INVALID_DRAFT_INDEX |
-| User not authenticated | Endpoint (auth check) | Endpoint guard clause | 401 UNAUTHORIZED |
-| Generation not found | Service (ownership query) | Service throws GenerationNotFoundError | 404 GENERATION_NOT_FOUND |
-| Generation owned by other user | Service (ownership query) | Service throws GenerationNotFoundError | 404 GENERATION_NOT_FOUND |
-| Database error on insert | Service (insert operation) | Endpoint try/catch | 500 INTERNAL_ERROR |
-| Unexpected error | Any | Endpoint try/catch (fallback) | 500 INTERNAL_ERROR |
+| Error Scenario                 | Detection Point                  | Handler Location                       | Response                  |
+| ------------------------------ | -------------------------------- | -------------------------------------- | ------------------------- |
+| Invalid generationId format    | Endpoint (path param validation) | Endpoint try/catch                     | 400 INVALID_GENERATION_ID |
+| Invalid request body           | Endpoint (Zod validation)        | Endpoint try/catch (ZodError)          | 400 INVALID_DRAFT_INDEX   |
+| User not authenticated         | Endpoint (auth check)            | Endpoint guard clause                  | 401 UNAUTHORIZED          |
+| Generation not found           | Service (ownership query)        | Service throws GenerationNotFoundError | 404 GENERATION_NOT_FOUND  |
+| Generation owned by other user | Service (ownership query)        | Service throws GenerationNotFoundError | 404 GENERATION_NOT_FOUND  |
+| Database error on insert       | Service (insert operation)       | Endpoint try/catch                     | 500 INTERNAL_ERROR        |
+| Unexpected error               | Any                              | Endpoint try/catch (fallback)          | 500 INTERNAL_ERROR        |
 
 ### Endpoint Error Handling Structure
 
@@ -464,7 +482,10 @@ export const POST: APIRoute = async (context) => {
     const validatedData = rejectDraftRequestSchema.parse(body);
 
     // Step 3: Authenticate user
-    const { data: { user }, error: authError } = await context.locals.supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await context.locals.supabase.auth.getUser();
     if (authError || !user) {
       return errorResponse("UNAUTHORIZED", "Authentication required", 401);
     }
@@ -475,7 +496,6 @@ export const POST: APIRoute = async (context) => {
 
     // Step 5: Return success
     return successResponse(event, 201);
-
   } catch (error) {
     // Handle Zod validation errors
     if (error instanceof z.ZodError) {
@@ -540,11 +560,13 @@ async rejectDraft(userId: string, generationId: string, draftIndex: number): Pro
 ### Logging Strategy
 
 **Console Logging**:
+
 - Log unexpected errors with `console.error()` before returning 500
 - Include error object for debugging
 - No logging for expected errors (400, 401, 404) - these are normal API usage
 
 **Example**:
+
 ```typescript
 catch (error) {
   if (error instanceof GenerationNotFoundError) {
@@ -563,6 +585,7 @@ catch (error) {
 ### Database Query Optimization
 
 **Ownership Verification Query**:
+
 ```typescript
 .select("id")           // Select minimal columns (just need existence check)
 .eq("generation_id", generationId)
@@ -572,11 +595,13 @@ catch (error) {
 ```
 
 **Optimizations**:
+
 - **Composite index**: Ensure index exists on `(generation_id, user_id)` in `generation_events` table
 - **Minimal projection**: Select only `id` column (not `*`)
 - **Early termination**: `.limit(1)` stops scan after first match
 
 **Index Recommendation** (to add in migration):
+
 ```sql
 -- Optimize ownership verification queries
 create index idx_generation_events_generation_user
@@ -586,46 +611,52 @@ create index idx_generation_events_generation_user
 ### Insert Performance
 
 **Single Row Insert**:
+
 - Fast operation (< 10ms typical)
 - No complex joins or aggregations
 - Returns inserted row with `.select().single()`
 
 **No Bottlenecks**:
+
 - No external API calls (unlike `/api/generations` which calls OpenRouter)
 - No complex business logic
 - Simple database insert
 
 ### Expected Response Times
 
-| Operation | Expected Time | Notes |
-|-----------|---------------|-------|
-| Path validation | < 1ms | In-memory UUID format check |
-| JSON parsing | < 5ms | Small payload (~20 bytes) |
-| Zod validation | < 1ms | Simple schema, one field |
-| Auth check | 10-50ms | Supabase JWT verification |
-| Ownership query | 5-20ms | Indexed query, single row |
-| Event insert | 5-20ms | Single row insert |
-| **Total** | **25-100ms** | Typical end-to-end |
+| Operation       | Expected Time | Notes                       |
+| --------------- | ------------- | --------------------------- |
+| Path validation | < 1ms         | In-memory UUID format check |
+| JSON parsing    | < 5ms         | Small payload (~20 bytes)   |
+| Zod validation  | < 1ms         | Simple schema, one field    |
+| Auth check      | 10-50ms       | Supabase JWT verification   |
+| Ownership query | 5-20ms        | Indexed query, single row   |
+| Event insert    | 5-20ms        | Single row insert           |
+| **Total**       | **25-100ms**  | Typical end-to-end          |
 
 ### Scalability Analysis
 
 **Concurrent Requests**:
+
 - No locks required (each insert is independent)
 - Supports high concurrency (limited by database connection pool)
 - No race conditions (events are append-only)
 
 **Database Growth**:
+
 - `generation_events` table grows with user activity
 - Each rejection adds one row
 - Recommended: Archive events older than 1 year to separate table for analytics
 
 **Potential Bottlenecks**:
+
 1. **Database connections**: Supabase connection pool (mitigated by connection pooling)
 2. **Table size**: Large `generation_events` table (mitigated by indexing and archiving)
 
 ### Caching Considerations
 
 **No Caching Needed**:
+
 - Each request inserts a new event (write operation)
 - No repeated reads of same data
 - Ownership verification query is fast with index
@@ -635,6 +666,7 @@ create index idx_generation_events_generation_user
 ### Monitoring Recommendations
 
 **Metrics to Track**:
+
 - Request rate (rejections/minute)
 - Response time (p50, p95, p99)
 - Error rate by type (400, 401, 404, 500)
@@ -642,6 +674,7 @@ create index idx_generation_events_generation_user
 - `generation_events` table growth rate
 
 **Alert Conditions**:
+
 - p95 response time > 200ms
 - Error rate > 5%
 - Database connection pool exhaustion
@@ -800,11 +833,7 @@ export const POST: APIRoute = async (context) => {
 
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     if (!generationId || !uuidRegex.test(generationId)) {
-      return errorResponse(
-        "INVALID_GENERATION_ID",
-        "Invalid generation ID format",
-        400
-      );
+      return errorResponse("INVALID_GENERATION_ID", "Invalid generation ID format", 400);
     }
 
     // Step 2: Parse and validate request body
@@ -812,58 +841,41 @@ export const POST: APIRoute = async (context) => {
     const validatedData = rejectDraftRequestSchema.parse(body);
 
     // Step 3: Authenticate user
-    const { data: { user }, error: authError } = await context.locals.supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await context.locals.supabase.auth.getUser();
 
     if (authError || !user) {
-      return errorResponse(
-        "UNAUTHORIZED",
-        "Authentication required",
-        401
-      );
+      return errorResponse("UNAUTHORIZED", "Authentication required", 401);
     }
 
     // Step 4: Call service layer
     const service = new GenerationService(context.locals.supabase);
-    const event = await service.rejectDraft(
-      user.id,
-      generationId,
-      validatedData.draft_index
-    );
+    const event = await service.rejectDraft(user.id, generationId, validatedData.draft_index);
 
     // Step 5: Return success response
     return successResponse(event, 201);
-
   } catch (error) {
     // Handle Zod validation errors
     if (error instanceof z.ZodError) {
-      return errorResponse(
-        "INVALID_DRAFT_INDEX",
-        "Draft index must be a non-negative integer",
-        400
-      );
+      return errorResponse("INVALID_DRAFT_INDEX", "Draft index must be a non-negative integer", 400);
     }
 
     // Handle generation not found
     if (error instanceof GenerationNotFoundError) {
-      return errorResponse(
-        "GENERATION_NOT_FOUND",
-        "Generation not found",
-        404
-      );
+      return errorResponse("GENERATION_NOT_FOUND", "Generation not found", 404);
     }
 
     // Log and handle unexpected errors
     console.error("Failed to reject draft:", error);
-    return errorResponse(
-      "INTERNAL_ERROR",
-      "Failed to log rejection event",
-      500
-    );
+    return errorResponse("INTERNAL_ERROR", "Failed to log rejection event", 500);
   }
 };
 ```
 
 **Key Points**:
+
 - `export const prerender = false` - Required for SSR API routes in Astro
 - UUID validation using regex (matches PostgreSQL UUID format)
 - Guard clauses for early error returns
@@ -909,47 +921,57 @@ comment on index idx_generation_events_generation_user is
 2. **Authenticate**: Get Supabase access token (from browser DevTools or auth flow)
 
 3. **Test valid rejection**:
+
    ```bash
    curl -X POST http://localhost:3000/api/generations/{valid-generation-id}/reject \
      -H "Authorization: Bearer {access-token}" \
      -H "Content-Type: application/json" \
      -d '{"draft_index": 0}'
    ```
+
    Expected: 201 with event details
 
 4. **Test invalid UUID**:
+
    ```bash
    curl -X POST http://localhost:3000/api/generations/invalid-uuid/reject \
      -H "Authorization: Bearer {access-token}" \
      -H "Content-Type: application/json" \
      -d '{"draft_index": 0}'
    ```
+
    Expected: 400 INVALID_GENERATION_ID
 
 5. **Test invalid draft_index**:
+
    ```bash
    curl -X POST http://localhost:3000/api/generations/{valid-generation-id}/reject \
      -H "Authorization: Bearer {access-token}" \
      -H "Content-Type: application/json" \
      -d '{"draft_index": -1}'
    ```
+
    Expected: 400 INVALID_DRAFT_INDEX
 
 6. **Test unauthorized**:
+
    ```bash
    curl -X POST http://localhost:3000/api/generations/{valid-generation-id}/reject \
      -H "Content-Type: application/json" \
      -d '{"draft_index": 0}'
    ```
+
    Expected: 401 UNAUTHORIZED
 
 7. **Test generation not found**:
+
    ```bash
    curl -X POST http://localhost:3000/api/generations/00000000-0000-0000-0000-000000000000/reject \
      -H "Authorization: Bearer {access-token}" \
      -H "Content-Type: application/json" \
      -d '{"draft_index": 0}'
    ```
+
    Expected: 404 GENERATION_NOT_FOUND
 
 8. **Verify database**:
@@ -962,6 +984,7 @@ comment on index idx_generation_events_generation_user is
    Should show newly created REJECTED events
 
 **Automated Testing** (Future):
+
 - Add unit tests for `GenerationService.rejectDraft()`
 - Add integration tests for endpoint
 - Add tests for error scenarios
@@ -973,6 +996,7 @@ comment on index idx_generation_events_generation_user is
 **Action**: Update API documentation (if exists) or create endpoint documentation
 
 **Add to documentation**:
+
 - Endpoint URL and method
 - Request/response examples
 - Error codes and meanings
@@ -980,7 +1004,7 @@ comment on index idx_generation_events_generation_user is
 
 **Example documentation section**:
 
-```markdown
+````markdown
 ### POST /api/generations/{generationId}/reject
 
 Log rejection of an AI-generated flashcard draft.
@@ -988,16 +1012,20 @@ Log rejection of an AI-generated flashcard draft.
 **Authentication**: Required
 
 **Path Parameters**:
+
 - `generationId` (UUID) - Generation session ID
 
 **Request Body**:
+
 ```json
 {
   "draft_index": 0
 }
 ```
+````
 
 **Success Response** (201 Created):
+
 ```json
 {
   "id": "550e8400-e29b-41d4-a716-446655440000",
@@ -1008,12 +1036,14 @@ Log rejection of an AI-generated flashcard draft.
 ```
 
 **Error Responses**:
+
 - `400 INVALID_GENERATION_ID` - Invalid UUID format
 - `400 INVALID_DRAFT_INDEX` - Negative or non-integer draft index
 - `401 UNAUTHORIZED` - Not authenticated
 - `404 GENERATION_NOT_FOUND` - Generation doesn't exist or not owned by user
 - `500 INTERNAL_ERROR` - Server error
-```
+
+````
 
 ---
 
@@ -1030,9 +1060,10 @@ npm run lint:fix
 
 # Format code
 npm run format
-```
+````
 
 **Fix any issues** reported by linters, especially:
+
 - Unused imports
 - Type errors
 - Accessibility issues (if any)
@@ -1087,6 +1118,7 @@ EOF
    - Verify events are being created in database
 
 **Success Criteria**:
+
 - p95 response time < 200ms
 - Error rate < 1%
 - No 500 errors in first 24 hours
@@ -1111,13 +1143,13 @@ EOF
 
 ## Estimated Implementation Time
 
-| Task | Time Estimate |
-|------|---------------|
-| Steps 1-5 (Core implementation) | 30-45 minutes |
-| Step 6 (Database index) | 5-10 minutes |
-| Step 7 (Testing) | 15-20 minutes |
-| Steps 8-10 (Documentation & cleanup) | 10-15 minutes |
-| **Total** | **60-90 minutes** |
+| Task                                 | Time Estimate     |
+| ------------------------------------ | ----------------- |
+| Steps 1-5 (Core implementation)      | 30-45 minutes     |
+| Step 6 (Database index)              | 5-10 minutes      |
+| Step 7 (Testing)                     | 15-20 minutes     |
+| Steps 8-10 (Documentation & cleanup) | 10-15 minutes     |
+| **Total**                            | **60-90 minutes** |
 
 ---
 
@@ -1133,6 +1165,7 @@ The `draft_index` field is included in the request body for **client-side tracki
 4. **API contract**: Provides structured data instead of ignoring the context
 
 However, the **database doesn't need it** because:
+
 - `generation_events` table tracks aggregated metrics (how many rejections total)
 - Individual draft content is ephemeral (not stored in database)
 - Draft position doesn't affect business logic
@@ -1140,16 +1173,19 @@ However, the **database doesn't need it** because:
 ### Alternative Approaches Considered
 
 **1. Store draft_index in database**:
+
 - Pros: More complete analytics
 - Cons: Adds unnecessary column, draft content not stored anyway
 - Decision: Not implemented (YAGNI principle)
 
 **2. Skip draft_index validation**:
+
 - Pros: Simpler endpoint
 - Cons: Weaker API contract, potential client bugs
 - Decision: Keep validation for API consistency
 
 **3. Verify generation in database before inserting event**:
+
 - Current: Check if ANY event exists with generation_id + user_id
 - Alternative: Create a separate `generations` table
 - Decision: Current approach is simpler and sufficient
@@ -1157,11 +1193,13 @@ However, the **database doesn't need it** because:
 ### Future Enhancements
 
 1. **Batch rejection**: Allow rejecting multiple drafts in one request
+
    ```json
    { "draft_indices": [0, 2, 4] }
    ```
 
 2. **Rejection reason**: Add optional reason field for richer analytics
+
    ```json
    {
      "draft_index": 0,

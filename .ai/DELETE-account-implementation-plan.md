@@ -670,6 +670,7 @@ SELECT COUNT(*) FROM generation_events WHERE user_id = '<deleted-user-id>';
    - Error handling rationale
 
 3. **CHANGELOG**: Add entry (if applicable):
+
    ```markdown
    ### Added
 
@@ -710,6 +711,7 @@ SELECT COUNT(*) FROM generation_events WHERE user_id = '<deleted-user-id>';
    - Verify build succeeds
 
 4. **Preview Production Build**:
+
    ```bash
    npm run preview
    ```

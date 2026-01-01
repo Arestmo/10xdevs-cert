@@ -5,6 +5,7 @@
 The GET /api/flashcards endpoint retrieves a paginated list of flashcards for the authenticated user. It supports optional filtering by deck, flexible sorting options, and pagination controls. This endpoint is essential for displaying flashcard collections in the UI and allowing users to browse their learning materials.
 
 **Key Features**:
+
 - Optional filtering by deck_id
 - Configurable pagination (limit: 1-100, offset-based)
 - Flexible sorting (by created_at, next_review, or updated_at)
@@ -18,15 +19,16 @@ The GET /api/flashcards endpoint retrieves a paginated list of flashcards for th
 - **Authentication**: Required (authenticated user session)
 - **Query Parameters**:
 
-| Parameter | Type | Required | Default | Validation | Description |
-|-----------|------|----------|---------|------------|-------------|
-| deck_id | uuid | No | - | Valid UUID format | Filter flashcards by specific deck |
-| limit | integer | No | 20 | 1-100 | Maximum number of items per page |
-| offset | integer | No | 0 | >= 0 | Number of items to skip |
-| sort | string | No | "created_at" | Enum: created_at, next_review, updated_at | Field to sort by |
-| order | string | No | "desc" | Enum: asc, desc | Sort direction |
+| Parameter | Type    | Required | Default      | Validation                                | Description                        |
+| --------- | ------- | -------- | ------------ | ----------------------------------------- | ---------------------------------- |
+| deck_id   | uuid    | No       | -            | Valid UUID format                         | Filter flashcards by specific deck |
+| limit     | integer | No       | 20           | 1-100                                     | Maximum number of items per page   |
+| offset    | integer | No       | 0            | >= 0                                      | Number of items to skip            |
+| sort      | string  | No       | "created_at" | Enum: created_at, next_review, updated_at | Field to sort by                   |
+| order     | string  | No       | "desc"       | Enum: asc, desc                           | Sort direction                     |
 
 **Example Requests**:
+
 ```
 GET /api/flashcards
 GET /api/flashcards?deck_id=550e8400-e29b-41d4-a716-446655440000
@@ -39,6 +41,7 @@ GET /api/flashcards?deck_id=550e8400-e29b-41d4-a716-446655440000&limit=10&sort=u
 ### Existing Types (from src/types.ts)
 
 **Response DTO**:
+
 ```typescript
 export interface FlashcardsListResponseDTO {
   data: FlashcardDTO[];
@@ -58,6 +61,7 @@ export interface PaginationDTO {
 ### New Types Required
 
 **Request Query DTO** (to be added to src/types.ts):
+
 ```typescript
 /**
  * Query parameters for listing flashcards
@@ -66,19 +70,20 @@ export interface GetFlashcardsQueryDTO {
   deck_id?: string;
   limit: number;
   offset: number;
-  sort: 'created_at' | 'next_review' | 'updated_at';
-  order: 'asc' | 'desc';
+  sort: "created_at" | "next_review" | "updated_at";
+  order: "asc" | "desc";
 }
 ```
 
 **Zod Validation Schema** (for API route):
+
 ```typescript
 const GetFlashcardsQuerySchema = z.object({
   deck_id: z.string().uuid().optional(),
   limit: z.coerce.number().int().min(1).max(100).default(20),
   offset: z.coerce.number().int().min(0).default(0),
-  sort: z.enum(['created_at', 'next_review', 'updated_at']).default('created_at'),
-  order: z.enum(['asc', 'desc']).default('desc')
+  sort: z.enum(["created_at", "next_review", "updated_at"]).default("created_at"),
+  order: z.enum(["asc", "desc"]).default("desc"),
 });
 ```
 
@@ -120,6 +125,7 @@ const GetFlashcardsQuerySchema = z.object({
 ### Error Responses
 
 **401 Unauthorized**:
+
 ```json
 {
   "error": {
@@ -130,6 +136,7 @@ const GetFlashcardsQuerySchema = z.object({
 ```
 
 **400 Bad Request**:
+
 ```json
 {
   "error": {
@@ -144,6 +151,7 @@ const GetFlashcardsQuerySchema = z.object({
 ```
 
 **404 Not Found** (when deck_id provided but deck doesn't exist or doesn't belong to user):
+
 ```json
 {
   "error": {
@@ -154,6 +162,7 @@ const GetFlashcardsQuerySchema = z.object({
 ```
 
 **500 Internal Server Error**:
+
 ```json
 {
   "error": {
@@ -203,24 +212,26 @@ const GetFlashcardsQuerySchema = z.object({
 ### Database Interaction Details
 
 **Tables Involved**:
+
 - `flashcards` (main table)
 - `decks` (for user ownership verification)
 
 **Query Structure** (Supabase):
+
 ```typescript
 // Base query
 let query = supabase
-  .from('flashcards')
-  .select('*, decks!inner(user_id)', { count: 'exact' })
-  .eq('decks.user_id', userId);
+  .from("flashcards")
+  .select("*, decks!inner(user_id)", { count: "exact" })
+  .eq("decks.user_id", userId);
 
 // Apply deck filter if provided
 if (deck_id) {
-  query = query.eq('deck_id', deck_id);
+  query = query.eq("deck_id", deck_id);
 }
 
 // Apply sorting
-query = query.order(sort, { ascending: order === 'asc' });
+query = query.order(sort, { ascending: order === "asc" });
 
 // Apply pagination
 query = query.range(offset, offset + limit - 1);
@@ -229,26 +240,31 @@ query = query.range(offset, offset + limit - 1);
 ## 6. Security Considerations
 
 ### Authentication
+
 - **Requirement**: User must be authenticated via Supabase session
 - **Implementation**: Check `context.locals.supabase.auth.getUser()`
 - **Failure Response**: 401 Unauthorized
 
 ### Authorization
+
 - **Data Filtering**: Only return flashcards belonging to the authenticated user's decks
 - **Implementation**: Join with `decks` table and filter by `decks.user_id = authenticated_user_id`
 - **Deck Ownership**: When `deck_id` is provided, verify the deck belongs to the user before querying flashcards
 
 ### Input Validation
+
 - **Zod Schema**: Validate all query parameters before processing
 - **UUID Validation**: Ensure deck_id is a valid UUID format
 - **Range Validation**: Enforce limit (1-100) and offset (>= 0) constraints
 - **Enum Validation**: Restrict sort and order to allowed values
 
 ### Data Exposure Prevention
+
 - **No Sensitive Data**: FlashcardDTO includes all FSRS parameters, which is acceptable for authenticated users viewing their own data
 - **User ID Filtering**: Never expose flashcards from other users
 
 ### SQL Injection Prevention
+
 - **Supabase**: Uses parameterized queries automatically
 - **No Raw SQL**: Avoid `.rpc()` calls with user input
 
@@ -256,17 +272,17 @@ query = query.range(offset, offset + limit - 1);
 
 ### Error Scenarios and Responses
 
-| Scenario | Status Code | Error Code | Message | Details |
-|----------|-------------|------------|---------|---------|
-| User not authenticated | 401 | UNAUTHORIZED | "User not authenticated" | - |
-| Invalid UUID for deck_id | 400 | INVALID_QUERY_PARAMETERS | "Invalid query parameters" | { deck_id: "Invalid UUID format" } |
-| Limit out of range | 400 | INVALID_QUERY_PARAMETERS | "Invalid query parameters" | { limit: "Must be between 1 and 100" } |
-| Offset negative | 400 | INVALID_QUERY_PARAMETERS | "Invalid query parameters" | { offset: "Must be >= 0" } |
-| Invalid sort field | 400 | INVALID_QUERY_PARAMETERS | "Invalid query parameters" | { sort: "Must be one of: created_at, next_review, updated_at" } |
-| Invalid order value | 400 | INVALID_QUERY_PARAMETERS | "Invalid query parameters" | { order: "Must be asc or desc" } |
-| Deck not found (when deck_id provided) | 404 | DECK_NOT_FOUND | "Deck not found" | - |
-| Database connection error | 500 | INTERNAL_SERVER_ERROR | "An unexpected error occurred" | - |
-| Unexpected exception | 500 | INTERNAL_SERVER_ERROR | "An unexpected error occurred" | - |
+| Scenario                               | Status Code | Error Code               | Message                        | Details                                                         |
+| -------------------------------------- | ----------- | ------------------------ | ------------------------------ | --------------------------------------------------------------- |
+| User not authenticated                 | 401         | UNAUTHORIZED             | "User not authenticated"       | -                                                               |
+| Invalid UUID for deck_id               | 400         | INVALID_QUERY_PARAMETERS | "Invalid query parameters"     | { deck_id: "Invalid UUID format" }                              |
+| Limit out of range                     | 400         | INVALID_QUERY_PARAMETERS | "Invalid query parameters"     | { limit: "Must be between 1 and 100" }                          |
+| Offset negative                        | 400         | INVALID_QUERY_PARAMETERS | "Invalid query parameters"     | { offset: "Must be >= 0" }                                      |
+| Invalid sort field                     | 400         | INVALID_QUERY_PARAMETERS | "Invalid query parameters"     | { sort: "Must be one of: created_at, next_review, updated_at" } |
+| Invalid order value                    | 400         | INVALID_QUERY_PARAMETERS | "Invalid query parameters"     | { order: "Must be asc or desc" }                                |
+| Deck not found (when deck_id provided) | 404         | DECK_NOT_FOUND           | "Deck not found"               | -                                                               |
+| Database connection error              | 500         | INTERNAL_SERVER_ERROR    | "An unexpected error occurred" | -                                                               |
+| Unexpected exception                   | 500         | INTERNAL_SERVER_ERROR    | "An unexpected error occurred" | -                                                               |
 
 ### Error Handling Pattern
 
@@ -275,46 +291,58 @@ query = query.range(offset, offset + limit - 1);
 
 // 1. Authentication check
 if (!user) {
-  return new Response(JSON.stringify({
-    error: {
-      code: 'UNAUTHORIZED',
-      message: 'User not authenticated'
-    }
-  }), { status: 401 });
+  return new Response(
+    JSON.stringify({
+      error: {
+        code: "UNAUTHORIZED",
+        message: "User not authenticated",
+      },
+    }),
+    { status: 401 }
+  );
 }
 
 // 2. Validation check
 const validationResult = GetFlashcardsQuerySchema.safeParse(queryParams);
 if (!validationResult.success) {
-  return new Response(JSON.stringify({
-    error: {
-      code: 'INVALID_QUERY_PARAMETERS',
-      message: 'Invalid query parameters',
-      details: validationResult.error.flatten().fieldErrors
-    }
-  }), { status: 400 });
+  return new Response(
+    JSON.stringify({
+      error: {
+        code: "INVALID_QUERY_PARAMETERS",
+        message: "Invalid query parameters",
+        details: validationResult.error.flatten().fieldErrors,
+      },
+    }),
+    { status: 400 }
+  );
 }
 
 // 3. Deck ownership check (if deck_id provided)
 if (deck_id && !deckExists) {
-  return new Response(JSON.stringify({
-    error: {
-      code: 'DECK_NOT_FOUND',
-      message: 'Deck not found'
-    }
-  }), { status: 404 });
+  return new Response(
+    JSON.stringify({
+      error: {
+        code: "DECK_NOT_FOUND",
+        message: "Deck not found",
+      },
+    }),
+    { status: 404 }
+  );
 }
 
 // 4. Database error handling
 try {
   // database operations
 } catch (error) {
-  return new Response(JSON.stringify({
-    error: {
-      code: 'INTERNAL_SERVER_ERROR',
-      message: 'An unexpected error occurred'
-    }
-  }), { status: 500 });
+  return new Response(
+    JSON.stringify({
+      error: {
+        code: "INTERNAL_SERVER_ERROR",
+        message: "An unexpected error occurred",
+      },
+    }),
+    { status: 500 }
+  );
 }
 
 // Happy path
@@ -370,9 +398,11 @@ return new Response(JSON.stringify(result), { status: 200 });
 ## 9. Implementation Steps
 
 ### Step 1: Add Type Definitions
+
 **File**: `src/types.ts`
 
 Add the new query DTO type:
+
 ```typescript
 /**
  * Query parameters for listing flashcards
@@ -381,18 +411,20 @@ export interface GetFlashcardsQueryDTO {
   deck_id?: string;
   limit: number;
   offset: number;
-  sort: 'created_at' | 'next_review' | 'updated_at';
-  order: 'asc' | 'desc';
+  sort: "created_at" | "next_review" | "updated_at";
+  order: "asc" | "desc";
 }
 ```
 
 ### Step 2: Create Flashcard Service
+
 **File**: `src/lib/services/flashcard.service.ts`
 
 Create a new service file with the following function:
+
 ```typescript
-import type { SupabaseClient } from '@/db/supabase.client';
-import type { FlashcardsListResponseDTO, GetFlashcardsQueryDTO } from '@/types';
+import type { SupabaseClient } from "@/db/supabase.client";
+import type { FlashcardsListResponseDTO, GetFlashcardsQueryDTO } from "@/types";
 
 export async function listFlashcards(
   supabase: SupabaseClient,
@@ -404,9 +436,11 @@ export async function listFlashcards(
 ```
 
 ### Step 3: Implement Service Logic
+
 **File**: `src/lib/services/flashcard.service.ts`
 
 Implement the `listFlashcards` function:
+
 1. Build base query with user filtering (join with decks table)
 2. Apply deck_id filter if provided
 3. Apply sorting (sort field and order)
@@ -416,6 +450,7 @@ Implement the `listFlashcards` function:
 7. Build and return FlashcardsListResponseDTO
 
 **Key Implementation Details**:
+
 - Use inner join with decks table: `.select('*, decks!inner(user_id)', { count: 'exact' })`
 - Filter by user: `.eq('decks.user_id', userId)`
 - Filter by deck (if provided): `.eq('deck_id', filters.deck_id)`
@@ -424,9 +459,11 @@ Implement the `listFlashcards` function:
 - Calculate has_more: `(offset + limit) < total`
 
 ### Step 4: Create API Route
+
 **File**: `src/pages/api/flashcards/index.ts`
 
 Create the API endpoint file:
+
 1. Add `export const prerender = false`
 2. Define Zod validation schema
 3. Implement GET handler function
@@ -437,6 +474,7 @@ Create the API endpoint file:
 8. Return response
 
 **Key Implementation Details**:
+
 - Extract query params: `const url = new URL(request.url); const params = Object.fromEntries(url.searchParams);`
 - Validate: `const validationResult = GetFlashcardsQuerySchema.safeParse(params);`
 - Get user: `const { data: { user }, error } = await context.locals.supabase.auth.getUser();`
@@ -444,9 +482,11 @@ Create the API endpoint file:
 - Return JSON: `return new Response(JSON.stringify(result), { status: 200, headers: { 'Content-Type': 'application/json' } });`
 
 ### Step 5: Implement Error Handling
+
 **File**: `src/pages/api/flashcards/index.ts`
 
 Add comprehensive error handling:
+
 1. Handle authentication errors (401)
 2. Handle validation errors (400) with detailed field errors
 3. Handle deck not found errors (404)
@@ -454,6 +494,7 @@ Add comprehensive error handling:
 5. Use guard clauses for early returns
 
 **Error Response Format**:
+
 ```typescript
 interface ErrorResponse {
   error: {
@@ -467,6 +508,7 @@ interface ErrorResponse {
 ### Step 6: Test the Endpoint
 
 **Manual Testing**:
+
 1. Test without authentication → expect 401
 2. Test with valid parameters → expect 200 with data
 3. Test with deck_id filter → expect filtered results
@@ -478,6 +520,7 @@ interface ErrorResponse {
 9. Test sorting (different fields and orders) → verify correct order
 
 **Test Cases**:
+
 ```bash
 # No auth
 curl -X GET http://localhost:3000/api/flashcards
@@ -510,6 +553,7 @@ curl -X GET "http://localhost:3000/api/flashcards?limit=10&offset=20" \
 ### Step 7: Verify Database Indexes
 
 **Check existing indexes** in Supabase:
+
 - Verify index on `flashcards.deck_id`
 - Verify index on `flashcards.created_at`
 - Verify index on `flashcards.next_review`
@@ -551,6 +595,7 @@ If missing, create indexes via migration.
 This implementation plan provides a comprehensive guide for implementing the GET /api/flashcards endpoint. The plan follows all project conventions (Astro 5, TypeScript, Supabase, Zod validation) and implements proper error handling, security measures, and performance optimizations.
 
 **Key Success Criteria**:
+
 - ✅ Authenticated users can list their flashcards
 - ✅ Filtering by deck_id works correctly
 - ✅ Pagination works with configurable limits and offsets

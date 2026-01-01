@@ -3,6 +3,7 @@
 ## 1. Endpoint Overview
 
 This endpoint creates a new flashcard in the system. It supports two creation modes:
+
 - **Manual creation**: User creates a flashcard from scratch
 - **AI-generated acceptance**: User accepts (with optional edits) a flashcard draft from AI generation
 
@@ -20,20 +21,24 @@ When accepting an AI-generated flashcard, the endpoint automatically logs a gene
 **Request Body** (all fields use snake_case):
 
 **Required fields:**
+
 - `deck_id` (string): UUID of the target deck
 - `front` (string): Front side content (1-200 characters)
 - `back` (string): Back side content (1-500 characters)
 - `source` (enum): Either `"ai"` or `"manual"`
 
 **Conditionally required:**
+
 - `generation_id` (string | null): UUID of AI generation session - REQUIRED when `source` is `"ai"`, otherwise optional/null
 
 **Optional fields:**
+
 - `was_edited` (boolean): Whether AI-generated content was edited before acceptance (default: false, only relevant when source is "ai")
 
 ### Request Body Examples
 
 **Manual flashcard:**
+
 ```json
 {
   "deck_id": "123e4567-e89b-12d3-a456-426614174000",
@@ -45,6 +50,7 @@ When accepting an AI-generated flashcard, the endpoint automatically logs a gene
 ```
 
 **AI-generated flashcard (not edited):**
+
 ```json
 {
   "deck_id": "123e4567-e89b-12d3-a456-426614174000",
@@ -57,6 +63,7 @@ When accepting an AI-generated flashcard, the endpoint automatically logs a gene
 ```
 
 **AI-generated flashcard (edited):**
+
 ```json
 {
   "deck_id": "123e4567-e89b-12d3-a456-426614174000",
@@ -71,25 +78,29 @@ When accepting an AI-generated flashcard, the endpoint automatically logs a gene
 ## 3. Types Used
 
 ### Request DTO
+
 ```typescript
-CreateFlashcardRequestDTO // from src/types.ts
+CreateFlashcardRequestDTO; // from src/types.ts
 ```
 
 ### Response DTO
+
 ```typescript
-FlashcardDTO // from src/types.ts (alias for Flashcard entity)
+FlashcardDTO; // from src/types.ts (alias for Flashcard entity)
 ```
 
 ### Command Models
+
 ```typescript
-TablesInsert<"flashcards"> // for database insertion
-CreateGenerationEventCommand // for logging generation events
+TablesInsert<"flashcards">; // for database insertion
+CreateGenerationEventCommand; // for logging generation events
 ```
 
 ### Enums
+
 ```typescript
-SourceType // 'ai' | 'manual'
-EventType // 'ACCEPTED' | 'EDITED' | 'REJECTED'
+SourceType; // 'ai' | 'manual'
+EventType; // 'ACCEPTED' | 'EDITED' | 'REJECTED'
 ```
 
 ## 4. Response Details
@@ -99,6 +110,7 @@ EventType // 'ACCEPTED' | 'EDITED' | 'REJECTED'
 **Status Code**: 201
 
 **Response Body**:
+
 ```json
 {
   "id": "uuid",
@@ -121,6 +133,7 @@ EventType // 'ACCEPTED' | 'EDITED' | 'REJECTED'
 ```
 
 **Notes**:
+
 - New flashcards initialize with default FSRS parameters (state=0 means "new")
 - `next_review` is set to current timestamp (immediately available for study)
 - All FSRS parameters start at 0 or null
@@ -128,6 +141,7 @@ EventType // 'ACCEPTED' | 'EDITED' | 'REJECTED'
 ### Error Responses
 
 **400 Bad Request** - Validation errors:
+
 ```json
 {
   "error": {
@@ -142,6 +156,7 @@ EventType // 'ACCEPTED' | 'EDITED' | 'REJECTED'
 ```
 
 **401 Unauthorized** - User not authenticated:
+
 ```json
 {
   "error": {
@@ -152,6 +167,7 @@ EventType // 'ACCEPTED' | 'EDITED' | 'REJECTED'
 ```
 
 **404 Not Found** - Deck not found or not owned by user:
+
 ```json
 {
   "error": {
@@ -162,6 +178,7 @@ EventType // 'ACCEPTED' | 'EDITED' | 'REJECTED'
 ```
 
 **500 Internal Server Error**:
+
 ```json
 {
   "error": {
@@ -213,12 +230,14 @@ Client Request
 ### Database Interactions
 
 1. **Deck Ownership Validation**:
+
 ```sql
 SELECT id FROM decks
 WHERE id = $deck_id AND user_id = $authenticated_user_id
 ```
 
 2. **Flashcard Insertion**:
+
 ```sql
 INSERT INTO flashcards (
   deck_id, front, back, source,
@@ -232,6 +251,7 @@ INSERT INTO flashcards (
 ```
 
 3. **Generation Event Logging** (if source is "ai"):
+
 ```sql
 INSERT INTO generation_events (
   generation_id, event_type, draft_index, created_at
@@ -246,16 +266,19 @@ INSERT INTO generation_events (
 ## 6. Security Considerations
 
 ### Authentication
+
 - User must be authenticated via Supabase session
 - Session validated through `context.locals.supabase.auth.getUser()`
 - Return 401 if no valid session exists
 
 ### Authorization
+
 - **Deck Ownership**: Verify authenticated user owns the target deck before allowing flashcard creation
 - Query: `SELECT id FROM decks WHERE id = $deck_id AND user_id = $user_id`
 - Return 404 if deck doesn't exist or doesn't belong to user (don't reveal which)
 
 ### Input Validation & Sanitization
+
 - **UUID Validation**: Ensure `deck_id` and `generation_id` are valid UUIDs
 - **Length Constraints**:
   - `front`: 1-200 characters (enforced by database CHECK constraint)
@@ -265,16 +288,19 @@ INSERT INTO generation_events (
 - **XSS Prevention**: Although content is user-generated, ensure proper escaping when rendering in UI (frontend responsibility, but API should not accept HTML tags unless explicitly designed to)
 
 ### Data Integrity
+
 - Use database foreign key constraints to ensure `deck_id` references valid deck
 - Use database CHECK constraints for content length
 - Use database enum type for `source` field
 - Leverage database CASCADE delete to handle cleanup when deck is deleted
 
 ### Rate Limiting
+
 - Consider implementing rate limiting to prevent abuse (e.g., max 100 flashcards per minute per user)
 - Not specified in current requirements but recommended for production
 
 ### SQL Injection Prevention
+
 - Use parameterized queries through Supabase SDK (built-in protection)
 - Never concatenate user input into SQL strings
 
@@ -283,6 +309,7 @@ INSERT INTO generation_events (
 ### Validation Errors (400)
 
 **Scenario**: Invalid input data
+
 - Missing required fields (`deck_id`, `front`, `back`, `source`)
 - Invalid UUID format for `deck_id` or `generation_id`
 - `front` or `back` exceeds length limits or is empty
@@ -291,6 +318,7 @@ INSERT INTO generation_events (
 - `was_edited` is not a boolean
 
 **Response**:
+
 ```json
 {
   "error": {
@@ -307,10 +335,12 @@ INSERT INTO generation_events (
 ### Authentication Errors (401)
 
 **Scenario**: User not authenticated
+
 - No session token provided
 - Invalid or expired session token
 
 **Response**:
+
 ```json
 {
   "error": {
@@ -323,11 +353,13 @@ INSERT INTO generation_events (
 ### Authorization Errors (404)
 
 **Scenario**: Deck not found or access denied
+
 - `deck_id` doesn't exist in database
 - Deck exists but belongs to different user
 - Note: Use 404 instead of 403 to avoid information leakage about deck existence
 
 **Response**:
+
 ```json
 {
   "error": {
@@ -340,11 +372,13 @@ INSERT INTO generation_events (
 ### Server Errors (500)
 
 **Scenario**: Unexpected database or server errors
+
 - Database connection failures
 - Transaction rollback failures
 - Unexpected exceptions
 
 **Response**:
+
 ```json
 {
   "error": {
@@ -361,22 +395,28 @@ INSERT INTO generation_events (
 ```typescript
 // Early return pattern for errors
 if (!session) {
-  return new Response(JSON.stringify({
-    error: {
-      code: "UNAUTHORIZED",
-      message: "Authentication required"
-    }
-  }), { status: 401 });
+  return new Response(
+    JSON.stringify({
+      error: {
+        code: "UNAUTHORIZED",
+        message: "Authentication required",
+      },
+    }),
+    { status: 401 }
+  );
 }
 
 if (validationResult.error) {
-  return new Response(JSON.stringify({
-    error: {
-      code: "VALIDATION_ERROR",
-      message: "Invalid input data",
-      details: validationResult.error.issues[0]
-    }
-  }), { status: 400 });
+  return new Response(
+    JSON.stringify({
+      error: {
+        code: "VALIDATION_ERROR",
+        message: "Invalid input data",
+        details: validationResult.error.issues[0],
+      },
+    }),
+    { status: 400 }
+  );
 }
 
 // Happy path last
@@ -386,53 +426,61 @@ return new Response(JSON.stringify(flashcard), { status: 201 });
 ## 8. Performance Considerations
 
 ### Database Optimization
+
 - **Indexes**: Ensure `flashcards.deck_id` has an index (likely already exists via foreign key)
 - **Single Query for Validation**: Use Supabase RLS policies to automatically enforce deck ownership instead of separate validation query
 - **Connection Pooling**: Supabase handles this automatically
 
 ### Potential Bottlenecks
+
 - **Generation Event Logging**: This is a secondary operation; consider making it non-blocking or using a background job for high-volume scenarios
 - **Transaction Overhead**: Two INSERT operations in transaction adds slight overhead but ensures data consistency
 
 ### Optimization Strategies
+
 1. **Leverage RLS Policies**: Instead of manual ownership check, configure RLS policy on `flashcards` table to automatically filter by user
 2. **Batch Operations**: If client needs to create multiple flashcards, consider implementing POST /api/flashcards/batch endpoint
 3. **Caching**: No caching needed for POST operations (they modify state)
 
 ### Scalability Notes
+
 - Flashcard creation is a write operation - ensure database can handle expected write throughput
 - Consider partitioning `flashcards` table by `deck_id` if single users accumulate massive flashcard counts (unlikely in typical use)
 
 ## 9. Implementation Steps
 
 ### Step 1: Create Zod Validation Schema
+
 **File**: `src/pages/api/flashcards/index.ts` (or separate schema file)
 
 ```typescript
 import { z } from "zod";
 
-const createFlashcardSchema = z.object({
-  deck_id: z.string().uuid(),
-  front: z.string().min(1).max(200),
-  back: z.string().min(1).max(500),
-  source: z.enum(["ai", "manual"]),
-  generation_id: z.string().uuid().nullable().optional(),
-  was_edited: z.boolean().optional().default(false)
-}).refine(
-  (data) => {
-    if (data.source === "ai" && !data.generation_id) {
-      return false;
+const createFlashcardSchema = z
+  .object({
+    deck_id: z.string().uuid(),
+    front: z.string().min(1).max(200),
+    back: z.string().min(1).max(500),
+    source: z.enum(["ai", "manual"]),
+    generation_id: z.string().uuid().nullable().optional(),
+    was_edited: z.boolean().optional().default(false),
+  })
+  .refine(
+    (data) => {
+      if (data.source === "ai" && !data.generation_id) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: "generation_id is required when source is 'ai'",
+      path: ["generation_id"],
     }
-    return true;
-  },
-  {
-    message: "generation_id is required when source is 'ai'",
-    path: ["generation_id"]
-  }
-);
+  );
 ```
 
 ### Step 2: Create or Update Flashcard Service
+
 **File**: `src/lib/services/flashcard.service.ts` (create if doesn't exist)
 
 ```typescript
@@ -443,10 +491,7 @@ import type { CreateFlashcardRequestDTO, FlashcardDTO } from "@/types";
 export class FlashcardService {
   constructor(private supabase: SupabaseClient<Database>) {}
 
-  async createFlashcard(
-    userId: string,
-    data: CreateFlashcardRequestDTO
-  ): Promise<FlashcardDTO> {
+  async createFlashcard(userId: string, data: CreateFlashcardRequestDTO): Promise<FlashcardDTO> {
     // Step 2a: Validate deck ownership
     const { data: deck, error: deckError } = await this.supabase
       .from("decks")
@@ -475,7 +520,7 @@ export class FlashcardService {
         lapses: 0,
         state: 0,
         last_review: null,
-        next_review: new Date().toISOString()
+        next_review: new Date().toISOString(),
       })
       .select()
       .single();
@@ -486,26 +531,18 @@ export class FlashcardService {
 
     // Step 2c: Log generation event if AI-sourced
     if (data.source === "ai" && data.generation_id) {
-      await this.logGenerationEvent(
-        data.generation_id,
-        data.was_edited ? "EDITED" : "ACCEPTED"
-      );
+      await this.logGenerationEvent(data.generation_id, data.was_edited ? "EDITED" : "ACCEPTED");
     }
 
     return flashcard;
   }
 
-  private async logGenerationEvent(
-    generationId: string,
-    eventType: "ACCEPTED" | "EDITED"
-  ): Promise<void> {
-    const { error } = await this.supabase
-      .from("generation_events")
-      .insert({
-        generation_id: generationId,
-        event_type: eventType,
-        draft_index: null
-      });
+  private async logGenerationEvent(generationId: string, eventType: "ACCEPTED" | "EDITED"): Promise<void> {
+    const { error } = await this.supabase.from("generation_events").insert({
+      generation_id: generationId,
+      event_type: eventType,
+      draft_index: null,
+    });
 
     if (error) {
       // Log error but don't fail the request
@@ -516,6 +553,7 @@ export class FlashcardService {
 ```
 
 ### Step 3: Implement API Route
+
 **File**: `src/pages/api/flashcards/index.ts`
 
 ```typescript
@@ -528,15 +566,18 @@ export const prerender = false;
 export const POST: APIRoute = async (context) => {
   try {
     // Step 3a: Authentication check
-    const { data: { user }, error: authError } = await context.locals.supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await context.locals.supabase.auth.getUser();
 
     if (authError || !user) {
       return new Response(
         JSON.stringify({
           error: {
             code: "UNAUTHORIZED",
-            message: "Authentication required"
-          }
+            message: "Authentication required",
+          },
         }),
         { status: 401, headers: { "Content-Type": "application/json" } }
       );
@@ -552,8 +593,8 @@ export const POST: APIRoute = async (context) => {
           error: {
             code: "VALIDATION_ERROR",
             message: "Invalid input data",
-            details: validationResult.error.issues[0]
-          }
+            details: validationResult.error.issues[0],
+          },
         }),
         { status: 400, headers: { "Content-Type": "application/json" } }
       );
@@ -561,17 +602,10 @@ export const POST: APIRoute = async (context) => {
 
     // Step 3c: Create flashcard via service
     const flashcardService = new FlashcardService(context.locals.supabase);
-    const flashcard = await flashcardService.createFlashcard(
-      user.id,
-      validationResult.data
-    );
+    const flashcard = await flashcardService.createFlashcard(user.id, validationResult.data);
 
     // Step 3d: Return success response
-    return new Response(
-      JSON.stringify(flashcard),
-      { status: 201, headers: { "Content-Type": "application/json" } }
-    );
-
+    return new Response(JSON.stringify(flashcard), { status: 201, headers: { "Content-Type": "application/json" } });
   } catch (error) {
     // Step 3e: Error handling
     if (error instanceof Error) {
@@ -580,8 +614,8 @@ export const POST: APIRoute = async (context) => {
           JSON.stringify({
             error: {
               code: "DECK_NOT_FOUND",
-              message: "Deck not found or access denied"
-            }
+              message: "Deck not found or access denied",
+            },
           }),
           { status: 404, headers: { "Content-Type": "application/json" } }
         );
@@ -595,8 +629,8 @@ export const POST: APIRoute = async (context) => {
       JSON.stringify({
         error: {
           code: "INTERNAL_ERROR",
-          message: "An unexpected error occurred"
-        }
+          message: "An unexpected error occurred",
+        },
       }),
       { status: 500, headers: { "Content-Type": "application/json" } }
     );
@@ -605,6 +639,7 @@ export const POST: APIRoute = async (context) => {
 ```
 
 ### Step 4: Verify Database Schema
+
 **Check**: Ensure `flashcards` table has proper constraints and RLS policies
 
 - Verify foreign key constraint on `deck_id → decks(id)` with CASCADE delete
@@ -662,18 +697,21 @@ export const POST: APIRoute = async (context) => {
     - Expected: 400 Validation Error
 
 ### Step 6: Integration Testing
+
 - Test with frontend integration
 - Verify FSRS parameters initialize correctly
 - Verify flashcard appears in study queue immediately (next_review = NOW())
 - Verify generation events are logged correctly in database
 
 ### Step 7: Documentation
+
 - Update API documentation with endpoint details
 - Add request/response examples
 - Document error codes and their meanings
 - Add to OpenAPI/Swagger spec if available
 
 ### Step 8: Deployment Checklist
+
 - [ ] Run linter: `npm run lint`
 - [ ] Run tests (when available)
 - [ ] Verify environment variables are set (SUPABASE_URL, SUPABASE_KEY)
@@ -684,6 +722,7 @@ export const POST: APIRoute = async (context) => {
 ## 10. Additional Notes
 
 ### Future Enhancements
+
 - **Batch Creation**: Endpoint to create multiple flashcards in one request
 - **Content Validation**: Check for duplicate flashcards in same deck
 - **Rich Content**: Support markdown or HTML in front/back fields
@@ -691,11 +730,13 @@ export const POST: APIRoute = async (context) => {
 - **AI Generation Integration**: Directly generate and create flashcards in one step
 
 ### Dependencies
+
 - Requires `zod` package for validation (should already be installed)
 - Requires Supabase client properly configured in middleware
 - Requires proper TypeScript types from `database.types.ts`
 
 ### Related Endpoints
+
 - GET /api/flashcards - List flashcards (should implement filtering by deck_id)
 - PUT /api/flashcards/:id - Update flashcard content
 - DELETE /api/flashcards/:id - Delete flashcard

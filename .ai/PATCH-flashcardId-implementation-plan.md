@@ -5,6 +5,7 @@
 **Purpose:** Update the content (front and/or back) of an existing flashcard without affecting FSRS spaced repetition parameters.
 
 **Key Characteristics:**
+
 - Allows partial updates (either front, back, or both)
 - Preserves all FSRS algorithm state (stability, difficulty, review schedule, etc.)
 - Enforces strict ownership validation through deck relationship
@@ -16,20 +17,23 @@ Users may need to correct typos, improve clarity, or update flashcard content ba
 ## 2. Request Details
 
 ### HTTP Method
+
 `PATCH`
 
 ### URL Structure
+
 ```
 /api/flashcards/{flashcardId}
 ```
 
 ### URL Parameters
 
-| Parameter | Type | Required | Validation | Description |
-|-----------|------|----------|------------|-------------|
-| `flashcardId` | string | Yes | Must be valid UUID | Unique identifier of flashcard to update |
+| Parameter     | Type   | Required | Validation         | Description                              |
+| ------------- | ------ | -------- | ------------------ | ---------------------------------------- |
+| `flashcardId` | string | Yes      | Must be valid UUID | Unique identifier of flashcard to update |
 
 ### Request Headers
+
 ```
 Content-Type: application/json
 Authorization: Bearer <supabase-session-token>
@@ -45,11 +49,13 @@ Authorization: Bearer <supabase-session-token>
 ```
 
 **Constraints:**
+
 - At least one field (`front` or `back`) MUST be provided
 - If provided, `front` must be 1-200 characters
 - If provided, `back` must be 1-500 characters
 
 **Example Request:**
+
 ```json
 {
   "front": "What is the capital of France?",
@@ -89,6 +95,7 @@ Returns complete `FlashcardDTO` with updated content and preserved FSRS paramete
 ### Error Responses
 
 #### 400 Bad Request - Invalid UUID Format
+
 ```json
 {
   "error": {
@@ -104,6 +111,7 @@ Returns complete `FlashcardDTO` with updated content and preserved FSRS paramete
 ```
 
 #### 400 Bad Request - No Fields Provided
+
 ```json
 {
   "error": {
@@ -117,6 +125,7 @@ Returns complete `FlashcardDTO` with updated content and preserved FSRS paramete
 ```
 
 #### 400 Bad Request - Field Length Validation
+
 ```json
 {
   "error": {
@@ -132,6 +141,7 @@ Returns complete `FlashcardDTO` with updated content and preserved FSRS paramete
 ```
 
 #### 401 Unauthorized
+
 ```json
 {
   "error": {
@@ -142,6 +152,7 @@ Returns complete `FlashcardDTO` with updated content and preserved FSRS paramete
 ```
 
 #### 404 Not Found
+
 ```json
 {
   "error": {
@@ -154,6 +165,7 @@ Returns complete `FlashcardDTO` with updated content and preserved FSRS paramete
 **Security Note:** Returns same error for both "not found" and "not owned by user" to prevent information disclosure.
 
 #### 500 Internal Server Error
+
 ```json
 {
   "error": {
@@ -166,18 +178,21 @@ Returns complete `FlashcardDTO` with updated content and preserved FSRS paramete
 ## 4. Utilized Types
 
 ### Request Types
+
 - `UpdateFlashcardRequestDTO` (src/types.ts:174)
   ```typescript
-  type UpdateFlashcardRequestDTO = Partial<Pick<TablesUpdate<"flashcards">, "front" | "back">>
+  type UpdateFlashcardRequestDTO = Partial<Pick<TablesUpdate<"flashcards">, "front" | "back">>;
   ```
 
 ### Response Types
+
 - `FlashcardDTO` (src/types.ts:155)
   ```typescript
-  type FlashcardDTO = Flashcard
+  type FlashcardDTO = Flashcard;
   ```
 
 ### Error Types
+
 - `ErrorResponseDTO` (src/types.ts:82-89)
   ```typescript
   interface ErrorResponseDTO {
@@ -190,6 +205,7 @@ Returns complete `FlashcardDTO` with updated content and preserved FSRS paramete
   ```
 
 ### Database Types
+
 - `TablesUpdate<"flashcards">` from `src/db/database.types.ts`
 
 **No new types need to be created** - all necessary types already exist.
@@ -197,6 +213,7 @@ Returns complete `FlashcardDTO` with updated content and preserved FSRS paramete
 ## 5. Data Flow
 
 ### High-Level Flow
+
 ```
 1. Client sends PATCH request with flashcardId and update data
 2. Astro API route validates request
@@ -291,6 +308,7 @@ Returns complete `FlashcardDTO` with updated content and preserved FSRS paramete
 **Mechanism:** Supabase session-based authentication
 
 **Implementation:**
+
 ```typescript
 const { data: { user }, error: authError } = await locals.supabase.auth.getUser();
 
@@ -300,6 +318,7 @@ if (authError || !user) {
 ```
 
 **Requirements:**
+
 - Valid Supabase session token in request
 - Token not expired or revoked
 - User account active
@@ -315,6 +334,7 @@ flashcard.deck_id -> deck.id (WHERE deck.user_id = authenticated_user.id)
 ```
 
 **Implementation Pattern (CRITICAL):**
+
 ```typescript
 // Use INNER JOIN with decks table to enforce ownership
 const { data } = await supabase
@@ -326,6 +346,7 @@ const { data } = await supabase
 ```
 
 **Why This Pattern:**
+
 - INNER JOIN ensures flashcard exists AND belongs to user's deck
 - Prevents users from updating flashcards in other users' decks
 - Single query for both existence and ownership check
@@ -334,11 +355,13 @@ const { data } = await supabase
 ### Input Validation
 
 **Defense Against:**
+
 - SQL Injection: Supabase client uses parameterized queries
 - XSS: Content stored as-is, sanitization at render time on client
 - Oversized inputs: Zod schema enforces length limits
 
 **Validation Layers:**
+
 1. **Zod schema validation** (application layer)
 2. **Database CHECK constraints** (database layer)
 3. **Supabase RLS policies** (security layer)
@@ -348,6 +371,7 @@ const { data } = await supabase
 **Threat:** Attackers probing for valid flashcard IDs
 
 **Mitigation:**
+
 - Return 404 for both "not found" and "not owned"
 - Use identical error message: "Flashcard not found or not owned by user"
 - Prevents attackers from enumerating valid flashcard IDs
@@ -357,6 +381,7 @@ const { data } = await supabase
 **Consideration:** Not implemented at endpoint level
 
 **Recommendation:**
+
 - Implement rate limiting at infrastructure level (API Gateway, CDN)
 - Supabase connection pooling provides some protection
 - Monitor for abuse patterns in production
@@ -365,12 +390,12 @@ const { data } = await supabase
 
 ### Error Classification
 
-| Category | HTTP Status | Error Code | Retry Strategy |
-|----------|-------------|------------|----------------|
-| Client Input Error | 400 | VALIDATION_ERROR | Fix input, don't retry |
-| Authentication Error | 401 | UNAUTHORIZED | Re-authenticate, then retry |
-| Authorization Error | 404 | FLASHCARD_NOT_FOUND | Don't retry |
-| Server Error | 500 | INTERNAL_SERVER_ERROR | Retry with exponential backoff |
+| Category             | HTTP Status | Error Code            | Retry Strategy                 |
+| -------------------- | ----------- | --------------------- | ------------------------------ |
+| Client Input Error   | 400         | VALIDATION_ERROR      | Fix input, don't retry         |
+| Authentication Error | 401         | UNAUTHORIZED          | Re-authenticate, then retry    |
+| Authorization Error  | 404         | FLASHCARD_NOT_FOUND   | Don't retry                    |
+| Server Error         | 500         | INTERNAL_SERVER_ERROR | Retry with exponential backoff |
 
 ### Error Handling Flow
 
@@ -390,9 +415,9 @@ try {
     body: {
       error: {
         code: "INTERNAL_SERVER_ERROR",
-        message: "An unexpected error occurred"
-      }
-    }
+        message: "An unexpected error occurred",
+      },
+    },
   };
 }
 ```
@@ -400,6 +425,7 @@ try {
 ### Logging Strategy
 
 **What to Log:**
+
 - Error type and message
 - User ID (if authenticated)
 - Flashcard ID
@@ -407,11 +433,13 @@ try {
 - Stack trace
 
 **What NOT to Log:**
+
 - Sensitive user data
 - Authentication tokens
 - Full database error messages (may contain schema info)
 
 **Log Level Guidelines:**
+
 - Validation errors: INFO
 - Authentication errors: WARN
 - Database errors: ERROR
@@ -419,20 +447,21 @@ try {
 
 ### Edge Cases
 
-| Scenario | Handling | Status Code |
-|----------|----------|-------------|
-| Update with empty strings | Validation rejects (min length 1) | 400 |
-| Update with only whitespace | Allowed (database stores as-is) | 200 |
-| Update front to exact same value | Allowed (idempotent operation) | 200 |
-| Concurrent updates | Last write wins (no optimistic locking) | 200 |
-| Flashcard deleted during request | Returns 404 | 404 |
-| User deleted during request | Returns 401 | 401 |
+| Scenario                         | Handling                                | Status Code |
+| -------------------------------- | --------------------------------------- | ----------- |
+| Update with empty strings        | Validation rejects (min length 1)       | 400         |
+| Update with only whitespace      | Allowed (database stores as-is)         | 200         |
+| Update front to exact same value | Allowed (idempotent operation)          | 200         |
+| Concurrent updates               | Last write wins (no optimistic locking) | 200         |
+| Flashcard deleted during request | Returns 404                             | 404         |
+| User deleted during request      | Returns 401                             | 401         |
 
 ## 8. Performance Considerations
 
 ### Database Query Optimization
 
 **Query Pattern:**
+
 ```sql
 -- Ownership verification + retrieval (1 query)
 SELECT flashcards.*, decks.user_id
@@ -442,12 +471,14 @@ WHERE flashcards.id = $1 AND decks.user_id = $2
 ```
 
 **Performance Characteristics:**
+
 - Uses primary key index on `flashcards.id` (O(log n))
 - Uses index on `decks.user_id` (assume exists for RLS)
 - INNER JOIN efficient due to 1:1 relationship (flashcard -> deck)
 - Query plan: Index Scan -> Nested Loop Join
 
 **Recommended Indexes:**
+
 ```sql
 -- Already exists (primary key)
 CREATE INDEX ON flashcards (id);
@@ -462,6 +493,7 @@ CREATE INDEX ON flashcards (deck_id);
 ### Caching Strategy
 
 **Not Recommended for This Endpoint:**
+
 - Updates invalidate cache immediately
 - Low read-to-write ratio for individual flashcard updates
 - Cache complexity outweighs benefits
@@ -470,13 +502,14 @@ CREATE INDEX ON flashcards (deck_id);
 
 ### Expected Response Times
 
-| Percentile | Target | Notes |
-|------------|--------|-------|
-| p50 | < 50ms | Happy path, warm database |
-| p95 | < 150ms | Includes cold start scenarios |
-| p99 | < 300ms | Network latency, DB query variance |
+| Percentile | Target  | Notes                              |
+| ---------- | ------- | ---------------------------------- |
+| p50        | < 50ms  | Happy path, warm database          |
+| p95        | < 150ms | Includes cold start scenarios      |
+| p99        | < 300ms | Network latency, DB query variance |
 
 **Factors Affecting Latency:**
+
 - Database connection pool availability
 - Geographic distance to Supabase instance
 - Network conditions
@@ -485,15 +518,18 @@ CREATE INDEX ON flashcards (deck_id);
 ### Scalability Considerations
 
 **Bottlenecks:**
+
 - Database connections (Supabase pooling limit)
 - Database I/O (write operations)
 
 **Scaling Strategy:**
+
 - Horizontal: Supabase handles automatically
 - Vertical: Upgrade Supabase tier if needed
 - Connection pooling: Use Supabase transaction mode
 
 **Load Characteristics:**
+
 - Low write frequency (users update flashcards infrequently)
 - No batch operations (updates are individual)
 - Predictable load pattern (study sessions drive updates)
@@ -507,6 +543,7 @@ CREATE INDEX ON flashcards (deck_id);
 **Task:** Add `updateFlashcard` method to `FlashcardService` class
 
 **Implementation:**
+
 ```typescript
 /**
  * Updates flashcard content (front and/or back) without affecting FSRS parameters.
@@ -567,6 +604,7 @@ async updateFlashcard(
 ```
 
 **Testing Checklist:**
+
 - [ ] Updates front only
 - [ ] Updates back only
 - [ ] Updates both front and back
@@ -583,6 +621,7 @@ async updateFlashcard(
 **Task:** Define Zod schemas for URL params and request body
 
 **Implementation:**
+
 ```typescript
 import { z } from "zod";
 
@@ -605,16 +644,8 @@ const PatchFlashcardParamsSchema = z.object({
  */
 const PatchFlashcardBodySchema = z
   .object({
-    front: z
-      .string()
-      .min(1, "Front cannot be empty")
-      .max(200, "Front must be at most 200 characters")
-      .optional(),
-    back: z
-      .string()
-      .min(1, "Back cannot be empty")
-      .max(500, "Back must be at most 500 characters")
-      .optional(),
+    front: z.string().min(1, "Front cannot be empty").max(200, "Front must be at most 200 characters").optional(),
+    back: z.string().min(1, "Back cannot be empty").max(500, "Back must be at most 500 characters").optional(),
   })
   .refine((data) => data.front !== undefined || data.back !== undefined, {
     message: "At least one field (front or back) must be provided",
@@ -622,6 +653,7 @@ const PatchFlashcardBodySchema = z
 ```
 
 **Testing Checklist:**
+
 - [ ] Rejects invalid UUID format
 - [ ] Accepts valid UUID
 - [ ] Rejects empty request body
@@ -642,6 +674,7 @@ const PatchFlashcardBodySchema = z
 **Task:** Add PATCH export to existing file (GET handler already exists)
 
 **Implementation:**
+
 ```typescript
 export const prerender = false;
 
@@ -724,11 +757,7 @@ export const PATCH: APIRoute = async ({ params, request, locals }) => {
 
     // Step 4: Update flashcard via service
     const flashcardService = new FlashcardService(locals.supabase);
-    const updatedFlashcard = await flashcardService.updateFlashcard(
-      flashcardId,
-      user.id,
-      updates
-    );
+    const updatedFlashcard = await flashcardService.updateFlashcard(flashcardId, user.id, updates);
 
     if (!updatedFlashcard) {
       const errorResponse: ErrorResponseDTO = {
@@ -769,6 +798,7 @@ export const PATCH: APIRoute = async ({ params, request, locals }) => {
 ```
 
 **Testing Checklist:**
+
 - [ ] Returns 400 for invalid UUID
 - [ ] Returns 400 for invalid request body
 - [ ] Returns 401 for unauthenticated request
@@ -784,6 +814,7 @@ export const PATCH: APIRoute = async ({ params, request, locals }) => {
 **Test Scenarios:**
 
 **Scenario 1: Successful Update (Front Only)**
+
 ```bash
 PATCH /api/flashcards/550e8400-e29b-41d4-a716-446655440000
 Authorization: Bearer <valid-token>
@@ -797,6 +828,7 @@ Expected: 200 OK with full FlashcardDTO
 ```
 
 **Scenario 2: Successful Update (Back Only)**
+
 ```bash
 PATCH /api/flashcards/550e8400-e29b-41d4-a716-446655440000
 Authorization: Bearer <valid-token>
@@ -810,6 +842,7 @@ Expected: 200 OK with full FlashcardDTO
 ```
 
 **Scenario 3: Successful Update (Both Fields)**
+
 ```bash
 PATCH /api/flashcards/550e8400-e29b-41d4-a716-446655440000
 Authorization: Bearer <valid-token>
@@ -824,6 +857,7 @@ Expected: 200 OK with full FlashcardDTO
 ```
 
 **Scenario 4: Validation Error - No Fields**
+
 ```bash
 PATCH /api/flashcards/550e8400-e29b-41d4-a716-446655440000
 Authorization: Bearer <valid-token>
@@ -835,6 +869,7 @@ Expected: 400 Bad Request
 ```
 
 **Scenario 5: Validation Error - Field Too Long**
+
 ```bash
 PATCH /api/flashcards/550e8400-e29b-41d4-a716-446655440000
 Authorization: Bearer <valid-token>
@@ -848,6 +883,7 @@ Expected: 400 Bad Request
 ```
 
 **Scenario 6: Authentication Error**
+
 ```bash
 PATCH /api/flashcards/550e8400-e29b-41d4-a716-446655440000
 Content-Type: application/json
@@ -860,6 +896,7 @@ Expected: 401 Unauthorized
 ```
 
 **Scenario 7: Authorization Error - Other User's Flashcard**
+
 ```bash
 PATCH /api/flashcards/<flashcard-owned-by-other-user>
 Authorization: Bearer <valid-token>
@@ -873,6 +910,7 @@ Expected: 404 Not Found
 ```
 
 **Scenario 8: Not Found - Non-Existent Flashcard**
+
 ```bash
 PATCH /api/flashcards/00000000-0000-0000-0000-000000000000
 Authorization: Bearer <valid-token>
@@ -888,6 +926,7 @@ Expected: 404 Not Found
 ### Step 5: Documentation
 
 **Tasks:**
+
 - [ ] Add JSDoc comments to service method
 - [ ] Add JSDoc comments to API route handler
 - [ ] Update API documentation (if separate docs exist)
@@ -896,6 +935,7 @@ Expected: 404 Not Found
 ### Step 6: Code Review Checklist
 
 **Security:**
+
 - [ ] Ownership verification through deck relationship
 - [ ] Authentication enforced
 - [ ] Input validation with Zod
@@ -903,6 +943,7 @@ Expected: 404 Not Found
 - [ ] SQL injection prevented (Supabase client)
 
 **Code Quality:**
+
 - [ ] Guard clauses for error conditions
 - [ ] Early returns pattern
 - [ ] Happy path last
@@ -912,6 +953,7 @@ Expected: 404 Not Found
 - [ ] No console.log (only console.error for errors)
 
 **Testing:**
+
 - [ ] All test scenarios pass
 - [ ] Edge cases covered
 - [ ] Error handling verified
@@ -919,12 +961,14 @@ Expected: 404 Not Found
 - [ ] updated_at timestamp updated
 
 **Performance:**
+
 - [ ] Single query for ownership verification
 - [ ] No N+1 queries
 - [ ] Efficient database indexes used
 - [ ] Response time within target (< 50ms p50)
 
 **Documentation:**
+
 - [ ] JSDoc comments complete
 - [ ] Implementation plan followed
 - [ ] Code matches specification
@@ -937,6 +981,7 @@ Expected: 404 Not Found
 This endpoint provides a secure, validated way to update flashcard content while preserving FSRS algorithm state. The implementation follows established patterns from existing endpoints (GET /api/flashcards/{flashcardId}), uses existing types and validation schemas, and maintains strict security controls through ownership verification.
 
 **Key Implementation Points:**
+
 1. Reuse existing `FlashcardService` class pattern
 2. Add new `updateFlashcard` method with ownership verification
 3. Use Zod for comprehensive input validation
@@ -946,6 +991,7 @@ This endpoint provides a secure, validated way to update flashcard content while
 7. Comprehensive error handling with appropriate status codes
 
 **Files to Modify:**
+
 - `src/lib/services/flashcard.service.ts` - Add `updateFlashcard` method
 - `src/pages/api/flashcards/[flashcardId].ts` - Add `PATCH` handler and validation schemas
 
