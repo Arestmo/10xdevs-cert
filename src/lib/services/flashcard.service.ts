@@ -203,6 +203,46 @@ export class FlashcardService {
   }
 
   /**
+   * Retrieves a single flashcard by ID with ownership verification.
+   *
+   * Flow:
+   * 1. Query flashcard by ID with INNER JOIN to decks table
+   * 2. Filter by user_id to ensure ownership
+   * 3. Return flashcard if found, null otherwise
+   *
+   * Security:
+   * - CRITICAL: Always join with decks table and filter by user_id
+   * - Prevents users from accessing flashcards from other users' decks
+   * - Returns null for both non-existent flashcards and unauthorized access
+   *   to prevent information disclosure
+   *
+   * @param flashcardId - UUID of the flashcard
+   * @param userId - UUID of the authenticated user
+   * @returns Flashcard if found and owned by user, null otherwise
+   * @throws {Error} If database operation fails
+   */
+  async getFlashcardByIdForUser(flashcardId: string, userId: string): Promise<FlashcardDTO | null> {
+    // Query with INNER JOIN to verify ownership through deck
+    const { data, error } = await this.supabase
+      .from("flashcards")
+      .select("*, decks!inner(user_id)")
+      .eq("id", flashcardId)
+      .eq("decks.user_id", userId)
+      .single();
+
+    // Guard clause: flashcard not found or not owned
+    if (error || !data) {
+      return null;
+    }
+
+    // Remove the decks field from response (used only for filtering)
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { decks, ...flashcard } = data;
+
+    return flashcard;
+  }
+
+  /**
    * Logs a generation event for AI-generated flashcards.
    *
    * This method tracks AI usage analytics by recording when users:
