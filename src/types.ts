@@ -181,6 +181,17 @@ export interface FlashcardsListResponseDTO {
   pagination: PaginationDTO;
 }
 
+/**
+ * Query parameters for listing flashcards
+ */
+export interface GetFlashcardsQueryDTO {
+  deck_id?: string;
+  limit: number;
+  offset: number;
+  sort: "created_at" | "next_review" | "updated_at";
+  order: "asc" | "desc";
+}
+
 // ============================================================================
 // AI Generation DTOs
 // ============================================================================
