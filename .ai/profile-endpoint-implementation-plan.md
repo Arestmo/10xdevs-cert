@@ -5,6 +5,7 @@
 The `GET /api/profile` endpoint retrieves the authenticated user's profile information, including their monthly AI flashcard generation usage and remaining limit. This endpoint is critical for the user dashboard to display AI usage statistics.
 
 **Key Responsibilities:**
+
 - Authenticate the requesting user via JWT
 - Retrieve user profile from database
 - Perform lazy reset of monthly AI limit if needed
@@ -27,17 +28,19 @@ The `GET /api/profile` endpoint retrieves the authenticated user's profile infor
 All types are defined in `src/types.ts`:
 
 ### Response Types
+
 ```typescript
 // Primary response type (lines 104-106)
 interface ProfileResponseDTO extends Profile {
-  remaining_ai_limit: number;  // Computed field: 200 - monthly_ai_flashcards_count
+  remaining_ai_limit: number; // Computed field: 200 - monthly_ai_flashcards_count
 }
 
 // Base entity (line 35)
-type Profile = Tables<"profiles">;  // From database.types.ts
+type Profile = Tables<"profiles">; // From database.types.ts
 ```
 
 ### Error Types
+
 ```typescript
 // Standard error response (lines 83-89)
 interface ErrorResponseDTO {
@@ -50,13 +53,15 @@ interface ErrorResponseDTO {
 ```
 
 ### Constants
+
 ```typescript
-const MONTHLY_LIMIT = 200;  // Hardcoded AI generation limit per month
+const MONTHLY_LIMIT = 200; // Hardcoded AI generation limit per month
 ```
 
 ## 4. Response Details
 
 ### Success Response (200 OK)
+
 ```json
 {
   "user_id": "550e8400-e29b-41d4-a716-446655440000",
@@ -69,6 +74,7 @@ const MONTHLY_LIMIT = 200;  // Hardcoded AI generation limit per month
 ```
 
 **Field Descriptions:**
+
 - `user_id` - UUID from Supabase Auth
 - `monthly_ai_flashcards_count` - Number of AI-generated flashcards this month
 - `ai_limit_reset_date` - Date when the limit was last reset (or will reset)
@@ -79,6 +85,7 @@ const MONTHLY_LIMIT = 200;  // Hardcoded AI generation limit per month
 ### Error Responses
 
 #### 401 Unauthorized
+
 ```json
 {
   "error": {
@@ -89,6 +96,7 @@ const MONTHLY_LIMIT = 200;  // Hardcoded AI generation limit per month
 ```
 
 #### 404 Not Found
+
 ```json
 {
   "error": {
@@ -99,6 +107,7 @@ const MONTHLY_LIMIT = 200;  // Hardcoded AI generation limit per month
 ```
 
 #### 500 Internal Server Error
+
 ```json
 {
   "error": {
@@ -111,6 +120,7 @@ const MONTHLY_LIMIT = 200;  // Hardcoded AI generation limit per month
 ## 5. Data Flow
 
 ### Sequence Diagram
+
 ```
 Client → API Route → ProfileService → Supabase Database
   ↓         ↓              ↓                 ↓
@@ -157,6 +167,7 @@ if (resetDate < startOfMonth) {
 ```
 
 This approach:
+
 - Avoids scheduled cron jobs
 - Ensures reset happens seamlessly
 - Maintains consistency with GenerationService
@@ -164,31 +175,37 @@ This approach:
 ## 6. Security Considerations
 
 ### Authentication
+
 - **JWT Verification**: Use `context.locals.supabase.auth.getUser()` to validate JWT token
 - **Token Expiry**: Supabase automatically handles token expiration
 - **No Token**: Return 401 immediately if authentication fails
 
 ### Authorization
+
 - **Implicit Authorization**: User can only access their own profile
 - **RLS Enforcement**: Database RLS policies filter by `user_id`
 - **No User ID in Request**: User ID comes from authenticated JWT, not from request parameters (prevents privilege escalation)
 
 ### Data Protection
+
 - **No Sensitive Data Exposure**: Profile contains only application-level data (not auth credentials)
 - **No PII Beyond User ID**: Minimal personal data exposure
 - **Read-Only Operation**: GET request doesn't modify data (except lazy reset)
 
 ### Input Validation
+
 - **No User Input**: No request body or query parameters to validate
 - **Type Safety**: TypeScript ensures type correctness
 
 ### SQL Injection Prevention
+
 - **Parameterized Queries**: Supabase client uses prepared statements
 - **No Raw SQL**: All queries use Supabase query builder
 
 ## 7. Error Handling
 
 ### Error Handling Strategy
+
 Follow the guard clause pattern (early returns for errors, happy path last):
 
 ```typescript
@@ -208,13 +225,13 @@ return successResponse(profileResponse, 200);
 
 ### Error Scenarios
 
-| Scenario | Error Type | Status Code | Error Code | User Message |
-|----------|------------|-------------|------------|--------------|
-| Missing JWT token | Auth error | 401 | UNAUTHORIZED | Authentication required. Please log in. |
-| Invalid/expired token | Auth error | 401 | UNAUTHORIZED | Authentication required. Please log in. |
-| Profile not found | ProfileNotFoundError | 404 | PROFILE_NOT_FOUND | User profile not found |
-| Database connection error | Database error | 500 | INTERNAL_ERROR | An unexpected error occurred. Please try again later. |
-| Unexpected error | Unknown | 500 | INTERNAL_ERROR | An unexpected error occurred. Please try again later. |
+| Scenario                  | Error Type           | Status Code | Error Code        | User Message                                          |
+| ------------------------- | -------------------- | ----------- | ----------------- | ----------------------------------------------------- |
+| Missing JWT token         | Auth error           | 401         | UNAUTHORIZED      | Authentication required. Please log in.               |
+| Invalid/expired token     | Auth error           | 401         | UNAUTHORIZED      | Authentication required. Please log in.               |
+| Profile not found         | ProfileNotFoundError | 404         | PROFILE_NOT_FOUND | User profile not found                                |
+| Database connection error | Database error       | 500         | INTERNAL_ERROR    | An unexpected error occurred. Please try again later. |
+| Unexpected error          | Unknown              | 500         | INTERNAL_ERROR    | An unexpected error occurred. Please try again later. |
 
 ### Custom Error Classes
 
@@ -227,8 +244,8 @@ return successResponse(profileResponse, 200);
  */
 export class ProfileNotFoundError extends Error {
   constructor() {
-    super('User profile not found');
-    this.name = 'ProfileNotFoundError';
+    super("User profile not found");
+    this.name = "ProfileNotFoundError";
   }
 }
 ```
@@ -240,28 +257,32 @@ export class ProfileNotFoundError extends Error {
 - **Stack Traces**: Include stack traces for debugging
 
 ```typescript
-console.error('Unexpected error in GET /api/profile:', error);
+console.error("Unexpected error in GET /api/profile:", error);
 ```
 
 ## 8. Performance Considerations
 
 ### Database Optimization
+
 - **Single Query**: Fetch profile with single database query
 - **Indexed Lookup**: `user_id` is primary key (indexed by default)
 - **No Joins**: Profile table is standalone (no complex joins needed)
 - **RLS Performance**: Ensure RLS policies are optimized with proper indexes
 
 ### Caching Opportunities
+
 - **Client-Side Caching**: Frontend can cache profile data
 - **Short TTL**: Cache for ~5 minutes (balance freshness vs performance)
 - **Invalidation**: Invalidate cache after AI generation or profile updates
 
 ### Lazy Reset Performance
+
 - **In-Memory Calculation**: Date comparison is fast
 - **Conditional Update**: Only update database if reset needed
 - **Transaction Safety**: Use atomic update if implementing concurrent access protection
 
 ### Response Time Targets
+
 - **Target**: < 200ms for authenticated request
 - **Database Query**: < 50ms (indexed primary key lookup)
 - **Authentication**: < 100ms (JWT verification)
@@ -270,9 +291,11 @@ console.error('Unexpected error in GET /api/profile:', error);
 ## 9. Implementation Steps
 
 ### Step 1: Create ProfileService
+
 **File**: `src/lib/services/profile.service.ts`
 
 Tasks:
+
 1. Import dependencies:
    - `SupabaseClient` type from `@supabase/supabase-js`
    - `Database` type from `@/db/database.types`
@@ -289,6 +312,7 @@ Tasks:
 7. Create `ProfileNotFoundError` custom error class
 
 **Example Structure**:
+
 ```typescript
 export class ProfileService {
   constructor(private supabase: SupabaseClient<Database>) {}
@@ -308,16 +332,18 @@ export class ProfileService {
 
 export class ProfileNotFoundError extends Error {
   constructor() {
-    super('User profile not found');
-    this.name = 'ProfileNotFoundError';
+    super("User profile not found");
+    this.name = "ProfileNotFoundError";
   }
 }
 ```
 
 ### Step 2: Create API Route Handler
+
 **File**: `src/pages/api/profile/index.ts`
 
 Tasks:
+
 1. Add `export const prerender = false` directive
 2. Import dependencies:
    - `APIContext` from `astro`
@@ -326,12 +352,15 @@ Tasks:
    - `ProfileResponseDTO` from types
 3. Export `GET` function (uppercase, following Astro conventions)
 4. Implement GET handler:
+
    ```typescript
    export async function GET(context: APIContext): Promise<Response> {
      try {
        // Step 1: Authenticate user
-       const { data: { user }, error: authError } =
-         await context.locals.supabase.auth.getUser();
+       const {
+         data: { user },
+         error: authError,
+       } = await context.locals.supabase.auth.getUser();
 
        // Guard clause: authentication failed
        if (authError || !user) {
@@ -352,6 +381,7 @@ Tasks:
    ```
 
 ### Step 3: Add JSDoc Comments
+
 Add comprehensive documentation to both service and route handler:
 
 1. **Service method documentation**:
@@ -368,6 +398,7 @@ Add comprehensive documentation to both service and route handler:
 Follow the pattern from `generation.service.ts` and `generations/index.ts`.
 
 ### Step 4: Test Authentication Flow
+
 Manual testing checklist:
 
 1. **Authenticated Request**:
@@ -384,6 +415,7 @@ Manual testing checklist:
    - Verify 404 response
 
 ### Step 5: Test Lazy Reset Logic
+
 Test scenarios:
 
 1. **No Reset Needed**:
@@ -403,9 +435,11 @@ Test scenarios:
    - Test with different timezones (use UTC consistently)
 
 ### Step 6: Verify RLS Policies
+
 Database security checklist:
 
 1. Ensure RLS policy exists on `profiles` table:
+
    ```sql
    -- User can only read their own profile
    CREATE POLICY "Users can view own profile"
@@ -423,6 +457,7 @@ Database security checklist:
    - Verify unauthenticated requests are blocked
 
 ### Step 7: Integration Testing
+
 End-to-end testing:
 
 1. **Normal Flow**:
@@ -444,6 +479,7 @@ End-to-end testing:
    - Verify date updated to current month
 
 ### Step 8: Error Handling Testing
+
 Error scenario testing:
 
 1. **401 Unauthorized**:
@@ -459,6 +495,7 @@ Error scenario testing:
    - Unexpected service errors
 
 ### Step 9: Performance Testing
+
 Performance validation:
 
 1. **Response Time**:
@@ -475,6 +512,7 @@ Performance validation:
    - Verify no performance degradation
 
 ### Step 10: Documentation
+
 Documentation tasks:
 
 1. **API Documentation**:

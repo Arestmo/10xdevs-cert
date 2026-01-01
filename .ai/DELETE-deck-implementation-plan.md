@@ -5,6 +5,7 @@
 Endpoint służy do usuwania talii fiszek wraz z wszystkimi jej kartami w sposób kaskadowy. Tylko właściciel talii może ją usunąć. Endpoint implementuje wzorzec "soft delete by ownership verification" - jeśli talia nie istnieje lub nie należy do użytkownika, zwracany jest ten sam kod 404 (nie ujawniamy czy talia w ogóle istnieje).
 
 **Kluczowe założenia:**
+
 - Cascade delete fiszek obsługiwane przez bazę danych (foreign key constraint `ON DELETE CASCADE`)
 - Weryfikacja własności przed usunięciem (security)
 - Brak możliwości cofnięcia operacji
@@ -23,6 +24,7 @@ Endpoint służy do usuwania talii fiszek wraz z wszystkimi jej kartami w sposó
   - `Authorization: Bearer <JWT_TOKEN>` (wymagany, obsługiwany przez middleware Supabase)
 
 **Przykład żądania:**
+
 ```http
 DELETE /api/decks/123e4567-e89b-12d3-a456-426614174000
 Authorization: Bearer eyJhbGc...
@@ -40,7 +42,7 @@ type ErrorResponseDTO = {
     message: string;
     details?: Record<string, unknown>;
   };
-}
+};
 
 // Dla weryfikacji właściciela (wewnętrznie w service)
 type Deck = Tables<"decks">; // zawiera: id, user_id, name, created_at, updated_at
@@ -48,6 +50,7 @@ type Deck = Tables<"decks">; // zawiera: id, user_id, name, created_at, updated_
 
 **Nowe typy - NIE WYMAGANE**
 Endpoint nie wymaga tworzenia nowych typów DTO, ponieważ:
+
 - Nie zwraca body przy sukcesie (204 No Content)
 - Nie przyjmuje request body
 - Wykorzystuje istniejące typy dla walidacji i błędów
@@ -55,14 +58,17 @@ Endpoint nie wymaga tworzenia nowych typów DTO, ponieważ:
 ## 4. Szczegóły odpowiedzi
 
 ### Sukces (204 No Content)
+
 ```http
 HTTP/1.1 204 No Content
 ```
+
 Brak response body - talia i wszystkie jej fiszki zostały usunięte.
 
 ### Błędy
 
 **400 Bad Request - Nieprawidłowy UUID**
+
 ```json
 {
   "error": {
@@ -76,6 +82,7 @@ Brak response body - talia i wszystkie jej fiszki zostały usunięte.
 ```
 
 **401 Unauthorized - Brak lub nieprawidłowy token**
+
 ```json
 {
   "error": {
@@ -86,6 +93,7 @@ Brak response body - talia i wszystkie jej fiszki zostały usunięte.
 ```
 
 **404 Not Found - Talia nie istnieje lub nie należy do użytkownika**
+
 ```json
 {
   "error": {
@@ -96,6 +104,7 @@ Brak response body - talia i wszystkie jej fiszki zostały usunięte.
 ```
 
 **500 Internal Server Error - Błąd serwera**
+
 ```json
 {
   "error": {
@@ -134,11 +143,13 @@ Brak response body - talia i wszystkie jej fiszki zostały usunięte.
 **Interakcje z bazą danych:**
 
 1. **Weryfikacja własności** (opcjonalne - można pominąć jeśli używamy warunku WHERE user_id):
+
 ```sql
 SELECT user_id FROM decks WHERE id = $1
 ```
 
 2. **Usunięcie talii** (z automatycznym cascade delete):
+
 ```sql
 DELETE FROM decks
 WHERE id = $1 AND user_id = $2
@@ -152,36 +163,39 @@ Zwracamy `RETURNING id` aby sprawdzić czy faktycznie coś usunięto (0 rows = 4
 ### 6.1 Autoryzacja i Autentykacja
 
 **Middleware Supabase:**
+
 - Automatyczna weryfikacja JWT tokenu
 - Zwrot 401 jeśli token jest nieprawidłowy, wygasły lub brak tokenu
 - Dostęp do user_id z zweryfikowanego tokenu
 
 **Weryfikacja własności:**
+
 ```typescript
 // W service - KRYTYCZNE dla bezpieczeństwa
 const { data, error } = await supabase
-  .from('decks')
+  .from("decks")
   .delete()
-  .eq('id', deckId)
-  .eq('user_id', userId) // <- MUST HAVE: zapobiega IDOR
-  .select('id')
+  .eq("id", deckId)
+  .eq("user_id", userId) // <- MUST HAVE: zapobiega IDOR
+  .select("id")
   .single();
 
 if (!data) {
   // Talia nie istnieje LUB nie należy do użytkownika
   // Zwracamy 404 w obu przypadkach (nie ujawniamy czy talia istnieje)
-  throw new Error('DECK_NOT_FOUND');
+  throw new Error("DECK_NOT_FOUND");
 }
 ```
 
 ### 6.2 Walidacja danych wejściowych
 
 **Zod schema dla deckId:**
+
 ```typescript
-import { z } from 'zod';
+import { z } from "zod";
 
 const DeleteDeckParamsSchema = z.object({
-  deckId: z.string().uuid({ message: 'Invalid deck ID format' })
+  deckId: z.string().uuid({ message: "Invalid deck ID format" }),
 });
 ```
 
@@ -215,12 +229,12 @@ USING (auth.uid() = user_id);
 
 ### 7.1 Katalog błędów
 
-| Kod błędu | Status HTTP | Sytuacja | Komunikat |
-|-----------|-------------|----------|-----------|
-| `INVALID_DECK_ID` | 400 | deckId nie jest prawidłowym UUID | "Invalid deck ID format" |
-| `UNAUTHORIZED` | 401 | Brak tokenu lub token nieprawidłowy | "Authentication required" |
-| `DECK_NOT_FOUND` | 404 | Talia nie istnieje lub nie należy do użytkownika | "Deck not found or access denied" |
-| `INTERNAL_ERROR` | 500 | Błąd bazy danych lub serwera | "An error occurred while deleting the deck" |
+| Kod błędu         | Status HTTP | Sytuacja                                         | Komunikat                                   |
+| ----------------- | ----------- | ------------------------------------------------ | ------------------------------------------- |
+| `INVALID_DECK_ID` | 400         | deckId nie jest prawidłowym UUID                 | "Invalid deck ID format"                    |
+| `UNAUTHORIZED`    | 401         | Brak tokenu lub token nieprawidłowy              | "Authentication required"                   |
+| `DECK_NOT_FOUND`  | 404         | Talia nie istnieje lub nie należy do użytkownika | "Deck not found or access denied"           |
+| `INTERNAL_ERROR`  | 500         | Błąd bazy danych lub serwera                     | "An error occurred while deleting the deck" |
 
 ### 7.2 Implementacja error handling
 
@@ -237,28 +251,30 @@ export async function DELETE(context: APIContext) {
       return new Response(
         JSON.stringify({
           error: {
-            code: 'INVALID_DECK_ID',
-            message: 'Invalid deck ID format',
-            details: validation.error.flatten()
-          }
+            code: "INVALID_DECK_ID",
+            message: "Invalid deck ID format",
+            details: validation.error.flatten(),
+          },
         }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
+        { status: 400, headers: { "Content-Type": "application/json" } }
       );
     }
 
     // 2. Weryfikacja autoryzacji
-    const { data: { user }, error: authError } =
-      await context.locals.supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await context.locals.supabase.auth.getUser();
 
     if (authError || !user) {
       return new Response(
         JSON.stringify({
           error: {
-            code: 'UNAUTHORIZED',
-            message: 'Authentication required'
-          }
+            code: "UNAUTHORIZED",
+            message: "Authentication required",
+          },
         }),
-        { status: 401, headers: { 'Content-Type': 'application/json' } }
+        { status: 401, headers: { "Content-Type": "application/json" } }
       );
     }
 
@@ -269,27 +285,26 @@ export async function DELETE(context: APIContext) {
       return new Response(
         JSON.stringify({
           error: {
-            code: 'DECK_NOT_FOUND',
-            message: 'Deck not found or access denied'
-          }
+            code: "DECK_NOT_FOUND",
+            message: "Deck not found or access denied",
+          },
         }),
-        { status: 404, headers: { 'Content-Type': 'application/json' } }
+        { status: 404, headers: { "Content-Type": "application/json" } }
       );
     }
 
     // 4. Happy path - sukces
     return new Response(null, { status: 204 });
-
   } catch (error) {
-    console.error('Error deleting deck:', error);
+    console.error("Error deleting deck:", error);
     return new Response(
       JSON.stringify({
         error: {
-          code: 'INTERNAL_ERROR',
-          message: 'An error occurred while deleting the deck'
-        }
+          code: "INTERNAL_ERROR",
+          message: "An error occurred while deleting the deck",
+        },
       }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
+      { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }
 }
@@ -299,11 +314,11 @@ export async function DELETE(context: APIContext) {
 
 ```typescript
 // W catch block - logowanie szczegółów dla debugowania
-console.error('Error deleting deck:', {
+console.error("Error deleting deck:", {
   userId: user?.id,
   deckId: validation.data.deckId,
-  error: error instanceof Error ? error.message : 'Unknown error',
-  timestamp: new Date().toISOString()
+  error: error instanceof Error ? error.message : "Unknown error",
+  timestamp: new Date().toISOString(),
 });
 ```
 
@@ -312,15 +327,10 @@ console.error('Error deleting deck:', {
 ### 8.1 Optymalizacja zapytań
 
 **Single query approach:**
+
 ```typescript
 // Zamiast dwóch zapytań (SELECT + DELETE), wykonaj jedno DELETE z warunkami
-const { data } = await supabase
-  .from('decks')
-  .delete()
-  .eq('id', deckId)
-  .eq('user_id', userId)
-  .select('id')
-  .single();
+const { data } = await supabase.from("decks").delete().eq("id", deckId).eq("user_id", userId).select("id").single();
 
 // Jeśli data === null, oznacza to że nie usunięto żadnego wiersza (404)
 ```
@@ -334,6 +344,7 @@ const { data } = await supabase
 ### 8.3 Indeksy
 
 Upewnij się, że istnieją następujące indeksy:
+
 ```sql
 -- Primary key index (automatyczny)
 CREATE INDEX idx_decks_pkey ON decks(id);
@@ -363,35 +374,34 @@ CREATE INDEX idx_decks_id_user_id ON decks(id, user_id);
 ## 9. Etapy wdrożenia
 
 ### Krok 1: Utworzenie Zod schema walidacji
+
 **Plik:** `src/pages/api/decks/[deckId].ts` (na górze pliku)
 
 ```typescript
-import { z } from 'zod';
+import { z } from "zod";
 
 const DeleteDeckParamsSchema = z.object({
-  deckId: z.string().uuid({ message: 'Invalid deck ID format' })
+  deckId: z.string().uuid({ message: "Invalid deck ID format" }),
 });
 ```
 
 ### Krok 2: Implementacja DeckService.deleteDeck()
+
 **Plik:** `src/lib/services/deck.service.ts` (utworzyć jeśli nie istnieje)
 
 ```typescript
 export class DeckService {
-  static async deleteDeck(
-    userId: string,
-    deckId: string
-  ): Promise<boolean> {
+  static async deleteDeck(userId: string, deckId: string): Promise<boolean> {
     const { data, error } = await supabaseClient
-      .from('decks')
+      .from("decks")
       .delete()
-      .eq('id', deckId)
-      .eq('user_id', userId) // KRYTYCZNE: weryfikacja własności
-      .select('id')
+      .eq("id", deckId)
+      .eq("user_id", userId) // KRYTYCZNE: weryfikacja własności
+      .select("id")
       .single();
 
     if (error) {
-      if (error.code === 'PGRST116') {
+      if (error.code === "PGRST116") {
         // No rows returned - talia nie istnieje lub nie należy do użytkownika
         return false;
       }
@@ -404,17 +414,18 @@ export class DeckService {
 ```
 
 ### Krok 3: Implementacja DELETE endpoint handler
+
 **Plik:** `src/pages/api/decks/[deckId].ts`
 
 ```typescript
-import type { APIContext } from 'astro';
-import { DeckService } from '@/lib/services/deck.service';
-import { z } from 'zod';
+import type { APIContext } from "astro";
+import { DeckService } from "@/lib/services/deck.service";
+import { z } from "zod";
 
 export const prerender = false;
 
 const DeleteDeckParamsSchema = z.object({
-  deckId: z.string().uuid({ message: 'Invalid deck ID format' })
+  deckId: z.string().uuid({ message: "Invalid deck ID format" }),
 });
 
 export async function DELETE(context: APIContext) {
@@ -427,77 +438,75 @@ export async function DELETE(context: APIContext) {
       return new Response(
         JSON.stringify({
           error: {
-            code: 'INVALID_DECK_ID',
-            message: 'Invalid deck ID format',
-            details: validation.error.flatten()
-          }
+            code: "INVALID_DECK_ID",
+            message: "Invalid deck ID format",
+            details: validation.error.flatten(),
+          },
         }),
         {
           status: 400,
-          headers: { 'Content-Type': 'application/json' }
+          headers: { "Content-Type": "application/json" },
         }
       );
     }
 
     // 2. Autoryzacja - pobranie zalogowanego użytkownika
-    const { data: { user }, error: authError } =
-      await context.locals.supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await context.locals.supabase.auth.getUser();
 
     if (authError || !user) {
       return new Response(
         JSON.stringify({
           error: {
-            code: 'UNAUTHORIZED',
-            message: 'Authentication required'
-          }
+            code: "UNAUTHORIZED",
+            message: "Authentication required",
+          },
         }),
         {
           status: 401,
-          headers: { 'Content-Type': 'application/json' }
+          headers: { "Content-Type": "application/json" },
         }
       );
     }
 
     // 3. Usunięcie talii przez service
-    const deleted = await DeckService.deleteDeck(
-      user.id,
-      validation.data.deckId
-    );
+    const deleted = await DeckService.deleteDeck(user.id, validation.data.deckId);
 
     if (!deleted) {
       return new Response(
         JSON.stringify({
           error: {
-            code: 'DECK_NOT_FOUND',
-            message: 'Deck not found or access denied'
-          }
+            code: "DECK_NOT_FOUND",
+            message: "Deck not found or access denied",
+          },
         }),
         {
           status: 404,
-          headers: { 'Content-Type': 'application/json' }
+          headers: { "Content-Type": "application/json" },
         }
       );
     }
 
     // 4. Sukces - 204 No Content
     return new Response(null, { status: 204 });
-
   } catch (error) {
-    console.error('Error deleting deck:', {
-      error: error instanceof Error ? error.message : 'Unknown error',
-      timestamp: new Date().toISOString()
+    console.error("Error deleting deck:", {
+      error: error instanceof Error ? error.message : "Unknown error",
+      timestamp: new Date().toISOString(),
     });
 
     return new Response(
       JSON.stringify({
         error: {
-          code: 'INTERNAL_ERROR',
-          message: 'An error occurred while deleting the deck'
-        }
+          code: "INTERNAL_ERROR",
+          message: "An error occurred while deleting the deck",
+        },
       }),
       {
         status: 500,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { "Content-Type": "application/json" },
       }
     );
   }
@@ -505,9 +514,11 @@ export async function DELETE(context: APIContext) {
 ```
 
 ### Krok 4: Weryfikacja RLS policies w bazie danych
+
 **Plik:** Sprawdzić istniejące migracje lub utworzyć nową w `supabase/migrations/`
 
 Upewnić się, że istnieje policy:
+
 ```sql
 -- Policy dla DELETE na tabeli decks
 CREATE POLICY "Users can delete own decks"
@@ -523,6 +534,7 @@ Jeśli policy nie istnieje, dodać do odpowiedniej migracji.
 **Testy manualne:**
 
 1. **Test sukcesu (204):**
+
 ```bash
 curl -X DELETE http://localhost:3000/api/decks/{valid-deck-id} \
   -H "Authorization: Bearer {valid-jwt-token}"
@@ -530,6 +542,7 @@ curl -X DELETE http://localhost:3000/api/decks/{valid-deck-id} \
 ```
 
 2. **Test nieprawidłowego UUID (400):**
+
 ```bash
 curl -X DELETE http://localhost:3000/api/decks/invalid-uuid \
   -H "Authorization: Bearer {valid-jwt-token}"
@@ -537,12 +550,14 @@ curl -X DELETE http://localhost:3000/api/decks/invalid-uuid \
 ```
 
 3. **Test brak autoryzacji (401):**
+
 ```bash
 curl -X DELETE http://localhost:3000/api/decks/{valid-deck-id}
 # Expected: 401 Unauthorized + error JSON
 ```
 
 4. **Test nieistniejącej talii (404):**
+
 ```bash
 curl -X DELETE http://localhost:3000/api/decks/{non-existent-deck-id} \
   -H "Authorization: Bearer {valid-jwt-token}"
@@ -550,6 +565,7 @@ curl -X DELETE http://localhost:3000/api/decks/{non-existent-deck-id} \
 ```
 
 5. **Test cudzej talii (404):**
+
 ```bash
 curl -X DELETE http://localhost:3000/api/decks/{other-user-deck-id} \
   -H "Authorization: Bearer {valid-jwt-token}"
@@ -557,6 +573,7 @@ curl -X DELETE http://localhost:3000/api/decks/{other-user-deck-id} \
 ```
 
 6. **Test cascade delete:**
+
 - Utworzyć talię z 10 fiszkami
 - Usunąć talię
 - Zweryfikować w bazie, że fiszki również zostały usunięte

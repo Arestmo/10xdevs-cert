@@ -2,12 +2,12 @@
 
 ## 1. Resources
 
-| Resource | Database Table | Description |
-|----------|---------------|-------------|
-| Profile | `profiles` | User profile with AI generation limits |
-| Deck | `decks` | Flashcard deck/collection |
-| Flashcard | `flashcards` | Individual flashcard with FSRS parameters |
-| Generation | `generation_events` | AI generation session and events |
+| Resource   | Database Table      | Description                               |
+| ---------- | ------------------- | ----------------------------------------- |
+| Profile    | `profiles`          | User profile with AI generation limits    |
+| Deck       | `decks`             | Flashcard deck/collection                 |
+| Flashcard  | `flashcards`        | Individual flashcard with FSRS parameters |
+| Generation | `generation_events` | AI generation session and events          |
 
 ## 2. Endpoints
 
@@ -18,6 +18,7 @@
 Get current user's profile with AI limit information.
 
 **Response (200):**
+
 ```json
 {
   "user_id": "uuid",
@@ -30,6 +31,7 @@ Get current user's profile with AI limit information.
 ```
 
 **Errors:**
+
 - `401 Unauthorized` - User not authenticated
 - `404 Not Found` - Profile not found
 
@@ -50,6 +52,7 @@ List all decks for the authenticated user with metadata.
 | order | string | "desc" | Sort order: `asc`, `desc` |
 
 **Response (200):**
+
 ```json
 {
   "data": [
@@ -72,6 +75,7 @@ List all decks for the authenticated user with metadata.
 ```
 
 **Errors:**
+
 - `401 Unauthorized` - User not authenticated
 - `400 Bad Request` - Invalid query parameters
 
@@ -82,6 +86,7 @@ List all decks for the authenticated user with metadata.
 Create a new deck.
 
 **Request:**
+
 ```json
 {
   "name": "Biology 101"
@@ -89,9 +94,11 @@ Create a new deck.
 ```
 
 **Validation:**
+
 - `name`: required, string, 1-100 characters
 
 **Response (201):**
+
 ```json
 {
   "id": "uuid",
@@ -103,6 +110,7 @@ Create a new deck.
 ```
 
 **Errors:**
+
 - `401 Unauthorized` - User not authenticated
 - `400 Bad Request` - Validation error (name empty, too long)
 - `409 Conflict` - Deck with this name already exists for user
@@ -114,6 +122,7 @@ Create a new deck.
 Get a specific deck with metadata.
 
 **Response (200):**
+
 ```json
 {
   "id": "uuid",
@@ -127,6 +136,7 @@ Get a specific deck with metadata.
 ```
 
 **Errors:**
+
 - `401 Unauthorized` - User not authenticated
 - `404 Not Found` - Deck not found or not owned by user
 
@@ -137,6 +147,7 @@ Get a specific deck with metadata.
 Update a deck's name.
 
 **Request:**
+
 ```json
 {
   "name": "Advanced Biology"
@@ -144,9 +155,11 @@ Update a deck's name.
 ```
 
 **Validation:**
+
 - `name`: required, string, 1-100 characters
 
 **Response (200):**
+
 ```json
 {
   "id": "uuid",
@@ -158,6 +171,7 @@ Update a deck's name.
 ```
 
 **Errors:**
+
 - `401 Unauthorized` - User not authenticated
 - `400 Bad Request` - Validation error
 - `404 Not Found` - Deck not found or not owned by user
@@ -172,12 +186,14 @@ Delete a deck and all its flashcards (cascade delete).
 **Response (204):** No content
 
 **Errors:**
+
 - `400 Bad Request` - Invalid deck ID format (not a valid UUID)
 - `401 Unauthorized` - User not authenticated
 - `404 Not Found` - Deck not found or not owned by user
 - `500 Internal Server Error` - Unexpected server error
 
 **Security Notes:**
+
 - Returns 404 for both non-existent decks AND decks not owned by user (IDOR protection)
 - Never returns 403 Forbidden to avoid information disclosure
 
@@ -199,6 +215,7 @@ List flashcards with optional filtering.
 | order | string | "desc" | Sort order: `asc`, `desc` |
 
 **Response (200):**
+
 ```json
 {
   "data": [
@@ -231,6 +248,7 @@ List flashcards with optional filtering.
 ```
 
 **Errors:**
+
 - `401 Unauthorized` - User not authenticated
 - `400 Bad Request` - Invalid query parameters
 - `404 Not Found` - Deck not found (if deck_id provided)
@@ -242,6 +260,7 @@ List flashcards with optional filtering.
 Create a new flashcard (manual or from AI generation).
 
 **Request:**
+
 ```json
 {
   "deck_id": "uuid",
@@ -253,6 +272,7 @@ Create a new flashcard (manual or from AI generation).
 ```
 
 **For AI-generated flashcards:**
+
 ```json
 {
   "deck_id": "uuid",
@@ -265,6 +285,7 @@ Create a new flashcard (manual or from AI generation).
 ```
 
 **Validation:**
+
 - `deck_id`: required, valid UUID, must belong to user
 - `front`: required, string, 1-200 characters
 - `back`: required, string, 1-500 characters
@@ -273,6 +294,7 @@ Create a new flashcard (manual or from AI generation).
 - `was_edited`: optional, boolean (default: false)
 
 **Response (201):**
+
 ```json
 {
   "id": "uuid",
@@ -295,9 +317,11 @@ Create a new flashcard (manual or from AI generation).
 ```
 
 **Side Effects:**
+
 - If `source` is `ai`: Creates `ACCEPTED` or `EDITED` event in `generation_events`
 
 **Errors:**
+
 - `401 Unauthorized` - User not authenticated
 - `400 Bad Request` - Validation error
 - `404 Not Found` - Deck not found or not owned by user
@@ -309,6 +333,7 @@ Create a new flashcard (manual or from AI generation).
 Get a specific flashcard.
 
 **Response (200):**
+
 ```json
 {
   "id": "uuid",
@@ -331,6 +356,7 @@ Get a specific flashcard.
 ```
 
 **Errors:**
+
 - `401 Unauthorized` - User not authenticated
 - `404 Not Found` - Flashcard not found or not owned by user
 
@@ -341,6 +367,7 @@ Get a specific flashcard.
 Update a flashcard's content.
 
 **Request:**
+
 ```json
 {
   "front": "Updated question",
@@ -349,11 +376,13 @@ Update a flashcard's content.
 ```
 
 **Validation:**
+
 - `front`: optional, string, 1-200 characters
 - `back`: optional, string, 1-500 characters
 - At least one field must be provided
 
 **Response (200):**
+
 ```json
 {
   "id": "uuid",
@@ -378,6 +407,7 @@ Update a flashcard's content.
 **Note:** Editing flashcard content does NOT reset FSRS parameters.
 
 **Errors:**
+
 - `401 Unauthorized` - User not authenticated
 - `400 Bad Request` - Validation error
 - `404 Not Found` - Flashcard not found or not owned by user
@@ -391,9 +421,11 @@ Delete a flashcard.
 **Response (204):** No content
 
 **Side Effects:**
+
 - Related `generation_events.flashcard_id` set to NULL (preserves analytics)
 
 **Errors:**
+
 - `401 Unauthorized` - User not authenticated
 - `404 Not Found` - Flashcard not found or not owned by user
 
@@ -406,6 +438,7 @@ Delete a flashcard.
 Generate flashcard drafts from source text using AI.
 
 **Request:**
+
 ```json
 {
   "source_text": "Long text content to generate flashcards from...",
@@ -414,10 +447,12 @@ Generate flashcard drafts from source text using AI.
 ```
 
 **Validation:**
+
 - `source_text`: required, string, 1-5000 characters
 - `deck_id`: required, valid UUID, must belong to user
 
 **Response (200):**
+
 ```json
 {
   "generation_id": "uuid",
@@ -439,6 +474,7 @@ Generate flashcard drafts from source text using AI.
 ```
 
 **Business Logic:**
+
 1. Check monthly AI limit (200 flashcards/month)
 2. Reset limit if `ai_limit_reset_date < start_of_current_month`
 3. Generate up to 20 flashcard drafts via OpenRouter API
@@ -449,6 +485,7 @@ Generate flashcard drafts from source text using AI.
 **Note:** Drafts are NOT saved to database. Only accepted drafts become flashcards.
 
 **Errors:**
+
 - `401 Unauthorized` - User not authenticated
 - `400 Bad Request` - Validation error (text too long, deck not found)
 - `403 Forbidden` - Monthly AI limit exceeded
@@ -462,6 +499,7 @@ Generate flashcard drafts from source text using AI.
 Log rejection of an AI-generated draft.
 
 **Request:**
+
 ```json
 {
   "draft_index": 0
@@ -469,9 +507,11 @@ Log rejection of an AI-generated draft.
 ```
 
 **Validation:**
+
 - `draft_index`: required, integer >= 0
 
 **Response (201):**
+
 ```json
 {
   "id": "uuid",
@@ -482,9 +522,11 @@ Log rejection of an AI-generated draft.
 ```
 
 **Side Effects:**
+
 - Creates `REJECTED` event in `generation_events` (flashcard_id = NULL)
 
 **Errors:**
+
 - `401 Unauthorized` - User not authenticated
 - `400 Bad Request` - Invalid draft_index
 - `404 Not Found` - Generation not found or not owned by user
@@ -504,6 +546,7 @@ Get flashcards due for review.
 | limit | integer | 50 | Max cards to return (1-200) |
 
 **Response (200):**
+
 ```json
 {
   "data": [
@@ -530,11 +573,13 @@ Get flashcards due for review.
 ```
 
 **Business Logic:**
+
 - Returns flashcards where `next_review <= NOW()`
 - Sorted by `next_review ASC` (oldest due first)
 - If `deck_id` provided, filters to that deck only
 
 **Errors:**
+
 - `401 Unauthorized` - User not authenticated
 - `400 Bad Request` - Invalid query parameters
 - `404 Not Found` - Deck not found (if deck_id provided)
@@ -546,6 +591,7 @@ Get flashcards due for review.
 Get study summary for dashboard.
 
 **Response (200):**
+
 ```json
 {
   "total_due": 25,
@@ -566,6 +612,7 @@ Get study summary for dashboard.
 ```
 
 **Errors:**
+
 - `401 Unauthorized` - User not authenticated
 
 ---
@@ -575,6 +622,7 @@ Get study summary for dashboard.
 Submit a review rating for a flashcard.
 
 **Request:**
+
 ```json
 {
   "flashcard_id": "uuid",
@@ -583,10 +631,12 @@ Submit a review rating for a flashcard.
 ```
 
 **Validation:**
+
 - `flashcard_id`: required, valid UUID, must belong to user
 - `rating`: required, integer 1-4 (1=Again, 2=Hard, 3=Good, 4=Easy)
 
 **Response (200):**
+
 ```json
 {
   "flashcard": {
@@ -611,6 +661,7 @@ Submit a review rating for a flashcard.
 ```
 
 **Business Logic:**
+
 1. Fetch current FSRS parameters
 2. Calculate new parameters based on rating using FSRS algorithm
 3. Update `last_review` to NOW()
@@ -618,6 +669,7 @@ Submit a review rating for a flashcard.
 5. Return updated flashcard and preview intervals for UI
 
 **Errors:**
+
 - `401 Unauthorized` - User not authenticated
 - `400 Bad Request` - Invalid rating value
 - `404 Not Found` - Flashcard not found or not owned by user
@@ -631,6 +683,7 @@ Submit a review rating for a flashcard.
 Delete user account and all associated data (GDPR compliance).
 
 **Request:**
+
 ```json
 {
   "confirmation": "USUŃ"
@@ -638,9 +691,11 @@ Delete user account and all associated data (GDPR compliance).
 ```
 
 **Validation:**
+
 - `confirmation`: required, must equal "USUŃ" (Polish for "DELETE")
 
 **Response (200):**
+
 ```json
 {
   "message": "Account successfully deleted"
@@ -648,12 +703,14 @@ Delete user account and all associated data (GDPR compliance).
 ```
 
 **Business Logic:**
+
 1. Verify confirmation string matches
 2. Delete user from Supabase Auth (triggers cascade delete via database)
 3. Cascade deletes: profiles → decks → flashcards → generation_events
 4. Invalidate session
 
 **Errors:**
+
 - `401 Unauthorized` - User not authenticated
 - `400 Bad Request` - Confirmation string doesn't match
 
@@ -687,12 +744,12 @@ The middleware (`src/middleware/index.ts`) validates the token and injects the a
 
 Row Level Security (RLS) is enabled on all tables:
 
-| Table | Policy |
-|-------|--------|
-| profiles | Users can only view/update their own profile |
-| decks | Users can only CRUD their own decks |
-| flashcards | Users can only CRUD flashcards in their own decks |
-| generation_events | Users can only view/create their own events |
+| Table             | Policy                                            |
+| ----------------- | ------------------------------------------------- |
+| profiles          | Users can only view/update their own profile      |
+| decks             | Users can only CRUD their own decks               |
+| flashcards        | Users can only CRUD flashcards in their own decks |
+| generation_events | Users can only view/create their own events       |
 
 RLS policies are enforced at database level, ensuring data isolation without explicit checks in application code.
 
@@ -709,38 +766,44 @@ RLS policies are enforced at database level, ensuring data isolation without exp
 ### 4.1 Validation Rules
 
 #### Profile
+
 - `monthly_ai_flashcards_count`: >= 0
 - Monthly AI limit: 200 flashcards (hardcoded)
 
 #### Deck
-| Field | Rules |
-|-------|-------|
-| name | Required, 1-100 characters, unique per user |
+
+| Field | Rules                                       |
+| ----- | ------------------------------------------- |
+| name  | Required, 1-100 characters, unique per user |
 
 #### Flashcard
-| Field | Rules |
-|-------|-------|
-| front | Required, 1-200 characters |
-| back | Required, 1-500 characters |
-| source | Required, enum: `ai`, `manual` |
-| state | 0-3 (0=new, 1=learning, 2=review, 3=relearning) |
+
+| Field  | Rules                                           |
+| ------ | ----------------------------------------------- |
+| front  | Required, 1-200 characters                      |
+| back   | Required, 1-500 characters                      |
+| source | Required, enum: `ai`, `manual`                  |
+| state  | 0-3 (0=new, 1=learning, 2=review, 3=relearning) |
 
 #### AI Generation
-| Field | Rules |
-|-------|-------|
-| source_text | Required, 1-5000 characters |
-| deck_id | Required, valid UUID, belongs to user |
-| Max drafts per generation | 20 |
-| Monthly limit | 200 AI flashcards |
+
+| Field                     | Rules                                 |
+| ------------------------- | ------------------------------------- |
+| source_text               | Required, 1-5000 characters           |
+| deck_id                   | Required, valid UUID, belongs to user |
+| Max drafts per generation | 20                                    |
+| Monthly limit             | 200 AI flashcards                     |
 
 #### Study Review
-| Field | Rules |
-|-------|-------|
+
+| Field  | Rules                 |
+| ------ | --------------------- |
 | rating | Required, integer 1-4 |
 
 ### 4.2 Business Logic Implementation
 
 #### AI Limit Management (Lazy Reset)
+
 ```
 On each generation request:
 1. Fetch user profile
@@ -752,6 +815,7 @@ On each generation request:
 ```
 
 #### FSRS Algorithm Integration
+
 ```
 On review submission:
 1. Get current flashcard FSRS state
@@ -770,6 +834,7 @@ On review submission:
 ```
 
 #### Generation Event Logging
+
 ```
 Event flow:
 1. POST /api/generations:
@@ -803,7 +868,7 @@ All errors follow consistent format:
 
 **Error Codes:**
 
-*Generic Codes (used across all endpoints):*
+_Generic Codes (used across all endpoints):_
 | Code | HTTP Status | Description |
 |------|-------------|-------------|
 | UNAUTHORIZED | 401 | Missing or invalid authentication |
@@ -811,7 +876,7 @@ All errors follow consistent format:
 | CONFLICT | 409 | Resource conflict (e.g., duplicate deck name) |
 | INTERNAL_ERROR | 500 | Unexpected server error |
 
-*Resource-specific Not Found Codes (404):*
+_Resource-specific Not Found Codes (404):_
 | Code | Description |
 |------|-------------|
 | PROFILE_NOT_FOUND | User profile not found |
@@ -819,7 +884,7 @@ All errors follow consistent format:
 | FLASHCARD_NOT_FOUND | Flashcard not found or access denied |
 | GENERATION_NOT_FOUND | Generation session not found |
 
-*AI Generation Codes:*
+_AI Generation Codes:_
 | Code | HTTP Status | Description |
 |------|-------------|-------------|
 | AI_LIMIT_EXCEEDED | 403 | Monthly AI generation limit exceeded |
@@ -871,6 +936,7 @@ src/
 ### 5.3 Rate Limiting (Future)
 
 Consider implementing rate limiting for:
+
 - AI generation endpoint: 10 requests/minute per user
 - General API: 100 requests/minute per user
 

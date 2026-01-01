@@ -5,6 +5,7 @@
 Endpoint umożliwia aktualizację nazwy istniejącej talii fiszek. Użytkownik musi być uwierzytelniony i może aktualizować tylko swoje własne talie. Operacja jest atomowa i respektuje ograniczenie unikalności nazw talii w obrębie konta użytkownika.
 
 **Kluczowe funkcjonalności:**
+
 - Aktualizacja nazwy talii
 - Walidacja własności zasobu (authorization)
 - Obsługa konfliktów nazw (UNIQUE constraint)
@@ -13,9 +14,11 @@ Endpoint umożliwia aktualizację nazwy istniejącej talii fiszek. Użytkownik m
 ## 2. Szczegóły żądania
 
 ### Metoda HTTP
+
 `PATCH`
 
 ### Struktura URL
+
 ```
 /api/decks/{deckId}
 ```
@@ -23,9 +26,11 @@ Endpoint umożliwia aktualizację nazwy istniejącej talii fiszek. Użytkownik m
 ### Parametry
 
 **Path Parameters:**
+
 - `deckId` (wymagany): UUID - Unikalny identyfikator talii do aktualizacji
 
 **Request Body:**
+
 ```json
 {
   "name": "Advanced Biology"
@@ -33,12 +38,14 @@ Endpoint umożliwia aktualizację nazwy istniejącej talii fiszek. Użytkownik m
 ```
 
 **Struktura Request Body:**
+
 - `name` (wymagany): string
   - Minimalna długość: 1 znak
   - Maksymalna długość: 100 znaków
   - Walidacja: Zod schema oraz database CHECK constraint
 
 **Request Headers:**
+
 - `Content-Type: application/json`
 - `Authorization: Bearer <token>` (zarządzane przez Supabase)
 
@@ -47,6 +54,7 @@ Endpoint umożliwia aktualizację nazwy istniejącej talii fiszek. Użytkownik m
 ### Istniejące typy (z src/types.ts)
 
 **Request DTO:**
+
 ```typescript
 // Już zdefiniowany w src/types.ts (linie 136-138)
 export type UpdateDeckRequestDTO = Pick<TablesUpdate<"decks">, "name"> & {
@@ -55,6 +63,7 @@ export type UpdateDeckRequestDTO = Pick<TablesUpdate<"decks">, "name"> & {
 ```
 
 **Response DTO:**
+
 ```typescript
 // Już zdefiniowany w src/types.ts (linia 115)
 export type DeckDTO = Deck;
@@ -70,6 +79,7 @@ export type DeckDTO = Deck;
 ```
 
 **Error Response:**
+
 ```typescript
 // Już zdefiniowany w src/types.ts (linie 82-89)
 export interface ErrorResponseDTO {
@@ -111,15 +121,18 @@ const updateDeckSchema = z.object({
 ```
 
 **Headers:**
+
 - `Content-Type: application/json`
 
 **Uwagi:**
+
 - Pole `updated_at` jest automatycznie aktualizowane przez bazę danych
 - Zwracany jest pełny obiekt DeckDTO zawierający wszystkie pola
 
 ### Błędy
 
 **400 Bad Request - Walidacja**
+
 ```json
 {
   "error": {
@@ -133,6 +146,7 @@ const updateDeckSchema = z.object({
 ```
 
 **401 Unauthorized**
+
 ```json
 {
   "error": {
@@ -143,6 +157,7 @@ const updateDeckSchema = z.object({
 ```
 
 **404 Not Found**
+
 ```json
 {
   "error": {
@@ -153,6 +168,7 @@ const updateDeckSchema = z.object({
 ```
 
 **409 Conflict**
+
 ```json
 {
   "error": {
@@ -163,6 +179,7 @@ const updateDeckSchema = z.object({
 ```
 
 **500 Internal Server Error**
+
 ```json
 {
   "error": {
@@ -231,12 +248,13 @@ await this.supabase
   .from("decks")
   .update({ name: data.name })
   .eq("id", deckId)
-  .eq("user_id", userId)  // CRITICAL: ownership validation
+  .eq("user_id", userId) // CRITICAL: ownership validation
   .select()
   .single();
 ```
 
 **Mechanizmy bazodanowe:**
+
 - **RLS (Row Level Security)**: Powinien być włączony na tabeli `decks`
 - **CHECK constraint**: `char_length(name) BETWEEN 1 AND 100`
 - **UNIQUE constraint**: `UNIQUE(user_id, name)`
@@ -247,11 +265,13 @@ await this.supabase
 ### Uwierzytelnienie (Authentication)
 
 **Mechanizm:**
+
 - Wykorzystanie Supabase Auth poprzez `context.locals.supabase.auth.getUser()`
 - Token JWT przekazywany w headerze Authorization przez Supabase SDK
 - Supabase automatycznie weryfikuje token i zwraca obiekt użytkownika
 
 **Implementacja:**
+
 ```typescript
 const {
   data: { user },
@@ -265,6 +285,7 @@ if (authError || !user) {
 ```
 
 **Scenariusze błędów:**
+
 - Token wygasły → 401
 - Token nieprawidłowy → 401
 - Brak tokenu → 401
@@ -276,6 +297,7 @@ if (authError || !user) {
 Użytkownik może aktualizować tylko swoje własne talie. Implementacja "defense in depth":
 
 1. **Poziom aplikacji (Service Layer):**
+
    ```typescript
    .eq("id", deckId)
    .eq("user_id", userId)  // Filtrowanie po user_id
@@ -286,12 +308,14 @@ Użytkownik może aktualizować tylko swoje własne talie. Implementacja "defens
    - Policy dla UPDATE: `user_id = auth.uid()`
 
 **Scenariusze ataków:**
+
 - Użytkownik A próbuje zaktualizować talię użytkownika B → 404 (nie ujawniamy, czy talia istnieje)
 - Manipulacja deckId w URL → 404 lub 400 (invalid UUID)
 
 ### Walidacja danych wejściowych
 
 **Warstwa 1: Zod Schema Validation (API Route)**
+
 ```typescript
 // Walidacja na poziomie endpointu
 const updateDeckSchema = z.object({
@@ -300,10 +324,12 @@ const updateDeckSchema = z.object({
 ```
 
 **Warstwa 2: Database Constraints**
+
 - CHECK constraint: `char_length(name) BETWEEN 1 AND 100`
 - UNIQUE constraint: `UNIQUE(user_id, name)`
 
 **Zapobieganie atakom:**
+
 - **SQL Injection**: Parametryzowane zapytania Supabase SDK
 - **XSS**: Walidacja długości i typu danych (string)
 - **Buffer Overflow**: Limit 100 znaków
@@ -316,6 +342,7 @@ const updateDeckSchema = z.object({
 Użytkownik wysyła dwa równoczesne requesty PATCH z różnymi nazwami.
 
 **Ochrona:**
+
 - PostgreSQL ACID guarantees zapewniają atomowość
 - Ostatni commit wygrywa (last-write-wins)
 - Brak potrzeby pessimistic locking dla tej operacji
@@ -329,6 +356,7 @@ console.error("Error in PATCH /api/decks/[deckId]:", error);
 ```
 
 **Uwaga:** W produkcji rozważyć structured logging z kontekstem:
+
 - userId (po uwierzytelnieniu)
 - deckId
 - IP address
@@ -338,14 +366,14 @@ console.error("Error in PATCH /api/decks/[deckId]:", error);
 
 ### Katalog błędów
 
-| Kod błędu | HTTP Status | Przyczyna | Obsługa |
-|-----------|-------------|-----------|---------|
-| `VALIDATION_ERROR` | 400 | Nieprawidłowy format deckId (nie UUID) | Zod validation w endpoint, zwróć details |
-| `VALIDATION_ERROR` | 400 | Nieprawidłowy request body (name poza zakresem 1-100) | Zod validation w endpoint, zwróć details |
-| `UNAUTHORIZED` | 401 | Brak lub nieprawidłowy token uwierzytelnienia | Guard clause po auth.getUser() |
-| `DECK_NOT_FOUND` | 404 | Talia nie istnieje lub nie należy do użytkownika | Catch DeckNotFoundError w endpoint |
-| `DUPLICATE_DECK_NAME` | 409 | Użytkownik ma już talię o tej nazwie | Catch DuplicateDeckError w endpoint |
-| `INTERNAL_ERROR` | 500 | Nieoczekiwany błąd bazy danych lub aplikacji | Catch-all handler, log error |
+| Kod błędu             | HTTP Status | Przyczyna                                             | Obsługa                                  |
+| --------------------- | ----------- | ----------------------------------------------------- | ---------------------------------------- |
+| `VALIDATION_ERROR`    | 400         | Nieprawidłowy format deckId (nie UUID)                | Zod validation w endpoint, zwróć details |
+| `VALIDATION_ERROR`    | 400         | Nieprawidłowy request body (name poza zakresem 1-100) | Zod validation w endpoint, zwróć details |
+| `UNAUTHORIZED`        | 401         | Brak lub nieprawidłowy token uwierzytelnienia         | Guard clause po auth.getUser()           |
+| `DECK_NOT_FOUND`      | 404         | Talia nie istnieje lub nie należy do użytkownika      | Catch DeckNotFoundError w endpoint       |
+| `DUPLICATE_DECK_NAME` | 409         | Użytkownik ma już talię o tej nazwie                  | Catch DuplicateDeckError w endpoint      |
+| `INTERNAL_ERROR`      | 500         | Nieoczekiwany błąd bazy danych lub aplikacji          | Catch-all handler, log error             |
 
 ### Implementacja obsługi błędów w DeckService
 
@@ -455,6 +483,7 @@ Wszystkie błędy zwracane są w standardowym formacie ErrorResponseDTO:
 ### Monitoring i metryki
 
 Metryki do śledzenia w produkcji:
+
 - **Latency p50/p95/p99**: Oczekiwane < 100ms dla p95
 - **Error rate**: 4xx vs 5xx
 - **Most common errors**: 404 (not found) vs 409 (duplicate) ratio
@@ -463,10 +492,12 @@ Metryki do śledzenia w produkcji:
 ### Skalowanie
 
 **Obecne ograniczenia:**
+
 - Brak limitów rate limiting (może być dodany przez Supabase lub middleware)
 - Brak caching (niepotrzebny dla UPDATE operations)
 
 **Przyszłe optymalizacje:**
+
 - Rate limiting per user (np. 100 req/min)
 - Request idempotency headers (dla retry logic)
 - Optimistic locking z version field (jeśli potrzebny)
@@ -481,6 +512,7 @@ Metryki do śledzenia w produkcji:
 Dodaj metodę `updateDeck()` do istniejącej klasy DeckService.
 
 **Implementacja:**
+
 ```typescript
 /**
  * Updates a deck's name.
@@ -530,6 +562,7 @@ async updateDeck(userId: string, deckId: string, data: UpdateDeckRequestDTO): Pr
 ```
 
 **Testy weryfikacyjne:**
+
 - Poprawna aktualizacja nazwy własnej talii
 - Błąd 404 przy próbie aktualizacji nieistniejącej talii
 - Błąd 404 przy próbie aktualizacji talii innego użytkownika
@@ -543,6 +576,7 @@ async updateDeck(userId: string, deckId: string, data: UpdateDeckRequestDTO): Pr
 Dodaj export funkcji `PATCH` do istniejącego pliku (który już ma handler `GET`).
 
 **Implementacja:**
+
 ```typescript
 // Import Zod na początku pliku
 import { z } from "zod";
@@ -580,12 +614,7 @@ export const PATCH: APIRoute = async (context) => {
       validatedDeckId = deckIdSchema.parse(deckId);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return errorResponse(
-          "VALIDATION_ERROR",
-          "Invalid deck ID format",
-          400,
-          error.flatten().fieldErrors
-        );
+        return errorResponse("VALIDATION_ERROR", "Invalid deck ID format", 400, error.flatten().fieldErrors);
       }
       throw error;
     }
@@ -603,12 +632,7 @@ export const PATCH: APIRoute = async (context) => {
       validatedData = updateDeckSchema.parse(requestBody);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return errorResponse(
-          "VALIDATION_ERROR",
-          "Invalid request data",
-          400,
-          error.flatten().fieldErrors
-        );
+        return errorResponse("VALIDATION_ERROR", "Invalid request data", 400, error.flatten().fieldErrors);
       }
       throw error;
     }
@@ -650,6 +674,7 @@ export const PATCH: APIRoute = async (context) => {
 ```
 
 **Uwagi:**
+
 - Reuse istniejącego `deckIdSchema` z GET handlera
 - Import `DuplicateDeckError` z deck.service.ts (już zaimportowany `DeckNotFoundError`)
 - Zastosowanie guard clause pattern (zgodnie z CLAUDE.md)
@@ -663,6 +688,7 @@ export const PATCH: APIRoute = async (context) => {
 Upewnij się, że wszystkie potrzebne typy i funkcje są zaimportowane.
 
 **Zmiany:**
+
 ```typescript
 import type { APIRoute } from "astro";
 import { z } from "zod";
@@ -672,6 +698,7 @@ import type { UpdateDeckRequestDTO } from "@/types";
 ```
 
 **Nowe importy:**
+
 - `DuplicateDeckError` (do obsługi 409)
 - `UpdateDeckRequestDTO` (type dla request body)
 
@@ -680,56 +707,68 @@ import type { UpdateDeckRequestDTO } from "@/types";
 **Testy manualne:**
 
 1. **Test sukcesu (200):**
+
    ```bash
    curl -X PATCH http://localhost:3000/api/decks/{valid-deck-id} \
      -H "Authorization: Bearer {valid-token}" \
      -H "Content-Type: application/json" \
      -d '{"name": "Updated Deck Name"}'
    ```
+
    Oczekiwane: 200 OK, zwrócony DeckDTO z nową nazwą i zaktualizowanym `updated_at`
 
 2. **Test walidacji - invalid UUID (400):**
+
    ```bash
    curl -X PATCH http://localhost:3000/api/decks/not-a-uuid \
      -H "Authorization: Bearer {valid-token}" \
      -H "Content-Type: application/json" \
      -d '{"name": "Test"}'
    ```
+
    Oczekiwane: 400 Bad Request, `VALIDATION_ERROR`
 
 3. **Test walidacji - empty name (400):**
+
    ```bash
    curl -X PATCH http://localhost:3000/api/decks/{valid-deck-id} \
      -H "Authorization: Bearer {valid-token}" \
      -H "Content-Type: application/json" \
      -d '{"name": ""}'
    ```
+
    Oczekiwane: 400 Bad Request, `VALIDATION_ERROR`
 
 4. **Test walidacji - name too long (400):**
+
    ```bash
    curl -X PATCH http://localhost:3000/api/decks/{valid-deck-id} \
      -H "Authorization: Bearer {valid-token}" \
      -H "Content-Type: application/json" \
      -d '{"name": "a very long name exceeding one hundred characters...{101+ chars}"}'
    ```
+
    Oczekiwane: 400 Bad Request, `VALIDATION_ERROR`
 
 5. **Test authentication (401):**
+
    ```bash
    curl -X PATCH http://localhost:3000/api/decks/{valid-deck-id} \
      -H "Content-Type: application/json" \
      -d '{"name": "Test"}'
    ```
+
    Oczekiwane: 401 Unauthorized, `UNAUTHORIZED`
 
 6. **Test ownership - deck nie istnieje (404):**
+
    ```bash
    curl -X PATCH http://localhost:3000/api/decks/00000000-0000-0000-0000-000000000000 \
      -H "Authorization: Bearer {valid-token}" \
      -H "Content-Type: application/json" \
      -d '{"name": "Test"}'
    ```
+
    Oczekiwane: 404 Not Found, `DECK_NOT_FOUND`
 
 7. **Test duplicate name (409):**
@@ -744,6 +783,7 @@ import type { UpdateDeckRequestDTO } from "@/types";
    Oczekiwane: 409 Conflict, `DUPLICATE_DECK_NAME`
 
 **Testy integracyjne:**
+
 - Wykonaj sekwencję: CREATE deck → PATCH deck → GET deck → verify updated name
 - Sprawdź, że `updated_at` jest późniejszy niż `created_at` po PATCH
 - Sprawdź, że użytkownik A nie może zaktualizować talii użytkownika B
@@ -754,6 +794,7 @@ import type { UpdateDeckRequestDTO } from "@/types";
 Uruchom narzędzia jakości kodu i napraw wszelkie problemy.
 
 **Komendy:**
+
 ```bash
 # Sprawdź TypeScript errors
 npm run build
@@ -766,6 +807,7 @@ npm run lint:fix
 ```
 
 **Oczekiwane rezultaty:**
+
 - Brak błędów TypeScript compilation
 - Brak błędów ESLint (lub tylko warnings dla console.error z disable comment)
 - Kod zgodny z konwencjami projektu
@@ -776,11 +818,13 @@ npm run lint:fix
 Upewnij się, że kod jest dobrze udokumentowany i stwórz commit zgodnie z Conventional Commits.
 
 **Dokumentacja:**
+
 - JSDoc comments dla metody `updateDeck()` w DeckService (already included)
 - JSDoc comment dla PATCH handler (already included)
 - Flow description w komentarzach (already included)
 
 **Commit message:**
+
 ```
 feat(api): implement PATCH /api/decks/{deckId} endpoint
 
@@ -799,6 +843,7 @@ Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
 ```
 
 **Weryfikacja przed commit:**
+
 - [ ] TypeScript compilation successful
 - [ ] Linting passed
 - [ ] Manual testing completed (all 7 test scenarios)
@@ -810,28 +855,56 @@ Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
 **Uwaga:** Ten krok jest opcjonalny, ponieważ projekt nie ma jeszcze skonfigurowanego frameworka testowego.
 
 **Sugestie na przyszłość:**
+
 - Vitest dla unit tests
 - Playwright lub Cypress dla e2e tests
 
 **Scenariusze testowe do pokrycia:**
+
 ```typescript
 describe("PATCH /api/decks/[deckId]", () => {
-  it("should update deck name successfully", async () => { /* ... */ });
-  it("should return 400 for invalid UUID", async () => { /* ... */ });
-  it("should return 400 for empty name", async () => { /* ... */ });
-  it("should return 400 for name > 100 chars", async () => { /* ... */ });
-  it("should return 401 when not authenticated", async () => { /* ... */ });
-  it("should return 404 when deck not found", async () => { /* ... */ });
-  it("should return 404 when deck owned by another user", async () => { /* ... */ });
-  it("should return 409 when duplicate name exists", async () => { /* ... */ });
-  it("should update updated_at timestamp", async () => { /* ... */ });
+  it("should update deck name successfully", async () => {
+    /* ... */
+  });
+  it("should return 400 for invalid UUID", async () => {
+    /* ... */
+  });
+  it("should return 400 for empty name", async () => {
+    /* ... */
+  });
+  it("should return 400 for name > 100 chars", async () => {
+    /* ... */
+  });
+  it("should return 401 when not authenticated", async () => {
+    /* ... */
+  });
+  it("should return 404 when deck not found", async () => {
+    /* ... */
+  });
+  it("should return 404 when deck owned by another user", async () => {
+    /* ... */
+  });
+  it("should return 409 when duplicate name exists", async () => {
+    /* ... */
+  });
+  it("should update updated_at timestamp", async () => {
+    /* ... */
+  });
 });
 
 describe("DeckService.updateDeck", () => {
-  it("should throw DeckNotFoundError when deck doesn't exist", async () => { /* ... */ });
-  it("should throw DeckNotFoundError when deck owned by another user", async () => { /* ... */ });
-  it("should throw DuplicateDeckError when name conflicts", async () => { /* ... */ });
-  it("should return updated DeckDTO on success", async () => { /* ... */ });
+  it("should throw DeckNotFoundError when deck doesn't exist", async () => {
+    /* ... */
+  });
+  it("should throw DeckNotFoundError when deck owned by another user", async () => {
+    /* ... */
+  });
+  it("should throw DuplicateDeckError when name conflicts", async () => {
+    /* ... */
+  });
+  it("should return updated DeckDTO on success", async () => {
+    /* ... */
+  });
 });
 ```
 
@@ -840,6 +913,7 @@ describe("DeckService.updateDeck", () => {
 ## Podsumowanie
 
 Ten plan implementacji zapewnia:
+
 - ✅ Pełną walidację danych wejściowych (Zod + database constraints)
 - ✅ Bezpieczne uwierzytelnianie i autoryzację (ownership validation)
 - ✅ Obsługę wszystkich scenariuszy błędów zgodnie ze specyfikacją

@@ -14,9 +14,9 @@ Retrieves the authenticated user's profile information, including their monthly 
 
 ### Headers
 
-| Header | Type | Required | Description |
-|--------|------|----------|-------------|
-| `Authorization` | string | Yes | JWT token from Supabase Auth (or session cookies) |
+| Header          | Type   | Required | Description                                       |
+| --------------- | ------ | -------- | ------------------------------------------------- |
+| `Authorization` | string | Yes      | JWT token from Supabase Auth (or session cookies) |
 
 ### Query Parameters
 
@@ -40,12 +40,12 @@ Returns the user's profile with computed `remaining_ai_limit` field.
 
 ```typescript
 {
-  user_id: string;                    // UUID from Supabase Auth
+  user_id: string; // UUID from Supabase Auth
   monthly_ai_flashcards_count: number; // Number of AI-generated flashcards this month
-  ai_limit_reset_date: string;        // ISO date (YYYY-MM-DD) when limit was last reset
-  remaining_ai_limit: number;         // Computed: 200 - monthly_ai_flashcards_count
-  created_at: string;                 // ISO timestamp of profile creation
-  updated_at: string;                 // ISO timestamp of last profile update
+  ai_limit_reset_date: string; // ISO date (YYYY-MM-DD) when limit was last reset
+  remaining_ai_limit: number; // Computed: 200 - monthly_ai_flashcards_count
+  created_at: string; // ISO timestamp of profile creation
+  updated_at: string; // ISO timestamp of last profile update
 }
 ```
 
@@ -92,6 +92,7 @@ All error responses follow the standardized `ErrorResponseDTO` format:
 **When**: Missing, invalid, or expired JWT token
 
 **Example**:
+
 ```json
 {
   "error": {
@@ -102,6 +103,7 @@ All error responses follow the standardized `ErrorResponseDTO` format:
 ```
 
 **Common Causes**:
+
 - No `Authorization` header or session cookies provided
 - JWT token has expired
 - Invalid JWT signature
@@ -116,6 +118,7 @@ All error responses follow the standardized `ErrorResponseDTO` format:
 **When**: User profile doesn't exist in the database
 
 **Example**:
+
 ```json
 {
   "error": {
@@ -126,6 +129,7 @@ All error responses follow the standardized `ErrorResponseDTO` format:
 ```
 
 **Common Causes**:
+
 - Profile creation failed during user signup (rare)
 - Profile was manually deleted from database
 - Database trigger `on_auth_user_created` didn't execute
@@ -139,6 +143,7 @@ All error responses follow the standardized `ErrorResponseDTO` format:
 **When**: Unexpected server error occurred
 
 **Example**:
+
 ```json
 {
   "error": {
@@ -149,6 +154,7 @@ All error responses follow the standardized `ErrorResponseDTO` format:
 ```
 
 **Common Causes**:
+
 - Database connection failure
 - Unexpected exception in service layer
 - Infrastructure issues
@@ -170,6 +176,7 @@ The endpoint implements a "lazy reset" mechanism for the monthly AI usage counte
 3. **Why lazy**: Avoids scheduled cron jobs; reset happens automatically when user accesses their profile in a new month
 
 **Example**:
+
 - User last accessed profile on November 25, 2024
 - User accesses profile on December 3, 2024
 - Endpoint detects `ai_limit_reset_date` (2024-11-01) < December 1, 2024
@@ -232,22 +239,24 @@ curl -X GET https://your-domain.com/api/profile
 ### Example 3: JavaScript/TypeScript (fetch)
 
 ```typescript
-import { createClient } from '@supabase/supabase-js';
-import type { ProfileResponseDTO } from '@/types';
+import { createClient } from "@supabase/supabase-js";
+import type { ProfileResponseDTO } from "@/types";
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 async function getProfile(): Promise<ProfileResponseDTO> {
   // Get the current session
-  const { data: { session } } = await supabase.auth.getSession();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
 
   if (!session) {
-    throw new Error('Not authenticated');
+    throw new Error("Not authenticated");
   }
 
-  const response = await fetch('/api/profile', {
+  const response = await fetch("/api/profile", {
     headers: {
-      'Authorization': `Bearer ${session.access_token}`,
+      Authorization: `Bearer ${session.access_token}`,
     },
   });
 
@@ -261,19 +270,19 @@ async function getProfile(): Promise<ProfileResponseDTO> {
 
 // Usage
 getProfile()
-  .then(profile => {
-    console.log('Remaining AI limit:', profile.remaining_ai_limit);
+  .then((profile) => {
+    console.log("Remaining AI limit:", profile.remaining_ai_limit);
   })
-  .catch(error => {
-    console.error('Failed to fetch profile:', error);
+  .catch((error) => {
+    console.error("Failed to fetch profile:", error);
   });
 ```
 
 ### Example 4: React Component
 
 ```tsx
-import { useEffect, useState } from 'react';
-import type { ProfileResponseDTO } from '@/types';
+import { useEffect, useState } from "react";
+import type { ProfileResponseDTO } from "@/types";
 
 export function ProfileDisplay() {
   const [profile, setProfile] = useState<ProfileResponseDTO | null>(null);
@@ -281,13 +290,13 @@ export function ProfileDisplay() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch('/api/profile')
-      .then(res => {
-        if (!res.ok) throw new Error('Failed to fetch profile');
+    fetch("/api/profile")
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to fetch profile");
         return res.json();
       })
       .then(setProfile)
-      .catch(err => setError(err.message))
+      .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, []);
 
@@ -319,6 +328,7 @@ export function ProfileDisplay() {
 ## Changelog
 
 ### Version 1.0.0 (2024-12-30)
+
 - Initial implementation
 - Lazy reset mechanism for monthly AI limits
 - RLS policies for profile security
@@ -395,6 +405,7 @@ When testing this endpoint:
 ## Support
 
 For issues or questions:
+
 - **GitHub Issues**: [Repository Issues](https://github.com/your-org/your-repo/issues)
 - **Documentation**: See implementation plan at `.ai/profile-endpoint-implementation-plan.md`
 - **Type Definitions**: See `src/types.ts` for all DTOs

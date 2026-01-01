@@ -3,11 +3,13 @@
 ## Wymagania wstępne
 
 1. Lokalny Supabase musi działać:
+
 ```bash
 npx supabase status
 ```
 
 2. Serwer dev musi być uruchomiony:
+
 ```bash
 npm run dev
 # Serwer będzie dostępny pod http://localhost:3000 (lub innym portem jeśli zajęty)
@@ -21,12 +23,14 @@ npm run dev
 ## Jak uzyskać token autoryzacyjny
 
 ### Opcja 1: Użyj narzędzi deweloperskich przeglądarki
+
 1. Zaloguj się do aplikacji
 2. Otwórz DevTools (F12)
 3. Przejdź do zakładki Application → Storage → Cookies
 4. Skopiuj wartość cookie z tokenem JWT
 
 ### Opcja 2: Utwórz użytkownika testowego przez Supabase Studio
+
 1. Otwórz http://127.0.0.1:54323
 2. Przejdź do Authentication → Users
 3. Kliknij "Add User" i utwórz użytkownika testowego
@@ -39,6 +43,7 @@ npm run dev
 **Opis:** Utworzenie nowej talii z prawidłowymi danymi.
 
 **Request:**
+
 ```bash
 curl -X POST http://localhost:3000/api/decks \
   -H "Content-Type: application/json" \
@@ -48,6 +53,7 @@ curl -X POST http://localhost:3000/api/decks \
 ```
 
 **Oczekiwana odpowiedź:**
+
 ```json
 {
   "id": "550e8400-e29b-41d4-a716-446655440000",
@@ -61,6 +67,7 @@ curl -X POST http://localhost:3000/api/decks \
 **Status HTTP:** 201 Created
 
 **Weryfikacja:**
+
 - Response zawiera wszystkie pola: `id`, `user_id`, `name`, `created_at`, `updated_at`
 - `id` jest UUID
 - `user_id` odpowiada zalogowanemu użytkownikowi
@@ -74,6 +81,7 @@ curl -X POST http://localhost:3000/api/decks \
 **Opis:** Próba utworzenia talii bez tokena JWT.
 
 **Request:**
+
 ```bash
 curl -X POST http://localhost:3000/api/decks \
   -H "Content-Type: application/json" \
@@ -82,6 +90,7 @@ curl -X POST http://localhost:3000/api/decks \
 ```
 
 **Oczekiwana odpowiedź:**
+
 ```json
 {
   "error": {
@@ -94,6 +103,7 @@ curl -X POST http://localhost:3000/api/decks \
 **Status HTTP:** 401 Unauthorized
 
 **Weryfikacja:**
+
 - ✅ Zweryfikowano - endpoint zwraca 401 bez tokena
 
 ---
@@ -103,6 +113,7 @@ curl -X POST http://localhost:3000/api/decks \
 **Opis:** Nazwa talii przekracza maksymalną długość 100 znaków.
 
 **Request:**
+
 ```bash
 curl -X POST http://localhost:3000/api/decks \
   -H "Content-Type: application/json" \
@@ -112,6 +123,7 @@ curl -X POST http://localhost:3000/api/decks \
 ```
 
 **Oczekiwana odpowiedź:**
+
 ```json
 {
   "error": {
@@ -133,6 +145,7 @@ curl -X POST http://localhost:3000/api/decks \
 **Opis:** Nazwa talii jest pustym stringiem.
 
 **Request:**
+
 ```bash
 curl -X POST http://localhost:3000/api/decks \
   -H "Content-Type: application/json" \
@@ -142,6 +155,7 @@ curl -X POST http://localhost:3000/api/decks \
 ```
 
 **Oczekiwana odpowiedź:**
+
 ```json
 {
   "error": {
@@ -163,6 +177,7 @@ curl -X POST http://localhost:3000/api/decks \
 **Opis:** Próba utworzenia talii z nazwą, która już istnieje dla tego użytkownika.
 
 **Request 1 (tworzenie pierwszej talii):**
+
 ```bash
 curl -X POST http://localhost:3000/api/decks \
   -H "Content-Type: application/json" \
@@ -172,6 +187,7 @@ curl -X POST http://localhost:3000/api/decks \
 ```
 
 **Request 2 (duplikat - powinien zwrócić 409):**
+
 ```bash
 curl -X POST http://localhost:3000/api/decks \
   -H "Content-Type: application/json" \
@@ -181,6 +197,7 @@ curl -X POST http://localhost:3000/api/decks \
 ```
 
 **Oczekiwana odpowiedź (Request 2):**
+
 ```json
 {
   "error": {
@@ -199,6 +216,7 @@ curl -X POST http://localhost:3000/api/decks \
 **Opis:** Request body zawiera nieprawidłowy JSON.
 
 **Request:**
+
 ```bash
 curl -X POST http://localhost:3000/api/decks \
   -H "Content-Type: application/json" \
@@ -208,6 +226,7 @@ curl -X POST http://localhost:3000/api/decks \
 ```
 
 **Oczekiwana odpowiedź:**
+
 ```json
 {
   "error": {
@@ -232,6 +251,7 @@ psql postgres://postgres:postgres@localhost:54322/postgres
 ```
 
 Query:
+
 ```sql
 SELECT id, user_id, name, created_at, updated_at
 FROM decks
@@ -240,6 +260,7 @@ LIMIT 5;
 ```
 
 **Weryfikacja:**
+
 - ✅ `id` jest UUID
 - ✅ `user_id` odpowiada autentykowanemu użytkownikowi
 - ✅ `name` pasuje do wysłanego
@@ -249,6 +270,7 @@ LIMIT 5;
 ### Sprawdzenie ograniczenia UNIQUE
 
 Query testujący constraint:
+
 ```sql
 SELECT user_id, name, COUNT(*) as count
 FROM decks
@@ -269,6 +291,7 @@ HAVING COUNT(*) > 1;
 3. **API tests** używając Supertest lub podobnego narzędzia
 
 Przykładowa struktura testów:
+
 ```
 tests/
 ├── integration/
@@ -289,11 +312,13 @@ node test-post-decks.mjs
 ```
 
 **Wymagania:**
+
 - Lokalny Supabase musi działać (`npx supabase start`)
 - Serwer dev musi działać (`npm run dev`)
 - Plik `.env` z `SUPABASE_URL` i `SUPABASE_KEY`
 
 Skrypt automatycznie:
+
 1. Tworzy użytkownika testowego
 2. Uzyskuje JWT token
 3. Wykonuje wszystkie 6 test cases
@@ -303,14 +328,14 @@ Skrypt automatycznie:
 
 ## Status testowania
 
-| Test Case | Status | Data | Tester |
-|-----------|--------|------|--------|
-| TC1: Sukces (201) | ✅ Przeszedł | 2025-12-30 | Automated |
-| TC2: Brak auth (401) | ✅ Przeszedł | 2025-12-30 | Automated |
+| Test Case                | Status       | Data       | Tester    |
+| ------------------------ | ------------ | ---------- | --------- |
+| TC1: Sukces (201)        | ✅ Przeszedł | 2025-12-30 | Automated |
+| TC2: Brak auth (401)     | ✅ Przeszedł | 2025-12-30 | Automated |
 | TC3: Name za długi (400) | ✅ Przeszedł | 2025-12-30 | Automated |
-| TC4: Name pusty (400) | ✅ Przeszedł | 2025-12-30 | Automated |
-| TC5: Duplikat (409) | ✅ Przeszedł | 2025-12-30 | Automated |
-| TC6: Zły JSON (400) | ✅ Przeszedł | 2025-12-30 | Automated |
+| TC4: Name pusty (400)    | ✅ Przeszedł | 2025-12-30 | Automated |
+| TC5: Duplikat (409)      | ✅ Przeszedł | 2025-12-30 | Automated |
+| TC6: Zły JSON (400)      | ✅ Przeszedł | 2025-12-30 | Automated |
 
 **Wszystkie testy przeszły pomyślnie! ✅**
 

@@ -5,6 +5,7 @@
 Endpoint `POST /api/decks` służy do tworzenia nowej talii fiszek dla zalogowanego użytkownika. Talia jest podstawową jednostką organizacyjną w aplikacji - użytkownik może mieć wiele talii, ale każda talia musi mieć unikalną nazwę w obrębie użytkownika (zgodnie z ograniczeniem `UNIQUE(user_id, name)` w bazie danych).
 
 **Kluczowe cechy:**
+
 - Wymaga uwierzytelnienia użytkownika
 - Przyjmuje tylko nazwę talii (pozostałe pola generowane automatycznie)
 - Waliduje długość nazwy (1-100 znaków)
@@ -14,31 +15,39 @@ Endpoint `POST /api/decks` służy do tworzenia nowej talii fiszek dla zalogowan
 ## 2. Szczegóły żądania
 
 ### Metoda HTTP
+
 `POST`
 
 ### Struktura URL
+
 ```
 /api/decks
 ```
 
 ### Nagłówki żądania
+
 - `Content-Type: application/json` (wymagany)
 - `Authorization: Bearer <token>` (obsługiwany przez Supabase middleware)
 
 ### Parametry
+
 **Wymagane (w body):**
+
 - `name` (string) - nazwa talii, 1-100 znaków
 
 **Opcjonalne:**
+
 - Brak
 
 **Auto-generowane:**
+
 - `id` (UUID) - generowany przez bazę danych
 - `user_id` (UUID) - pobierany z sesji uwierzytelnionego użytkownika
 - `created_at` (TIMESTAMPTZ) - generowany przez bazę danych
 - `updated_at` (TIMESTAMPTZ) - generowany przez bazę danych
 
 ### Request Body
+
 ```json
 {
   "name": "Biology 101"
@@ -46,9 +55,10 @@ Endpoint `POST /api/decks` służy do tworzenia nowej talii fiszek dla zalogowan
 ```
 
 ### Walidacja wejścia (Zod Schema)
+
 ```typescript
 const createDeckBodySchema = z.object({
-  name: z.string().min(1, "Name must not be empty").max(100, "Name must not exceed 100 characters")
+  name: z.string().min(1, "Name must not be empty").max(100, "Name must not exceed 100 characters"),
 });
 ```
 
@@ -57,12 +67,14 @@ const createDeckBodySchema = z.object({
 ### DTOs (już zdefiniowane w src/types.ts)
 
 **Request DTO:**
+
 ```typescript
 // Line 130 w src/types.ts
 export type CreateDeckRequestDTO = Pick<TablesInsert<"decks">, "name">;
 ```
 
 **Response DTO:**
+
 ```typescript
 // Line 115 w src/types.ts
 export type DeckDTO = Deck;
@@ -72,6 +84,7 @@ export type Deck = Tables<"decks">;
 ```
 
 **Error Response DTO:**
+
 ```typescript
 // Line 82-89 w src/types.ts
 export interface ErrorResponseDTO {
@@ -84,11 +97,13 @@ export interface ErrorResponseDTO {
 ```
 
 ### Command Models
+
 Nie są potrzebne dodatkowe Command Modele - używamy bezpośrednio `TablesInsert<"decks">` z Supabase.
 
 ## 4. Szczegóły odpowiedzi
 
 ### Sukces (201 Created)
+
 ```json
 {
   "id": "550e8400-e29b-41d4-a716-446655440000",
@@ -100,12 +115,14 @@ Nie są potrzebne dodatkowe Command Modele - używamy bezpośrednio `TablesInser
 ```
 
 **Nagłówki:**
+
 - `Content-Type: application/json`
 - `X-Content-Type-Options: nosniff`
 
 ### Błędy
 
 #### 401 Unauthorized
+
 ```json
 {
   "error": {
@@ -116,6 +133,7 @@ Nie są potrzebne dodatkowe Command Modele - używamy bezpośrednio `TablesInser
 ```
 
 #### 400 Bad Request (walidacja)
+
 ```json
 {
   "error": {
@@ -129,6 +147,7 @@ Nie są potrzebne dodatkowe Command Modele - używamy bezpośrednio `TablesInser
 ```
 
 #### 409 Conflict (duplikat nazwy)
+
 ```json
 {
   "error": {
@@ -139,6 +158,7 @@ Nie są potrzebne dodatkowe Command Modele - używamy bezpośrednio `TablesInser
 ```
 
 #### 500 Internal Server Error
+
 ```json
 {
   "error": {
@@ -151,6 +171,7 @@ Nie są potrzebne dodatkowe Command Modele - używamy bezpośrednio `TablesInser
 ## 5. Przepływ danych
 
 ### Diagram przepływu
+
 ```
 1. Request → API Route (POST /api/decks)
    ↓
@@ -180,6 +201,7 @@ Nie są potrzebne dodatkowe Command Modele - używamy bezpośrednio `TablesInser
 **Tabela:** `decks`
 
 **Operacja:** INSERT
+
 ```sql
 INSERT INTO decks (user_id, name)
 VALUES ($1, $2)
@@ -187,6 +209,7 @@ RETURNING id, user_id, name, created_at, updated_at;
 ```
 
 **Supabase Query:**
+
 ```typescript
 const { data, error } = await this.supabase
   .from("decks")
@@ -196,6 +219,7 @@ const { data, error } = await this.supabase
 ```
 
 **Ograniczenia sprawdzane przez bazę:**
+
 - `NOT NULL` na user_id, name
 - `CHECK (char_length(name) BETWEEN 1 AND 100)`
 - `UNIQUE(user_id, name)` - może wywołać błąd 23505
@@ -204,32 +228,38 @@ const { data, error } = await this.supabase
 ## 6. Względy bezpieczeństwa
 
 ### Uwierzytelnienie
+
 - **Mechanizm:** Supabase Auth przez middleware (context.locals.supabase)
 - **Weryfikacja:** `supabase.auth.getUser()` - sprawdza JWT token
 - **Obsługa błędów:** Zwróć 401 jeśli user is null lub authError występuje
 
 ### Autoryzacja
+
 - **Zasada:** Użytkownik może tworzyć talie tylko dla siebie
 - **Implementacja:** Użyj `user.id` z sesji, NIGDY nie pobieraj `user_id` z request body
 - **RLS (Row Level Security):** Nie dotyczy bezpośrednio POST (policies na SELECT/UPDATE/DELETE)
 
 ### Walidacja danych wejściowych
+
 - **Typ danych:** Zod wymusza, że `name` jest string
 - **Długość:** 1-100 znaków (zgodne z CHECK constraint w bazie)
 - **XSS:** Supabase obsługuje parametryzowane zapytania, brak ryzyka SQL injection
 - **Sanitizacja:** Nie wymagana dla storage, ale długość jest ograniczona
 
 ### Ochrona przed atakami
+
 - **SQL Injection:** Chronione przez Supabase (parametryzowane queries)
 - **XSS:** Dane są tylko w JSON API i bazie danych (nie renderowane bezpośrednio w HTML)
 - **CSRF:** Rozważ dodanie tokenów CSRF w produkcji (obecnie nie zaimplementowane)
 - **Rate Limiting:** Rozważ implementację w produkcji (obecnie nie zaimplementowane)
 
 ### Bezpieczeństwo nagłówków
+
 - Dodaj `X-Content-Type-Options: nosniff` do wszystkich odpowiedzi
 - Używaj `Content-Type: application/json` dla consistency
 
 ### Obsługa duplikatów
+
 - **Unikalność:** Database enforce UNIQUE(user_id, name)
 - **Kod błędu PostgreSQL:** 23505 (unique_violation)
 - **Odpowiedź API:** 409 Conflict (nie 500!)
@@ -238,40 +268,51 @@ const { data, error } = await this.supabase
 
 ### Scenariusze błędów i odpowiedzi
 
-| Scenariusz | Status | Error Code | Message | Details |
-|------------|--------|------------|---------|---------|
-| Brak/nieprawidłowy token auth | 401 | UNAUTHORIZED | "Authentication required" | - |
-| Request body brak | 400 | VALIDATION_ERROR | "Invalid request body" | - |
-| Nieprawidłowy JSON | 400 | VALIDATION_ERROR | "Invalid JSON in request body" | - |
-| `name` brak/pusty | 400 | VALIDATION_ERROR | "Invalid request body" | Zod errors |
-| `name` > 100 znaków | 400 | VALIDATION_ERROR | "Invalid request body" | Zod errors |
-| `name` nie jest string | 400 | VALIDATION_ERROR | "Invalid request body" | Zod errors |
-| Duplikat nazwy dla user | 409 | DUPLICATE_DECK | "A deck with this name already exists" | - |
-| Błąd bazy danych | 500 | INTERNAL_ERROR | "An unexpected error occurred" | - |
-| Nieoczekiwany błąd | 500 | INTERNAL_ERROR | "An unexpected error occurred" | - |
+| Scenariusz                    | Status | Error Code       | Message                                | Details    |
+| ----------------------------- | ------ | ---------------- | -------------------------------------- | ---------- |
+| Brak/nieprawidłowy token auth | 401    | UNAUTHORIZED     | "Authentication required"              | -          |
+| Request body brak             | 400    | VALIDATION_ERROR | "Invalid request body"                 | -          |
+| Nieprawidłowy JSON            | 400    | VALIDATION_ERROR | "Invalid JSON in request body"         | -          |
+| `name` brak/pusty             | 400    | VALIDATION_ERROR | "Invalid request body"                 | Zod errors |
+| `name` > 100 znaków           | 400    | VALIDATION_ERROR | "Invalid request body"                 | Zod errors |
+| `name` nie jest string        | 400    | VALIDATION_ERROR | "Invalid request body"                 | Zod errors |
+| Duplikat nazwy dla user       | 409    | DUPLICATE_DECK   | "A deck with this name already exists" | -          |
+| Błąd bazy danych              | 500    | INTERNAL_ERROR   | "An unexpected error occurred"         | -          |
+| Nieoczekiwany błąd            | 500    | INTERNAL_ERROR   | "An unexpected error occurred"         | -          |
 
 ### Strategia obsługi błędów
 
 **1. Walidacja uwierzytelnienia (krok 1):**
+
 ```typescript
-const { data: { user }, error: authError } = await context.locals.supabase.auth.getUser();
+const {
+  data: { user },
+  error: authError,
+} = await context.locals.supabase.auth.getUser();
 
 if (authError || !user) {
-  return new Response(JSON.stringify({
-    error: { code: "UNAUTHORIZED", message: "Authentication required" }
-  }), { status: 401 });
+  return new Response(
+    JSON.stringify({
+      error: { code: "UNAUTHORIZED", message: "Authentication required" },
+    }),
+    { status: 401 }
+  );
 }
 ```
 
 **2. Parsowanie i walidacja body (krok 2):**
+
 ```typescript
 let body: unknown;
 try {
   body = await context.request.json();
 } catch {
-  return new Response(JSON.stringify({
-    error: { code: "VALIDATION_ERROR", message: "Invalid JSON in request body" }
-  }), { status: 400 });
+  return new Response(
+    JSON.stringify({
+      error: { code: "VALIDATION_ERROR", message: "Invalid JSON in request body" },
+    }),
+    { status: 400 }
+  );
 }
 
 let validatedData: CreateDeckRequestDTO;
@@ -279,19 +320,23 @@ try {
   validatedData = createDeckBodySchema.parse(body);
 } catch (error) {
   if (error instanceof z.ZodError) {
-    return new Response(JSON.stringify({
-      error: {
-        code: "VALIDATION_ERROR",
-        message: "Invalid request body",
-        details: error.flatten().fieldErrors
-      }
-    }), { status: 400 });
+    return new Response(
+      JSON.stringify({
+        error: {
+          code: "VALIDATION_ERROR",
+          message: "Invalid request body",
+          details: error.flatten().fieldErrors,
+        },
+      }),
+      { status: 400 }
+    );
   }
   throw error; // Re-throw unexpected errors
 }
 ```
 
 **3. Obsługa duplikatu (w service layer):**
+
 ```typescript
 // W DeckService.createDeck()
 const { data, error } = await this.supabase
@@ -310,6 +355,7 @@ if (error) {
 ```
 
 **4. Obsługa błędów w route (krok 3):**
+
 ```typescript
 try {
   const deckService = new DeckService(context.locals.supabase);
@@ -319,24 +365,31 @@ try {
     status: 201,
     headers: {
       "Content-Type": "application/json",
-      "X-Content-Type-Options": "nosniff"
-    }
+      "X-Content-Type-Options": "nosniff",
+    },
   });
 } catch (error) {
   if (error instanceof DuplicateDeckError) {
-    return new Response(JSON.stringify({
-      error: { code: "DUPLICATE_DECK", message: error.message }
-    }), { status: 409 });
+    return new Response(
+      JSON.stringify({
+        error: { code: "DUPLICATE_DECK", message: error.message },
+      }),
+      { status: 409 }
+    );
   }
 
   console.error("Error in POST /api/decks:", error);
-  return new Response(JSON.stringify({
-    error: { code: "INTERNAL_ERROR", message: "An unexpected error occurred" }
-  }), { status: 500 });
+  return new Response(
+    JSON.stringify({
+      error: { code: "INTERNAL_ERROR", message: "An unexpected error occurred" },
+    }),
+    { status: 500 }
+  );
 }
 ```
 
 ### Logowanie błędów
+
 - Używaj `console.error()` w development (zgodnie z istniejącym wzorcem)
 - Dołącz kontekst: nazwa endpointa, szczegóły błędu
 - W produkcji: rozważ proper logging service (Sentry, DataDog, etc.)
@@ -352,16 +405,19 @@ try {
 ### Strategie optymalizacji
 
 **Nie wymagane w tym endpoincie** - operacja jest prosta i szybka:
+
 - Pojedyncze INSERT do bazy danych
 - Brak złożonych zapytań ani JOIN
 - Brak zewnętrznych API calls
 - Minimalna walidacja
 
 **Monitoring:**
+
 - Rozważ dodanie metryk czasu odpowiedzi w produkcji
 - Monitoruj częstotliwość błędów 409 (może wskazywać na problemy UX)
 
 **Skalowalność:**
+
 - Database indexes na (user_id, name) już istnieją (dla UNIQUE constraint)
 - Supabase Connection Pooling obsługuje concurrent requests
 - Rozważ rate limiting per user w produkcji
@@ -369,11 +425,13 @@ try {
 ## 9. Etapy wdrożenia
 
 ### Krok 1: Rozszerzenie DeckService
+
 **Plik:** [src/lib/services/deck.service.ts](src/lib/services/deck.service.ts)
 
 **Zadanie:** Dodaj metodę `createDeck()` do istniejącej klasy `DeckService`
 
 **Implementacja:**
+
 ```typescript
 /**
  * Custom error for duplicate deck names
@@ -427,16 +485,19 @@ async createDeck(userId: string, data: CreateDeckRequestDTO): Promise<DeckDTO> {
 ```
 
 **Import statements do dodania:**
+
 ```typescript
 import type { CreateDeckRequestDTO, DeckDTO } from "@/types";
 ```
 
 ### Krok 2: Aktualizacja API Route
+
 **Plik:** [src/pages/api/decks.ts](src/pages/api/decks.ts)
 
 **Zadanie:** Dodaj handler `POST` do istniejącego pliku (który obecnie ma tylko `GET`)
 
 **Implementacja:**
+
 ```typescript
 // Dodaj import dla DuplicateDeckError
 import { DeckService, DuplicateDeckError } from "@/lib/services/deck.service";
@@ -444,10 +505,7 @@ import type { CreateDeckRequestDTO, DeckDTO } from "@/types";
 
 // Dodaj schemat walidacji (przed GET handler)
 const createDeckBodySchema = z.object({
-  name: z
-    .string()
-    .min(1, "Name must not be empty")
-    .max(100, "Name must not exceed 100 characters"),
+  name: z.string().min(1, "Name must not be empty").max(100, "Name must not exceed 100 characters"),
 });
 
 /**
@@ -580,10 +638,12 @@ export const POST: APIRoute = async (context) => {
 ### Krok 3: Testowanie manualne
 
 **Przygotowanie:**
+
 1. Upewnij się, że lokalny Supabase działa (`supabase status`)
 2. Uzyskaj prawidłowy auth token (zaloguj się w aplikacji lub użyj Supabase Dashboard)
 
 **Test Case 1: Sukces (201 Created)**
+
 ```bash
 curl -X POST http://localhost:3000/api/decks \
   -H "Content-Type: application/json" \
@@ -601,6 +661,7 @@ curl -X POST http://localhost:3000/api/decks \
 ```
 
 **Test Case 2: Brak autentykacji (401)**
+
 ```bash
 curl -X POST http://localhost:3000/api/decks \
   -H "Content-Type: application/json" \
@@ -616,6 +677,7 @@ curl -X POST http://localhost:3000/api/decks \
 ```
 
 **Test Case 3: Walidacja - name za długi (400)**
+
 ```bash
 curl -X POST http://localhost:3000/api/decks \
   -H "Content-Type: application/json" \
@@ -633,6 +695,7 @@ curl -X POST http://localhost:3000/api/decks \
 ```
 
 **Test Case 4: Walidacja - name pusty (400)**
+
 ```bash
 curl -X POST http://localhost:3000/api/decks \
   -H "Content-Type: application/json" \
@@ -643,6 +706,7 @@ curl -X POST http://localhost:3000/api/decks \
 ```
 
 **Test Case 5: Duplikat nazwy (409)**
+
 ```bash
 # Pierwszy request - sukces
 curl -X POST http://localhost:3000/api/decks \
@@ -666,6 +730,7 @@ curl -X POST http://localhost:3000/api/decks \
 ```
 
 **Test Case 6: Nieprawidłowy JSON (400)**
+
 ```bash
 curl -X POST http://localhost:3000/api/decks \
   -H "Content-Type: application/json" \
@@ -700,6 +765,7 @@ LIMIT 5;
 ```
 
 **Weryfikuj:**
+
 - `id` jest UUID
 - `user_id` odpowiada autentykowanemu użytkownikowi
 - `name` pasuje do wysłanego
@@ -712,6 +778,7 @@ LIMIT 5;
 **Zadanie:** Dodaj dokumentację endpointa POST /api/decks z przykładami request/response
 
 **Struktura:**
+
 - Opis endpointa
 - Wymagania uwierzytelnienia
 - Request format
@@ -720,15 +787,15 @@ LIMIT 5;
 
 ### Podsumowanie kroków implementacji
 
-| Krok | Plik | Akcja | Czas szacowany |
-|------|------|-------|----------------|
-| 1 | deck.service.ts | Dodaj createDeck() i DuplicateDeckError | 15 min |
-| 2 | pages/api/decks.ts | Dodaj POST handler z walidacją | 25 min |
-| 3 | Manual | Testowanie 6 scenariuszy | 20 min |
-| 4 | CLI | npm run lint | 2 min |
-| 5 | Database | Weryfikacja SQL | 5 min |
-| 6 | Docs | Aktualizacja dokumentacji | 10 min |
-| **TOTAL** | | | **~77 min** |
+| Krok      | Plik               | Akcja                                   | Czas szacowany |
+| --------- | ------------------ | --------------------------------------- | -------------- |
+| 1         | deck.service.ts    | Dodaj createDeck() i DuplicateDeckError | 15 min         |
+| 2         | pages/api/decks.ts | Dodaj POST handler z walidacją          | 25 min         |
+| 3         | Manual             | Testowanie 6 scenariuszy                | 20 min         |
+| 4         | CLI                | npm run lint                            | 2 min          |
+| 5         | Database           | Weryfikacja SQL                         | 5 min          |
+| 6         | Docs               | Aktualizacja dokumentacji               | 10 min         |
+| **TOTAL** |                    |                                         | **~77 min**    |
 
 ## 10. Checklist przed merge
 

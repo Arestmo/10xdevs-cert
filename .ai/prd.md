@@ -5,6 +5,7 @@
 Flashcards AI to webowa aplikacja do tworzenia i nauki z fiszek edukacyjnych, wykorzystująca sztuczną inteligencję do automatycznego generowania fiszek na podstawie dostarczonego tekstu. Aplikacja skierowana jest do profesjonalistów i studentów (osób dorosłych), którzy chcą efektywnie uczyć się z wykorzystaniem metody spaced repetition.
 
 Kluczowe cechy produktu:
+
 - Generowanie fiszek przez AI (GPT-4o-mini) na podstawie wklejonego tekstu
 - Manualne tworzenie fiszek bez ograniczeń ilościowych
 - System nauki z algorytmem powtórek FSRS (Free Spaced Repetition Scheduler)
@@ -157,6 +158,7 @@ US-001
 Tytuł: Rejestracja i logowanie przez Google
 Opis: Jako nowy użytkownik chcę zalogować się jednym klikiem przez konto Google, aby szybko rozpocząć korzystanie z aplikacji bez wypełniania formularzy rejestracyjnych.
 Kryteria akceptacji:
+
 - Na stronie logowania widoczny jest przycisk "Zaloguj przez Google"
 - Po kliknięciu użytkownik jest przekierowany do autoryzacji Google
 - Po pomyślnej autoryzacji użytkownik jest przekierowany do dashboardu
@@ -167,6 +169,7 @@ US-002
 Tytuł: Logowanie przez Magic Link
 Opis: Jako użytkownik bez konta Google chcę zalogować się przez link wysłany na email, aby mieć alternatywną metodę dostępu do aplikacji.
 Kryteria akceptacji:
+
 - Na stronie logowania dostępna jest opcja "Zaloguj przez email"
 - Po wpisaniu adresu email i kliknięciu przycisku wysyłany jest link logowania
 - Wyświetlany jest komunikat o wysłaniu linku na podany adres
@@ -178,6 +181,7 @@ US-003
 Tytuł: Automatyczne przekierowanie do logowania
 Opis: Jako niezalogowany użytkownik próbujący wejść na chronioną stronę chcę być automatycznie przekierowany do logowania, aby zrozumieć, że muszę się zalogować.
 Kryteria akceptacji:
+
 - Próba wejścia na dowolną stronę aplikacji bez zalogowania przekierowuje do strony logowania
 - Po zalogowaniu użytkownik jest przekierowany do pierwotnie żądanej strony
 - Jeśli pierwotna strona nie była określona, przekierowanie następuje do dashboardu
@@ -186,6 +190,7 @@ US-004
 Tytuł: Wylogowanie z aplikacji
 Opis: Jako zalogowany użytkownik chcę móc się wylogować, aby zabezpieczyć swoje konto na współdzielonym urządzeniu.
 Kryteria akceptacji:
+
 - W menu użytkownika dostępna jest opcja "Wyloguj"
 - Po kliknięciu sesja użytkownika jest zakończona
 - Użytkownik jest przekierowany do strony logowania
@@ -195,6 +200,7 @@ US-005
 Tytuł: Usuwanie konta
 Opis: Jako użytkownik chcę móc usunąć swoje konto i wszystkie dane, aby skorzystać z prawa do bycia zapomnianym zgodnie z RODO.
 Kryteria akceptacji:
+
 - W ustawieniach konta dostępna jest opcja "Usuń konto"
 - Przed usunięciem wyświetlane jest ostrzeżenie o nieodwracalności operacji
 - Wymagane jest potwierdzenie zamiaru usunięcia (np. wpisanie słowa "USUŃ")
@@ -209,6 +215,7 @@ US-006
 Tytuł: Otwieranie modalu generowania fiszek
 Opis: Jako użytkownik chcę mieć łatwy dostęp do funkcji generowania fiszek, aby szybko tworzyć nowe materiały do nauki.
 Kryteria akceptacji:
+
 - Na dashboardzie widoczny jest kafelek/przycisk "Generuj fiszki"
 - W widoku talii dostępny jest przycisk "Generuj fiszki"
 - Po kliknięciu otwiera się modal z formularzem generowania
@@ -218,6 +225,7 @@ US-007
 Tytuł: Wprowadzanie tekstu źródłowego
 Opis: Jako użytkownik chcę wkleić tekst, z którego AI wygeneruje fiszki, aby nie musieć ręcznie przepisywać materiałów.
 Kryteria akceptacji:
+
 - W modalu generowania dostępne jest pole tekstowe na materiał źródłowy
 - Pole akceptuje tekst do 5000 znaków
 - Widoczny jest licznik znaków pokazujący wykorzystanie limitu (np. "2500/5000")
@@ -228,6 +236,7 @@ US-008
 Tytuł: Wybór talii docelowej przy generowaniu
 Opis: Jako użytkownik chcę wybrać talię, do której trafią zaakceptowane fiszki, aby zachować organizację materiałów.
 Kryteria akceptacji:
+
 - W modalu generowania dostępna jest lista rozwijana z taliami użytkownika
 - Można wybrać istniejącą talię z listy
 - Dostępna jest opcja utworzenia nowej talii (pole tekstowe na nazwę)
@@ -237,6 +246,7 @@ US-009
 Tytuł: Generowanie fiszek z tekstu
 Opis: Jako użytkownik chcę uruchomić generowanie fiszek AI, aby otrzymać gotowe propozycje kart do nauki.
 Kryteria akceptacji:
+
 - Przycisk "Generuj" jest aktywny gdy wprowadzono tekst i wybrano talię
 - Po kliknięciu przycisku wyświetlany jest spinner/animacja ładowania
 - Generowanych jest maksymalnie 20 fiszek na sesję
@@ -247,6 +257,7 @@ US-010
 Tytuł: Przeglądanie wygenerowanych draftów
 Opis: Jako użytkownik chcę przejrzeć propozycje fiszek wygenerowane przez AI, aby ocenić ich jakość przed zapisaniem.
 Kryteria akceptacji:
+
 - Lista draftów wyświetla wszystkie wygenerowane fiszki
 - Dla każdego draftu widoczny jest przód i tył fiszki
 - Drafty są ponumerowane (np. "1/15", "2/15")
@@ -257,6 +268,7 @@ US-011
 Tytuł: Akceptowanie draftu fiszki
 Opis: Jako użytkownik chcę zaakceptować dobry draft, aby zapisać go jako fiszkę w wybranej talii.
 Kryteria akceptacji:
+
 - Przycisk "Akceptuj" jest dostępny przy każdym drafcie
 - Po kliknięciu fiszka jest zapisywana do bazy danych w wybranej talii
 - Draft znika z listy lub jest oznaczony jako zaakceptowany
@@ -267,6 +279,7 @@ US-012
 Tytuł: Edycja draftu przed akceptacją
 Opis: Jako użytkownik chcę poprawić treść draftu przed zapisaniem, aby dostosować fiszkę do moich potrzeb.
 Kryteria akceptacji:
+
 - Przycisk "Edytuj" jest dostępny przy każdym drafcie
 - Po kliknięciu pola przód i tył stają się edytowalne
 - Widoczne są liczniki znaków (przód: max 200, tył: max 500)
@@ -279,6 +292,7 @@ US-013
 Tytuł: Odrzucanie draftu fiszki
 Opis: Jako użytkownik chcę odrzucić nieprzydatny draft, aby nie zaśmiecać mojej talii niskiej jakości fiszkami.
 Kryteria akceptacji:
+
 - Przycisk "Odrzuć" jest dostępny przy każdym drafcie
 - Po kliknięciu draft znika z listy bez zapisywania do bazy
 - Logowany jest event fiszka_odrzucona
@@ -289,6 +303,7 @@ US-014
 Tytuł: Zamykanie modalu z draftami
 Opis: Jako użytkownik chcę móc zamknąć modal generowania, gdy skończę przeglądać drafty.
 Kryteria akceptacji:
+
 - Dostępny jest przycisk zamknięcia modalu (X)
 - Można zamknąć modal kliknięciem poza jego obszar
 - Niezaakceptowane drafty przepadają przy zamknięciu modalu
@@ -299,6 +314,7 @@ US-015
 Tytuł: Wyświetlanie limitu fiszek AI
 Opis: Jako użytkownik chcę widzieć ile fiszek AI mogę jeszcze wygenerować w tym miesiącu, aby planować korzystanie z funkcji.
 Kryteria akceptacji:
+
 - W modalu generowania widoczny jest licznik "Pozostało: X/200 fiszek w tym miesiącu"
 - Licznik aktualizuje się po każdym generowaniu
 - Gdy limit zostanie wyczerpany, wyświetlana jest informacja o dacie resetu
@@ -308,6 +324,7 @@ US-016
 Tytuł: Komunikat o wyczerpaniu limitu AI
 Opis: Jako użytkownik z wyczerpanym limitem chcę otrzymać jasną informację, aby wiedzieć kiedy będę mógł ponownie generować fiszki.
 Kryteria akceptacji:
+
 - Przy próbie generowania po wyczerpaniu limitu wyświetlany jest komunikat
 - Komunikat zawiera informację o dacie resetu limitu (pierwszy dzień następnego miesiąca)
 - Sugerowane jest manualne tworzenie fiszek jako alternatywa
@@ -317,6 +334,7 @@ US-017
 Tytuł: Obsługa błędu generowania AI
 Opis: Jako użytkownik chcę otrzymać zrozumiały komunikat gdy wystąpi błąd AI, aby wiedzieć co robić dalej.
 Kryteria akceptacji:
+
 - W przypadku błędu API wyświetlany jest przyjazny komunikat (nie techniczny stack trace)
 - Komunikat sugeruje ponowienie próby lub kontakt z supportem
 - Błąd jest logowany na serwerze z pełnymi szczegółami technicznymi
@@ -329,6 +347,7 @@ US-018
 Tytuł: Otwieranie formularza tworzenia fiszki
 Opis: Jako użytkownik chcę mieć dostęp do formularza tworzenia fiszki, aby dodawać własne karty do nauki.
 Kryteria akceptacji:
+
 - W widoku talii dostępny jest przycisk "Dodaj fiszkę"
 - Po kliknięciu otwiera się formularz tworzenia fiszki
 - Formularz można zamknąć bez zapisywania
@@ -337,6 +356,7 @@ US-019
 Tytuł: Tworzenie fiszki manualnie
 Opis: Jako użytkownik chcę ręcznie utworzyć fiszkę wpisując przód i tył, aby dodać specyficzne karty których AI nie wygenerował.
 Kryteria akceptacji:
+
 - Formularz zawiera pola: przód (max 200 znaków) i tył (max 500 znaków)
 - Widoczne są liczniki znaków dla obu pól
 - Przycisk "Zapisz" jest aktywny gdy oba pola są wypełnione i w limitach
@@ -348,6 +368,7 @@ US-020
 Tytuł: Tworzenie fiszek po wyczerpaniu limitu AI
 Opis: Jako użytkownik z wyczerpanym limitem AI chcę nadal móc tworzyć fiszki manualnie, aby kontynuować naukę.
 Kryteria akceptacji:
+
 - Formularz manualnego tworzenia jest dostępny niezależnie od limitu AI
 - Nie ma żadnych ograniczeń ilościowych dla manualnych fiszek
 - Funkcja działa identycznie jak przy aktywnym limicie AI
@@ -358,6 +379,7 @@ US-021
 Tytuł: Tworzenie nowej talii
 Opis: Jako użytkownik chcę utworzyć nową talię, aby organizować fiszki tematycznie.
 Kryteria akceptacji:
+
 - Na dashboardzie dostępny jest przycisk "Nowa talia"
 - Po kliknięciu wyświetla się formularz z polem na nazwę talii
 - Nazwa talii jest wymagana (nie może być pusta)
@@ -369,6 +391,7 @@ US-022
 Tytuł: Przeglądanie listy talii
 Opis: Jako użytkownik chcę widzieć wszystkie moje talie na dashboardzie, aby mieć przegląd moich materiałów.
 Kryteria akceptacji:
+
 - Dashboard wyświetla wszystkie talie użytkownika jako kafelki
 - Każdy kafelek pokazuje nazwę talii
 - Kafelki są klikalane i prowadzą do widoku talii
@@ -378,6 +401,7 @@ US-023
 Tytuł: Otwieranie widoku talii
 Opis: Jako użytkownik chcę otworzyć talię, aby zobaczyć i zarządzać jej fiszkami.
 Kryteria akceptacji:
+
 - Po kliknięciu kafelka talii otwiera się widok talii
 - Widok zawiera nazwę talii, liczbę fiszek i listę fiszek
 - Dostępne są przyciski: "Dodaj fiszkę", "Generuj fiszki", "Edytuj talię", "Usuń talię"
@@ -387,6 +411,7 @@ US-024
 Tytuł: Edycja nazwy talii
 Opis: Jako użytkownik chcę zmienić nazwę talii, aby lepiej odzwierciedlała jej zawartość.
 Kryteria akceptacji:
+
 - W widoku talii dostępna jest opcja "Edytuj nazwę"
 - Po kliknięciu nazwa staje się edytowalna
 - Nowa nazwa jest zapisywana po potwierdzeniu
@@ -396,6 +421,7 @@ US-025
 Tytuł: Usuwanie talii
 Opis: Jako użytkownik chcę usunąć talię której już nie potrzebuję, aby utrzymać porządek w materiałach.
 Kryteria akceptacji:
+
 - W widoku talii dostępna jest opcja "Usuń talię"
 - Przed usunięciem wyświetlane jest okno potwierdzenia
 - Potwierdzenie informuje o liczbie fiszek które zostaną usunięte
@@ -407,6 +433,7 @@ US-026
 Tytuł: Przeglądanie fiszek w talii
 Opis: Jako użytkownik chcę przeglądać fiszki w talii, aby zobaczyć co zawiera i znaleźć konkretne karty.
 Kryteria akceptacji:
+
 - Widok talii wyświetla listę fiszek
 - Każda fiszka pokazuje początek przodu (pierwsze ~50 znaków)
 - Lista jest przewijalna gdy fiszek jest dużo
@@ -417,6 +444,7 @@ US-027
 Tytuł: Rozwijanie szczegółów fiszki
 Opis: Jako użytkownik chcę zobaczyć pełną treść fiszki, aby zweryfikować jej zawartość.
 Kryteria akceptacji:
+
 - Po kliknięciu fiszki na liście rozwija się pełny widok
 - Widoczny jest pełny przód i tył fiszki
 - Dostępne są przyciski "Edytuj" i "Usuń"
@@ -428,6 +456,7 @@ US-028
 Tytuł: Edycja istniejącej fiszki
 Opis: Jako użytkownik chcę edytować fiszkę, aby poprawić błędy lub zaktualizować treść.
 Kryteria akceptacji:
+
 - W rozwiniętym widoku fiszki dostępny jest przycisk "Edytuj"
 - Po kliknięciu pola przód i tył stają się edytowalne
 - Widoczne są liczniki znaków (przód: max 200, tył: max 500)
@@ -439,6 +468,7 @@ US-029
 Tytuł: Usuwanie fiszki
 Opis: Jako użytkownik chcę usunąć fiszkę której już nie potrzebuję, aby utrzymać jakość materiałów.
 Kryteria akceptacji:
+
 - W rozwiniętym widoku fiszki dostępny jest przycisk "Usuń"
 - Przed usunięciem wyświetlane jest okno potwierdzenia
 - Po potwierdzeniu fiszka jest trwale usuwana
@@ -451,6 +481,7 @@ US-030
 Tytuł: Wyświetlanie liczby kart do powtórki
 Opis: Jako użytkownik chcę widzieć ile mam kart do powtórki, aby planować czas nauki.
 Kryteria akceptacji:
+
 - Na dashboardzie widoczny jest kafelek "Do powtórki: X"
 - Liczba X to suma fiszek ze wszystkich talii zaplanowanych na dziś lub wcześniej
 - Liczba aktualizuje się po każdej sesji nauki
@@ -460,6 +491,7 @@ US-031
 Tytuł: Rozpoczynanie sesji nauki ze wszystkich talii
 Opis: Jako użytkownik chcę rozpocząć naukę wszystkich fiszek do powtórki, aby efektywnie przejrzeć cały materiał.
 Kryteria akceptacji:
+
 - Kliknięcie kafelka "Do powtórki" rozpoczyna sesję nauki
 - Sesja zawiera fiszki ze wszystkich talii zaplanowane na dziś lub wcześniej
 - Fiszki są prezentowane w kolejności wynikającej z algorytmu FSRS
@@ -469,6 +501,7 @@ US-032
 Tytuł: Rozpoczynanie sesji nauki z pojedynczej talii
 Opis: Jako użytkownik chcę uczyć się tylko z wybranej talii, gdy przygotowuję się do egzaminu z konkretnego tematu.
 Kryteria akceptacji:
+
 - W widoku talii dostępny jest przycisk "Ucz się"
 - Przycisk pokazuje liczbę fiszek do powtórki w tej talii
 - Po kliknięciu rozpoczyna się sesja tylko z tej talii
@@ -478,6 +511,7 @@ US-033
 Tytuł: Przeglądanie przodu fiszki w sesji nauki
 Opis: Jako użytkownik chcę zobaczyć przód fiszki i spróbować przypomnieć sobie odpowiedź, zanim zobaczę tył.
 Kryteria akceptacji:
+
 - Ekran nauki wyświetla centralnie przód fiszki
 - Tył fiszki jest ukryty
 - Dostępny jest przycisk "Pokaż odpowiedź"
@@ -487,6 +521,7 @@ US-034
 Tytuł: Odsłanianie odpowiedzi
 Opis: Jako użytkownik chcę odsłonić tył fiszki po zastanowieniu się nad odpowiedzią.
 Kryteria akceptacji:
+
 - Po kliknięciu "Pokaż odpowiedź" wyświetlany jest tył fiszki
 - Przód fiszki pozostaje widoczny
 - Przycisk "Pokaż odpowiedź" znika
@@ -496,6 +531,7 @@ US-035
 Tytuł: Ocenianie znajomości fiszki
 Opis: Jako użytkownik chcę ocenić jak dobrze pamiętałem odpowiedź, aby algorytm FSRS zaplanował optymalny termin powtórki.
 Kryteria akceptacji:
+
 - Dostępne są 4 przyciski: Again (1), Hard (2), Good (3), Easy (4)
 - Każdy przycisk pokazuje przewidywany interwał do następnej powtórki
 - Po kliknięciu parametry FSRS fiszki są aktualizowane
@@ -506,6 +542,7 @@ US-036
 Tytuł: Śledzenie postępu sesji nauki
 Opis: Jako użytkownik chcę widzieć postęp sesji, aby wiedzieć ile kart zostało do końca.
 Kryteria akceptacji:
+
 - Na ekranie nauki widoczny jest pasek postępu
 - Postęp pokazuje format "X/Y" gdzie X to przejrzane karty, Y to suma
 - Pasek wypełnia się proporcjonalnie do postępu
@@ -515,6 +552,7 @@ US-037
 Tytuł: Zakończenie sesji nauki
 Opis: Jako użytkownik chcę wiedzieć że ukończyłem sesję i wrócić do dashboardu.
 Kryteria akceptacji:
+
 - Po ocenieniu ostatniej fiszki wyświetlany jest ekran zakończenia
 - Ekran pokazuje podsumowanie: "Ukończono X fiszek"
 - Dostępny jest przycisk "Wróć do dashboardu"
@@ -525,6 +563,7 @@ US-038
 Tytuł: Przerywanie sesji nauki
 Opis: Jako użytkownik chcę móc przerwać sesję nauki w dowolnym momencie.
 Kryteria akceptacji:
+
 - Na ekranie nauki dostępny jest przycisk "Zakończ sesję" lub X
 - Po kliknięciu użytkownik wraca do dashboardu
 - Postęp do tego momentu jest zapisany (ocenione fiszki mają zaktualizowane daty)
@@ -534,6 +573,7 @@ US-039
 Tytuł: Obsługa pustej sesji nauki
 Opis: Jako użytkownik bez fiszek do powtórki chcę otrzymać odpowiednią informację.
 Kryteria akceptacji:
+
 - Gdy brak fiszek do powtórki, kafelek pokazuje "Brak fiszek do powtórki"
 - Kliknięcie kafelka nie rozpoczyna sesji
 - Wyświetlana jest informacja zachęcająca do tworzenia fiszek lub powrotu później
@@ -545,6 +585,7 @@ US-040
 Tytuł: Wyświetlanie dashboardu
 Opis: Jako zalogowany użytkownik chcę widzieć przegląd moich materiałów i szybki dostęp do głównych funkcji.
 Kryteria akceptacji:
+
 - Po zalogowaniu wyświetlany jest dashboard
 - Widoczny jest kafelek "Do powtórki: X"
 - Widoczny jest kafelek "Nowa talia / Generuj fiszki"
@@ -555,6 +596,7 @@ US-041
 Tytuł: Nawigacja z poziomu dashboardu
 Opis: Jako użytkownik chcę łatwo nawigować do głównych funkcji aplikacji.
 Kryteria akceptacji:
+
 - Kliknięcie kafelka "Do powtórki" rozpoczyna sesję nauki
 - Kliknięcie "Nowa talia" otwiera formularz tworzenia talii
 - Kliknięcie "Generuj fiszki" otwiera modal generowania
@@ -565,6 +607,7 @@ US-042
 Tytuł: Pusty stan dla nowego użytkownika
 Opis: Jako nowy użytkownik bez talii chcę otrzymać wskazówki jak zacząć.
 Kryteria akceptacji:
+
 - Gdy użytkownik nie ma żadnych talii, wyświetlany jest pusty stan
 - Pusty stan zawiera komunikat powitalny
 - Widoczny jest wyraźny CTA "Utwórz pierwszą talię"
@@ -576,6 +619,7 @@ US-043
 Tytuł: Dostęp do ustawień konta
 Opis: Jako użytkownik chcę mieć dostęp do ustawień konta, aby zarządzać swoim profilem.
 Kryteria akceptacji:
+
 - W menu użytkownika dostępna jest opcja "Ustawienia"
 - Strona ustawień zawiera informacje o koncie (email)
 - Dostępna jest opcja usunięcia konta
@@ -585,6 +629,7 @@ US-044
 Tytuł: Przeglądanie polityki prywatności
 Opis: Jako użytkownik chcę przeczytać politykę prywatności, aby wiedzieć jak przetwarzane są moje dane.
 Kryteria akceptacji:
+
 - W stopce lub menu dostępny jest link do polityki prywatności
 - Strona zawiera pełną treść polityki prywatności w języku polskim
 - Polityka opisuje: zbierane dane, cel przetwarzania, prawa użytkownika, kontakt
@@ -593,6 +638,7 @@ US-045
 Tytuł: Przeglądanie regulaminu
 Opis: Jako użytkownik chcę przeczytać regulamin usługi, aby znać zasady korzystania z aplikacji.
 Kryteria akceptacji:
+
 - W stopce lub menu dostępny jest link do regulaminu
 - Strona zawiera pełną treść regulaminu w języku polskim
 - Regulamin opisuje: zasady korzystania, ograniczenia, odpowiedzialność
@@ -603,6 +649,7 @@ US-046
 Tytuł: Korzystanie z aplikacji na urządzeniu mobilnym
 Opis: Jako użytkownik mobilny chcę wygodnie korzystać z aplikacji na smartfonie, aby uczyć się w dowolnym miejscu.
 Kryteria akceptacji:
+
 - Wszystkie ekrany są responsywne i czytelne na ekranach 320px+
 - Przyciski i elementy interaktywne mają odpowiedni rozmiar do dotykowej obsługi (min 44px)
 - Sesja nauki jest wygodna na telefonie (duże karty, czytelne przyciski oceny)
@@ -613,6 +660,7 @@ US-047
 Tytuł: Korzystanie z aplikacji na tablecie
 Opis: Jako użytkownik tabletu chcę mieć zoptymalizowany widok aplikacji.
 Kryteria akceptacji:
+
 - Layout dostosowuje się do średnich ekranów (tablet)
 - Kafelki dashboardu rozkładają się optymalnie
 - Sesja nauki wykorzystuje dostępną przestrzeń
@@ -621,6 +669,7 @@ US-048
 Tytuł: Korzystanie z aplikacji na desktopie
 Opis: Jako użytkownik desktopowy chcę mieć wygodny widok na dużym ekranie.
 Kryteria akceptacji:
+
 - Layout dostosowuje się do dużych ekranów
 - Treść nie rozciąga się na całą szerokość (max-width)
 - Elementy są proporcjonalne i czytelne
@@ -631,20 +680,20 @@ Kryteria akceptacji:
 
 1. Wskaźnik akceptacji fiszek AI
    - Cel: 75%
-   - Definicja: (fiszki_zaakceptowane + fiszki_edytowane) / fiszki_wygenerowane * 100%
+   - Definicja: (fiszki_zaakceptowane + fiszki_edytowane) / fiszki_wygenerowane \* 100%
    - Sposób mierzenia: Zliczanie eventów w tabeli logów Supabase
    - Częstotliwość pomiaru: Tygodniowo
 
 2. Udział AI w tworzeniu fiszek
    - Cel: 75%
-   - Definicja: fiszki_utworzone_przez_AI / wszystkie_fiszki_użytkownika * 100%
+   - Definicja: fiszki_utworzone_przez_AI / wszystkie_fiszki_użytkownika \* 100%
    - Sposób mierzenia: Zapytanie SQL agregujące fiszki po źródle (AI/manual)
    - Częstotliwość pomiaru: Miesięcznie
-
 
 ### Implementacja mierzenia
 
 Tabela: generation_events
+
 - id (UUID)
 - user_id (UUID, FK)
 - event_type (ENUM: wygenerowana, zaakceptowana, odrzucona, edytowana)
@@ -652,8 +701,10 @@ Tabela: generation_events
 - created_at (TIMESTAMP)
 
 Tabela: flashcards
+
 - source (ENUM: ai, manual) - do rozróżnienia źródła fiszki
 
 Zapytania SQL:
-- Wskaźnik akceptacji: SELECT (COUNT(CASE WHEN event_type IN ('zaakceptowana', 'edytowana') THEN 1 END) * 100.0 / NULLIF(COUNT(CASE WHEN event_type = 'wygenerowana' THEN 1 END), 0)) as acceptance_rate FROM generation_events WHERE created_at >= [okres]
-- Udział AI: SELECT (COUNT(CASE WHEN source = 'ai' THEN 1 END) * 100.0 / NULLIF(COUNT(*), 0)) as ai_share FROM flashcards WHERE user_id = [user]
+
+- Wskaźnik akceptacji: SELECT (COUNT(CASE WHEN event_type IN ('zaakceptowana', 'edytowana') THEN 1 END) \* 100.0 / NULLIF(COUNT(CASE WHEN event_type = 'wygenerowana' THEN 1 END), 0)) as acceptance_rate FROM generation_events WHERE created_at >= [okres]
+- Udział AI: SELECT (COUNT(CASE WHEN source = 'ai' THEN 1 END) _ 100.0 / NULLIF(COUNT(_), 0)) as ai_share FROM flashcards WHERE user_id = [user]

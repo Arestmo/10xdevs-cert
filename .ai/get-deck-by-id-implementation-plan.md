@@ -5,6 +5,7 @@
 This endpoint retrieves a specific deck by its ID with computed metadata, including total flashcard count and due flashcard count. The endpoint requires authentication and enforces ownership validation to ensure users can only access their own decks.
 
 **Key Characteristics:**
+
 - Read-only operation (no data modification)
 - Requires user authentication via Supabase JWT
 - Enforces resource ownership (users can only view their own decks)
@@ -14,31 +15,37 @@ This endpoint retrieves a specific deck by its ID with computed metadata, includ
 ## 2. Request Details
 
 ### HTTP Method
+
 `GET`
 
 ### URL Structure
+
 ```
 GET /api/decks/{deckId}
 ```
 
 ### Path Parameters
 
-| Parameter | Type | Required | Validation | Description |
-|-----------|------|----------|------------|-------------|
-| `deckId` | UUID string | Yes | Valid UUID v4 format | Unique identifier of the deck to retrieve |
+| Parameter | Type        | Required | Validation           | Description                               |
+| --------- | ----------- | -------- | -------------------- | ----------------------------------------- |
+| `deckId`  | UUID string | Yes      | Valid UUID v4 format | Unique identifier of the deck to retrieve |
 
 ### Query Parameters
+
 None
 
 ### Request Headers
+
 ```
 Authorization: Bearer <JWT_TOKEN>
 ```
 
 ### Request Body
+
 None (GET request)
 
 ### Example Request
+
 ```http
 GET /api/decks/550e8400-e29b-41d4-a716-446655440000 HTTP/1.1
 Host: example.com
@@ -50,6 +57,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ### Response Types
 
 **DeckWithMetadataDTO** (from `src/types.ts:121-124`)
+
 ```typescript
 interface DeckWithMetadataDTO extends Omit<Deck, "user_id"> {
   total_flashcards: number;
@@ -58,6 +66,7 @@ interface DeckWithMetadataDTO extends Omit<Deck, "user_id"> {
 ```
 
 This type includes all base `Deck` fields except `user_id` (omitted for security):
+
 - `id`: UUID
 - `name`: string (1-100 characters)
 - `created_at`: ISO timestamp
@@ -66,6 +75,7 @@ This type includes all base `Deck` fields except `user_id` (omitted for security
 - `due_flashcards`: number (computed)
 
 **ErrorResponseDTO** (from `src/types.ts:83-89`)
+
 ```typescript
 interface ErrorResponseDTO {
   error: {
@@ -87,12 +97,14 @@ No new types needed. The existing `DeckService` will be extended with a new meth
 **Status Code:** `200`
 
 **Headers:**
+
 ```
 Content-Type: application/json
 X-Content-Type-Options: nosniff
 ```
 
 **Body Structure:**
+
 ```json
 {
   "id": "550e8400-e29b-41d4-a716-446655440000",
@@ -105,6 +117,7 @@ X-Content-Type-Options: nosniff
 ```
 
 **Field Descriptions:**
+
 - `id`: Unique deck identifier (UUID)
 - `name`: User-defined deck name
 - `created_at`: ISO 8601 timestamp when deck was created
@@ -117,6 +130,7 @@ X-Content-Type-Options: nosniff
 ### Error Responses
 
 #### 400 Bad Request - Invalid UUID Format
+
 ```json
 {
   "error": {
@@ -130,6 +144,7 @@ X-Content-Type-Options: nosniff
 ```
 
 #### 401 Unauthorized - Not Authenticated
+
 ```json
 {
   "error": {
@@ -140,6 +155,7 @@ X-Content-Type-Options: nosniff
 ```
 
 #### 404 Not Found - Deck Not Found or Not Owned
+
 ```json
 {
   "error": {
@@ -152,6 +168,7 @@ X-Content-Type-Options: nosniff
 **Important:** The same 404 response is returned whether the deck doesn't exist or exists but is owned by another user. This prevents information leakage about the existence of other users' decks.
 
 #### 500 Internal Server Error - Unexpected Error
+
 ```json
 {
   "error": {
@@ -190,6 +207,7 @@ X-Content-Type-Options: nosniff
 ### Database Interactions
 
 **Query 1: Fetch Deck with Ownership Validation**
+
 ```typescript
 const { data: deck } = await supabase
   .from("decks")
@@ -200,6 +218,7 @@ const { data: deck } = await supabase
 ```
 
 **Query 2: Count Total Flashcards**
+
 ```typescript
 const { count: totalFlashcards } = await supabase
   .from("flashcards")
@@ -208,6 +227,7 @@ const { count: totalFlashcards } = await supabase
 ```
 
 **Query 3: Count Due Flashcards**
+
 ```typescript
 const now = new Date().toISOString();
 const { count: dueFlashcards } = await supabase
@@ -226,6 +246,7 @@ async getDeckById(userId: string, deckId: string): Promise<DeckWithMetadataDTO>
 ```
 
 **Responsibilities:**
+
 1. Fetch deck from database filtering by both `id` AND `user_id`
 2. Throw `DeckNotFoundError` if deck doesn't exist or doesn't belong to user
 3. Execute parallel queries for flashcard counts (total and due)
@@ -235,17 +256,20 @@ async getDeckById(userId: string, deckId: string): Promise<DeckWithMetadataDTO>
 ## 6. Security Considerations
 
 ### Authentication
+
 - **Method:** Supabase JWT-based authentication
 - **Implementation:** Call `context.locals.supabase.auth.getUser()` to verify token
 - **Failure handling:** Return 401 if authentication fails or user is null
 
 ### Authorization (Ownership Validation)
+
 - **Strategy:** Database query filters by both `deck_id` AND `user_id`
 - **Implementation:** `.eq("user_id", userId)` in the Supabase query
 - **Benefit:** Prevents unauthorized access at the database level
 - **Information Leakage Prevention:** Return same 404 error whether deck doesn't exist or user doesn't own it
 
 ### Input Validation
+
 - **UUID Validation:** Use Zod schema to validate UUID v4 format
   ```typescript
   const deckIdSchema = z.string().uuid("Invalid deck ID format");
@@ -254,20 +278,24 @@ async getDeckById(userId: string, deckId: string): Promise<DeckWithMetadataDTO>
 - **Response:** Return 400 Bad Request for invalid UUID formats
 
 ### Data Exposure
+
 - **User ID Omission:** The `user_id` field is explicitly omitted from `DeckWithMetadataDTO`
 - **Rationale:** Prevents exposure of internal user identifiers to clients
 - **Implementation:** TypeScript type enforces this at compile time
 
 ### Response Headers
+
 ```typescript
 {
   "Content-Type": "application/json",
   "X-Content-Type-Options": "nosniff"
 }
 ```
+
 - `X-Content-Type-Options: nosniff` prevents MIME type sniffing attacks
 
 ### Row Level Security (RLS)
+
 - Assumes RLS policies are enabled on the `decks` table in Supabase
 - RLS provides defense-in-depth alongside application-level checks
 - Service uses authenticated Supabase client via middleware
@@ -275,18 +303,19 @@ async getDeckById(userId: string, deckId: string): Promise<DeckWithMetadataDTO>
 ## 7. Error Handling
 
 ### Error Handling Strategy
+
 Follow the guard clause pattern with early returns for error conditions, placing the happy path last in the function.
 
 ### Error Scenarios and Responses
 
-| Scenario | HTTP Status | Error Code | Error Message | Handling Location |
-|----------|-------------|------------|---------------|-------------------|
-| Invalid UUID format | 400 | `VALIDATION_ERROR` | "Invalid deck ID format" | API Route (Zod validation) |
-| Missing/invalid JWT | 401 | `UNAUTHORIZED` | "Authentication required" | API Route (auth check) |
-| Deck not found | 404 | `DECK_NOT_FOUND` | "Deck not found" | Service Layer (custom error) |
-| Deck owned by other user | 404 | `DECK_NOT_FOUND` | "Deck not found" | Service Layer (custom error) |
-| Database connection error | 500 | `INTERNAL_ERROR` | "An unexpected error occurred" | API Route (catch block) |
-| Unexpected service error | 500 | `INTERNAL_ERROR` | "An unexpected error occurred" | API Route (catch block) |
+| Scenario                  | HTTP Status | Error Code         | Error Message                  | Handling Location            |
+| ------------------------- | ----------- | ------------------ | ------------------------------ | ---------------------------- |
+| Invalid UUID format       | 400         | `VALIDATION_ERROR` | "Invalid deck ID format"       | API Route (Zod validation)   |
+| Missing/invalid JWT       | 401         | `UNAUTHORIZED`     | "Authentication required"      | API Route (auth check)       |
+| Deck not found            | 404         | `DECK_NOT_FOUND`   | "Deck not found"               | Service Layer (custom error) |
+| Deck owned by other user  | 404         | `DECK_NOT_FOUND`   | "Deck not found"               | Service Layer (custom error) |
+| Database connection error | 500         | `INTERNAL_ERROR`   | "An unexpected error occurred" | API Route (catch block)      |
+| Unexpected service error  | 500         | `INTERNAL_ERROR`   | "An unexpected error occurred" | API Route (catch block)      |
 
 ### Custom Error Class
 
@@ -324,6 +353,7 @@ export const GET: APIRoute = async (context) => {
 ```
 
 ### Error Logging
+
 - Use `console.error()` for development (as per existing codebase patterns)
 - Include endpoint path and error object in log messages
 - Production systems should replace with proper logging service (e.g., Sentry, DataDog)
@@ -333,29 +363,29 @@ export const GET: APIRoute = async (context) => {
 ### Database Query Optimization
 
 **Current Approach (3 sequential queries):**
+
 1. Fetch deck with ownership validation
 2. Count total flashcards
 3. Count due flashcards
 
 **Potential Bottleneck:**
+
 - Three round-trips to database for a single request
 - Sequential execution blocks the response
 
 **Optimization Strategy:**
+
 - Execute flashcard count queries in parallel using `Promise.all()`
 - Only execute counts if deck is found and owned
 - Leverage database indexes on `deck_id` and `next_review` columns
 
 **Optimized Implementation:**
+
 ```typescript
 // Execute count queries in parallel
 const [totalResult, dueResult] = await Promise.all([
   supabase.from("flashcards").select("*", { count: "exact", head: true }).eq("deck_id", deckId),
-  supabase
-    .from("flashcards")
-    .select("*", { count: "exact", head: true })
-    .eq("deck_id", deckId)
-    .lte("next_review", now),
+  supabase.from("flashcards").select("*", { count: "exact", head: true }).eq("deck_id", deckId).lte("next_review", now),
 ]);
 ```
 
@@ -364,30 +394,36 @@ const [totalResult, dueResult] = await Promise.all([
 Ensure the following indexes exist in Supabase:
 
 **decks table:**
+
 - Primary key index on `id` (auto-created)
 - Composite index on `(user_id, id)` for ownership queries
 
 **flashcards table:**
+
 - Index on `deck_id` (foreign key, likely auto-indexed)
 - Composite index on `(deck_id, next_review)` for due card queries
 
 ### Caching Considerations
 
 **Not Recommended for Initial Implementation:**
+
 - Deck metadata changes frequently as flashcards are reviewed
 - Due flashcard count is time-dependent (based on current timestamp)
 - Cache invalidation would be complex
 
 **Future Optimization:**
+
 - Consider short-lived cache (5-10 seconds) for deck metadata if usage patterns show repeated requests
 - Use ETags for conditional requests if clients frequently re-fetch unchanged decks
 
 ### Response Size
+
 - Response is minimal (single deck object, ~200-300 bytes)
 - No pagination needed
 - No compression needed for single resource responses
 
 ### Expected Performance Targets
+
 - Response time: < 200ms (with database indexes)
 - Database queries: 3 (1 sequential + 2 parallel)
 - Scalability: Linear with number of concurrent users (stateless endpoint)
@@ -395,6 +431,7 @@ Ensure the following indexes exist in Supabase:
 ## 9. Implementation Steps
 
 ### Step 1: Create Custom Error Class
+
 **File:** `src/lib/services/deck.service.ts`
 
 Add the `DeckNotFoundError` class after the existing `DuplicateDeckError`:
@@ -412,6 +449,7 @@ export class DeckNotFoundError extends Error {
 ```
 
 ### Step 2: Extend DeckService with getDeckById Method
+
 **File:** `src/lib/services/deck.service.ts`
 
 Add the following method to the `DeckService` class:
@@ -474,6 +512,7 @@ async getDeckById(userId: string, deckId: string): Promise<DeckWithMetadataDTO> 
 ```
 
 ### Step 3: Create Dynamic Route File
+
 **File:** `src/pages/api/decks/[deckId].ts`
 
 Create a new file for the dynamic route with the following structure:
@@ -492,6 +531,7 @@ const deckIdSchema = z.string().uuid("Invalid deck ID format");
 ```
 
 ### Step 4: Implement GET Handler
+
 **File:** `src/pages/api/decks/[deckId].ts`
 
 Add the GET export with complete error handling:
@@ -520,12 +560,7 @@ export const GET: APIRoute = async (context) => {
       validatedDeckId = deckIdSchema.parse(deckId);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return errorResponse(
-          "VALIDATION_ERROR",
-          "Invalid deck ID format",
-          400,
-          error.flatten().fieldErrors
-        );
+        return errorResponse("VALIDATION_ERROR", "Invalid deck ID format", 400, error.flatten().fieldErrors);
       }
       throw error; // Re-throw unexpected errors
     }
@@ -566,34 +601,42 @@ export const GET: APIRoute = async (context) => {
 **Manual Testing Checklist:**
 
 1. **Valid Request Test:**
+
    ```bash
    curl -X GET \
      'http://localhost:3000/api/decks/550e8400-e29b-41d4-a716-446655440000' \
      -H 'Authorization: Bearer <valid_token>'
    ```
+
    Expected: 200 OK with DeckWithMetadataDTO
 
 2. **Invalid UUID Test:**
+
    ```bash
    curl -X GET \
      'http://localhost:3000/api/decks/invalid-uuid' \
      -H 'Authorization: Bearer <valid_token>'
    ```
+
    Expected: 400 Bad Request with VALIDATION_ERROR
 
 3. **Unauthenticated Test:**
+
    ```bash
    curl -X GET \
      'http://localhost:3000/api/decks/550e8400-e29b-41d4-a716-446655440000'
    ```
+
    Expected: 401 Unauthorized
 
 4. **Deck Not Found Test:**
+
    ```bash
    curl -X GET \
      'http://localhost:3000/api/decks/00000000-0000-0000-0000-000000000000' \
      -H 'Authorization: Bearer <valid_token>'
    ```
+
    Expected: 404 Not Found
 
 5. **Ownership Violation Test:**
@@ -604,6 +647,7 @@ export const GET: APIRoute = async (context) => {
 ### Step 6: Verify Type Safety
 
 Run TypeScript type checking:
+
 ```bash
 npm run build
 ```
@@ -613,6 +657,7 @@ Ensure no type errors are reported for the new files.
 ### Step 7: Run Linter
 
 Execute linting to ensure code quality:
+
 ```bash
 npm run lint
 ```
@@ -622,6 +667,7 @@ Fix any linting issues that are reported.
 ### Step 8: Update API Documentation (Optional)
 
 If the project maintains API documentation (e.g., OpenAPI/Swagger), update it to include the new endpoint with:
+
 - Path parameter specification
 - Response schemas
 - Error response examples
@@ -649,16 +695,20 @@ If the project maintains API documentation (e.g., OpenAPI/Swagger), update it to
 ## Notes and Considerations
 
 ### Discrepancy in API Specification
+
 The endpoint specification shows `user_id` in the response example, but the existing `DeckWithMetadataDTO` type explicitly omits it. This implementation follows the type definition and omits `user_id` for security reasons. If `user_id` is required in the response, the type definition should be updated first.
 
 ### Future Enhancements
+
 1. **Caching:** Implement short-lived cache for frequently accessed decks
 2. **ETags:** Support conditional requests with If-None-Match headers
 3. **Expanded Metadata:** Add additional computed fields like completion percentage or average review interval
 4. **Batch Retrieval:** Consider a separate endpoint for retrieving multiple decks by IDs
 
 ### Alignment with Existing Code
+
 This implementation follows established patterns from:
+
 - `src/pages/api/profile/index.ts` for authentication and error handling
 - `src/pages/api/decks.ts` for service instantiation and response formatting
 - `src/lib/services/deck.service.ts` for service method structure and database queries

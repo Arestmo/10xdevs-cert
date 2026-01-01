@@ -5,6 +5,7 @@ This document provides comprehensive testing instructions for the AI flashcard g
 ## Prerequisites
 
 Before testing, ensure:
+
 - [ ] Supabase migrations have been applied (`supabase db push` or equivalent)
 - [ ] `.env` file contains valid `OPENROUTER_API_KEY`
 - [ ] Development server is running (`npm run dev`)
@@ -14,16 +15,19 @@ Before testing, ensure:
 ## Getting a Test JWT Token
 
 ### Option 1: Using Supabase Dashboard
+
 1. Go to Supabase Dashboard → Authentication → Users
 2. Find your test user
 3. Copy the JWT token from the user details
 
 ### Option 2: Using Browser DevTools
+
 1. Log in to your application
 2. Open DevTools → Application/Storage → Cookies
 3. Copy the `sb-access-token` cookie value
 
 ### Option 3: Programmatically
+
 ```bash
 # Using Supabase CLI
 supabase auth login --email test@example.com --password yourpassword
@@ -34,6 +38,7 @@ supabase auth login --email test@example.com --password yourpassword
 ### 1. Authentication Tests
 
 #### Test 1.1: Missing Authorization Header
+
 ```bash
 curl -X POST http://localhost:3000/api/generations \
   -H "Content-Type: application/json" \
@@ -42,7 +47,9 @@ curl -X POST http://localhost:3000/api/generations \
     "deck_id": "550e8400-e29b-41d4-a716-446655440000"
   }'
 ```
+
 **Expected**: 401 Unauthorized
+
 ```json
 {
   "error": {
@@ -53,6 +60,7 @@ curl -X POST http://localhost:3000/api/generations \
 ```
 
 #### Test 1.2: Invalid JWT Token
+
 ```bash
 curl -X POST http://localhost:3000/api/generations \
   -H "Authorization: Bearer invalid_token_here" \
@@ -62,9 +70,11 @@ curl -X POST http://localhost:3000/api/generations \
     "deck_id": "550e8400-e29b-41d4-a716-446655440000"
   }'
 ```
+
 **Expected**: 401 Unauthorized
 
 #### Test 1.3: Expired JWT Token
+
 Use an expired token (you can generate one with very short expiry)
 **Expected**: 401 Unauthorized
 
@@ -73,11 +83,13 @@ Use an expired token (you can generate one with very short expiry)
 ### 2. Validation Tests
 
 Set up environment variable for valid token:
+
 ```bash
 export ACCESS_TOKEN="your_valid_jwt_token_here"
 ```
 
 #### Test 2.1: Missing source_text
+
 ```bash
 curl -X POST http://localhost:3000/api/generations \
   -H "Authorization: Bearer $ACCESS_TOKEN" \
@@ -86,7 +98,9 @@ curl -X POST http://localhost:3000/api/generations \
     "deck_id": "550e8400-e29b-41d4-a716-446655440000"
   }'
 ```
+
 **Expected**: 400 Bad Request
+
 ```json
 {
   "error": {
@@ -102,6 +116,7 @@ curl -X POST http://localhost:3000/api/generations \
 ```
 
 #### Test 2.2: Empty source_text
+
 ```bash
 curl -X POST http://localhost:3000/api/generations \
   -H "Authorization: Bearer $ACCESS_TOKEN" \
@@ -111,9 +126,11 @@ curl -X POST http://localhost:3000/api/generations \
     "deck_id": "550e8400-e29b-41d4-a716-446655440000"
   }'
 ```
+
 **Expected**: 400 Bad Request - "source_text cannot be empty"
 
 #### Test 2.3: source_text Too Long (5001+ characters)
+
 ```bash
 # Generate 5001 character string
 LONG_TEXT=$(python3 -c "print('a' * 5001)")
@@ -126,9 +143,11 @@ curl -X POST http://localhost:3000/api/generations \
     \"deck_id\": \"550e8400-e29b-41d4-a716-446655440000\"
   }"
 ```
+
 **Expected**: 400 Bad Request - "source_text must be at most 5000 characters"
 
 #### Test 2.4: Missing deck_id
+
 ```bash
 curl -X POST http://localhost:3000/api/generations \
   -H "Authorization: Bearer $ACCESS_TOKEN" \
@@ -137,9 +156,11 @@ curl -X POST http://localhost:3000/api/generations \
     "source_text": "Test content"
   }'
 ```
+
 **Expected**: 400 Bad Request - "deck_id" is required
 
 #### Test 2.5: Invalid UUID Format
+
 ```bash
 curl -X POST http://localhost:3000/api/generations \
   -H "Authorization: Bearer $ACCESS_TOKEN" \
@@ -149,7 +170,9 @@ curl -X POST http://localhost:3000/api/generations \
     "deck_id": "not-a-uuid"
   }'
 ```
+
 **Expected**: 400 Bad Request
+
 ```json
 {
   "error": {
@@ -169,6 +192,7 @@ curl -X POST http://localhost:3000/api/generations \
 ### 3. Authorization Tests
 
 #### Test 3.1: Deck Belongs to Different User
+
 ```bash
 # Use a deck_id that exists but belongs to another user
 export OTHER_USER_DECK_ID="another_users_deck_uuid"
@@ -181,7 +205,9 @@ curl -X POST http://localhost:3000/api/generations \
     \"deck_id\": \"$OTHER_USER_DECK_ID\"
   }"
 ```
+
 **Expected**: 404 Not Found
+
 ```json
 {
   "error": {
@@ -192,6 +218,7 @@ curl -X POST http://localhost:3000/api/generations \
 ```
 
 #### Test 3.2: Non-existent Deck
+
 ```bash
 curl -X POST http://localhost:3000/api/generations \
   -H "Authorization: Bearer $ACCESS_TOKEN" \
@@ -201,6 +228,7 @@ curl -X POST http://localhost:3000/api/generations \
     "deck_id": "00000000-0000-0000-0000-000000000000"
   }'
 ```
+
 **Expected**: 404 Not Found
 
 ---
@@ -208,6 +236,7 @@ curl -X POST http://localhost:3000/api/generations \
 ### 4. AI Limit Tests
 
 #### Test 4.1: User Under Limit (Normal Case)
+
 ```bash
 # Ensure user has < 200 flashcards this month
 # Check current count in database:
@@ -223,9 +252,11 @@ curl -X POST http://localhost:3000/api/generations \
     \"deck_id\": \"$VALID_DECK_ID\"
   }"
 ```
+
 **Expected**: 200 OK with drafts
 
 #### Test 4.2: User at Limit (200/200)
+
 ```bash
 # Manually set user's monthly_ai_flashcards_count to 200:
 # UPDATE profiles SET monthly_ai_flashcards_count = 200 WHERE user_id = 'your_user_id';
@@ -238,7 +269,9 @@ curl -X POST http://localhost:3000/api/generations \
     \"deck_id\": \"$VALID_DECK_ID\"
   }"
 ```
+
 **Expected**: 403 Forbidden
+
 ```json
 {
   "error": {
@@ -254,6 +287,7 @@ curl -X POST http://localhost:3000/api/generations \
 ```
 
 #### Test 4.3: Lazy Reset on New Month
+
 ```bash
 # Manually set ai_limit_reset_date to last month:
 # UPDATE profiles
@@ -269,14 +303,17 @@ curl -X POST http://localhost:3000/api/generations \
     \"deck_id\": \"$VALID_DECK_ID\"
   }"
 ```
+
 **Expected**: 200 OK (limit should reset to 0 before generation)
 
 Verify in database:
+
 ```sql
 SELECT monthly_ai_flashcards_count, ai_limit_reset_date
 FROM profiles
 WHERE user_id = 'your_user_id';
 ```
+
 Count should be equal to generated_count, reset_date should be start of current month.
 
 ---
@@ -284,6 +321,7 @@ Count should be equal to generated_count, reset_date should be start of current 
 ### 5. Success Tests
 
 #### Test 5.1: Valid Request - Short Text
+
 ```bash
 curl -X POST http://localhost:3000/api/generations \
   -H "Authorization: Bearer $ACCESS_TOKEN" \
@@ -293,7 +331,9 @@ curl -X POST http://localhost:3000/api/generations \
     \"deck_id\": \"$VALID_DECK_ID\"
   }"
 ```
+
 **Expected**: 200 OK
+
 ```json
 {
   "generation_id": "uuid-here",
@@ -310,6 +350,7 @@ curl -X POST http://localhost:3000/api/generations \
 ```
 
 #### Test 5.2: Valid Request - Longer Educational Text
+
 ```bash
 curl -X POST http://localhost:3000/api/generations \
   -H "Authorization: Bearer $ACCESS_TOKEN" \
@@ -319,9 +360,11 @@ curl -X POST http://localhost:3000/api/generations \
     \"deck_id\": \"$VALID_DECK_ID\"
   }"
 ```
+
 **Expected**: 200 OK with multiple drafts (likely 3-5 flashcards)
 
 #### Test 5.3: Verify Database Changes
+
 After a successful generation, check database:
 
 ```sql
@@ -343,6 +386,7 @@ WHERE generation_id = 'the_generation_id_from_response'
 ### 6. OpenRouter API Error Simulation
 
 #### Test 6.1: Invalid API Key
+
 ```bash
 # Temporarily set invalid OPENROUTER_API_KEY in .env
 # Restart server
@@ -355,7 +399,9 @@ curl -X POST http://localhost:3000/api/generations \
     \"deck_id\": \"$VALID_DECK_ID\"
   }"
 ```
+
 **Expected**: 503 Service Unavailable
+
 ```json
 {
   "error": {
@@ -375,6 +421,7 @@ curl -X POST http://localhost:3000/api/generations \
 ## Edge Cases & Race Conditions
 
 ### Test 7.1: Concurrent Requests (Race Condition)
+
 ```bash
 # Send 2 requests simultaneously when user is at 195/200 limit
 # Each request generates ~10 flashcards
@@ -399,11 +446,13 @@ curl -X POST http://localhost:3000/api/generations \
 ```
 
 **Expected Behavior**:
+
 - One request succeeds (brings count to ~205)
 - Second request fails with 403 (limit exceeded)
 - OR: Database constraint prevents count from exceeding 200
 
 **Note**: The `increment_ai_usage` function provides atomic increment, but there's still a race window between the limit check and increment. Consider adding a database constraint:
+
 ```sql
 ALTER TABLE profiles
 ADD CONSTRAINT check_ai_limit
@@ -415,6 +464,7 @@ CHECK (monthly_ai_flashcards_count <= 200);
 ## Performance Tests
 
 ### Test 8.1: Response Time
+
 ```bash
 # Measure response time
 time curl -X POST http://localhost:3000/api/generations \
@@ -425,7 +475,9 @@ time curl -X POST http://localhost:3000/api/generations \
     \"deck_id\": \"$VALID_DECK_ID\"
   }"
 ```
+
 **Expected**:
+
 - Total time: 3-12 seconds (mostly OpenRouter API latency)
 - Database operations: < 200ms combined
 
@@ -518,6 +570,7 @@ echo "=========================================="
 ```
 
 Usage:
+
 ```bash
 chmod +x test-generations-endpoint.sh
 ./test-generations-endpoint.sh

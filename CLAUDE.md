@@ -15,6 +15,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Development Commands
 
 ### Core Commands
+
 ```bash
 npm run dev          # Start dev server on port 3000
 npm run build        # Build for production
@@ -22,6 +23,7 @@ npm run preview      # Preview production build
 ```
 
 ### Code Quality
+
 ```bash
 npm run lint         # Run ESLint
 npm run lint:fix     # Auto-fix ESLint issues
@@ -29,7 +31,9 @@ npm run format       # Format code with Prettier
 ```
 
 ### Pre-commit
+
 Husky runs `lint-staged` on commit, which:
+
 - Auto-fixes and lints `*.{ts,tsx,astro}` files
 - Formats `*.{json,css,md}` files
 
@@ -109,6 +113,7 @@ src/
 ## Architecture Guidelines
 
 ### Astro Configuration
+
 - **Output mode**: `server` (SSR enabled)
 - **Adapter**: Node.js standalone
 - **Port**: 3000
@@ -123,11 +128,13 @@ src/
 - Use content collections with type safety for blog posts, documentation, etc.
 
 ### Component Strategy
+
 - **Static content**: Use `.astro` components for static content and layout
 - **Interactive UI**: Use React components (`.tsx`) only when interactivity is needed
 - Never use Next.js directives like `"use client"` - this is Astro + React, not Next.js
 
 ### API Routes
+
 - Place in `src/pages/api/`
 - Use uppercase HTTP method exports: `GET`, `POST` (not `get`, `post`)
 - Add `export const prerender = false` to API routes
@@ -135,6 +142,7 @@ src/
 - Extract business logic to `src/lib/services/`
 
 ### Styling with Tailwind
+
 - Use the `@layer` directive to organize styles into components, utilities, and base layers
 - Use arbitrary values with square brackets (e.g., `w-[123px]`) for precise one-off designs
 - Implement the Tailwind configuration file for customizing theme, plugins, and variants
@@ -145,6 +153,7 @@ src/
 - Shadcn/ui style: "new-york" with base color "neutral"
 
 ### Supabase Integration
+
 - Use Supabase for backend services, including authentication and database interactions
 - Follow Supabase guidelines for security and performance
 - Access via `context.locals.supabase` in Astro routes (not direct import)
@@ -152,6 +161,7 @@ src/
 - Validate data with Zod schemas
 
 ### TypeScript Configuration
+
 - Base URL: `.`
 - Path alias: `@/*` maps to `./src/*`
 - JSX: React JSX transform
@@ -172,20 +182,22 @@ src/
 - Consider using custom error types or error factories for consistent error handling
 
 ### Error Handling Pattern
+
 ```typescript
 // Handle errors first with guard clauses
 if (!data) {
-  return error()
+  return error();
 }
 if (validationFails) {
-  return error()
+  return error();
 }
 
 // Happy path last
-return success(data)
+return success(data);
 ```
 
 ### React Best Practices
+
 - Use functional components with hooks instead of class components
 - Never use "use client" and other Next.js directives as we use React with Astro
 - Extract logic into custom hooks in `src/components/hooks/`
@@ -198,6 +210,7 @@ return success(data)
 - Use `useTransition` for non-urgent state updates to keep the UI responsive
 
 ### Accessibility (ARIA)
+
 - Use ARIA landmarks to identify regions of the page (main, navigation, search, etc.)
 - Apply appropriate ARIA roles to custom interface elements that lack semantic HTML equivalents
 - Set `aria-expanded` and `aria-controls` for expandable content like accordions and dropdowns
@@ -209,6 +222,7 @@ return success(data)
 - Avoid redundant ARIA that duplicates the semantics of native HTML elements
 
 ### Environment Variables
+
 - Access via `import.meta.env`
 - Example variables (from `.env.example`):
   - `SUPABASE_URL`
@@ -236,17 +250,20 @@ return success(data)
 This project uses @shadcn/ui for UI components. These are beautifully designed, accessible components that can be customized for your application.
 
 ### Finding Installed Components
+
 - Components are available in `src/components/ui` folder
 - Import using the `@/` alias configured in `components.json`
 
 ### Using Components
+
 ```tsx
-import { Button } from "@/components/ui/button"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 ```
 
 Example usage:
+
 ```tsx
 <Button variant="outline">Click me</Button>
 
@@ -265,14 +282,17 @@ Example usage:
 ```
 
 ### Installing Additional Components
+
 Many other components are available but not currently installed. Full list at https://ui.shadcn.com/
 
 To install a new component, use the shadcn CLI:
+
 ```bash
 npx shadcn@latest add [component-name]
 ```
 
 For example, to add the accordion component:
+
 ```bash
 npx shadcn@latest add accordion
 ```
@@ -280,6 +300,7 @@ npx shadcn@latest add accordion
 IMPORTANT: `npx shadcn-ui@latest` has been deprecated, use `npx shadcn@latest`
 
 Popular components include:
+
 - Accordion, Alert, AlertDialog, AspectRatio, Avatar
 - Calendar, Checkbox, Collapsible, Command, ContextMenu
 - DataTable, DatePicker, Dropdown Menu
@@ -289,6 +310,7 @@ Popular components include:
 - Table, Textarea, Sonner (previously Toast), Toggle, Tooltip
 
 ### Component Styling
+
 This project uses the "new-york" style variant with "neutral" base color and CSS variables for theming, as configured in `components.json`.
 
 ## Database Migrations (Supabase)
@@ -300,6 +322,7 @@ This project uses migrations provided by the Supabase CLI.
 Migration files must be created in the `supabase/migrations/` folder following this naming convention:
 
 Format: `YYYYMMDDHHmmss_short_description.sql` (UTC time)
+
 - `YYYY` - Four digits for the year (e.g., `2024`)
 - `MM` - Two digits for the month (01 to 12)
 - `DD` - Two digits for the day of the month (01 to 31)
@@ -330,6 +353,7 @@ The generated SQL code should be production-ready, well-documented, and aligned 
 ## Supabase Initialization
 
 ### Prerequisites
+
 - Project should use Astro 5, TypeScript 5, React 19, and Tailwind 4
 - Install the `@supabase/supabase-js` package
 - Ensure that `/supabase/config.toml` exists
@@ -340,9 +364,10 @@ IMPORTANT: Check prerequisites before performing actions. If they're not met, as
 ### File Structure
 
 1. **Supabase Client** (`/src/db/supabase.client.ts`):
+
 ```ts
-import { createClient } from '@supabase/supabase-js';
-import type { Database } from '../db/database.types.ts';
+import { createClient } from "@supabase/supabase-js";
+import type { Database } from "../db/database.types.ts";
 
 const supabaseUrl = import.meta.env.SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.SUPABASE_KEY;
@@ -351,9 +376,10 @@ export const supabaseClient = createClient<Database>(supabaseUrl, supabaseAnonKe
 ```
 
 2. **Middleware** (`/src/middleware/index.ts`):
+
 ```ts
-import { defineMiddleware } from 'astro:middleware';
-import { supabaseClient } from '../db/supabase.client.ts';
+import { defineMiddleware } from "astro:middleware";
+import { supabaseClient } from "../db/supabase.client.ts";
 
 export const onRequest = defineMiddleware((context, next) => {
   context.locals.supabase = supabaseClient;
@@ -362,11 +388,12 @@ export const onRequest = defineMiddleware((context, next) => {
 ```
 
 3. **TypeScript Environment Definitions** (`src/env.d.ts`):
+
 ```ts
 /// <reference types="astro/client" />
 
-import type { SupabaseClient } from '@supabase/supabase-js';
-import type { Database } from './db/database.types.ts';
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "./db/database.types.ts";
 
 declare global {
   namespace App {
