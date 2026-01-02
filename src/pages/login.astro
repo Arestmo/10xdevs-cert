@@ -1,0 +1,24 @@
+---
+/**
+ * Login Page
+ *
+ * Main entry point for user authentication.
+ * Redirects authenticated users to dashboard, displays login form for unauthenticated users.
+ */
+
+import LoginLayout from "@/layouts/LoginLayout.astro";
+
+// Check if user is already logged in
+const {
+  data: { session },
+} = await Astro.locals.supabase.auth.getSession();
+
+if (session) {
+  return Astro.redirect(Astro.url.searchParams.get("redirect") || "/dashboard");
+}
+
+// Check for errors from callback
+const error = Astro.url.searchParams.get("error");
+---
+
+<LoginLayout error={error} />
