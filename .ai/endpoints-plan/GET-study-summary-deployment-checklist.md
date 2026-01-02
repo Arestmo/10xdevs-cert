@@ -10,23 +10,23 @@
 
 ### Files Created/Modified
 
-| File | Status | Lines | Purpose |
-|------|--------|-------|---------|
-| `src/lib/services/study.service.ts` | ✅ Modified | +96 | Added `getStudySummary()` function |
-| `src/pages/api/study/summary.ts` | ✅ Created | 64 | API route handler |
-| `src/types.ts` | ✅ Verified | N/A | Types already exist |
-| `.ai/GET-study-summary-test-cases.md` | ✅ Created | 430 | Test documentation |
-| `.ai/GET-study-summary-deployment-checklist.md` | ✅ Created | N/A | This file |
+| File                                            | Status      | Lines | Purpose                            |
+| ----------------------------------------------- | ----------- | ----- | ---------------------------------- |
+| `src/lib/services/study.service.ts`             | ✅ Modified | +96   | Added `getStudySummary()` function |
+| `src/pages/api/study/summary.ts`                | ✅ Created  | 64    | API route handler                  |
+| `src/types.ts`                                  | ✅ Verified | N/A   | Types already exist                |
+| `.ai/GET-study-summary-test-cases.md`           | ✅ Created  | 430   | Test documentation                 |
+| `.ai/GET-study-summary-deployment-checklist.md` | ✅ Created  | N/A   | This file                          |
 
 ### Database Dependencies
 
-| Component | Status | Location |
-|-----------|--------|----------|
-| `idx_flashcards_next_review` | ✅ Exists | `supabase/migrations/20260101180000_add_study_indexes.sql:37` |
+| Component                         | Status    | Location                                                      |
+| --------------------------------- | --------- | ------------------------------------------------------------- |
+| `idx_flashcards_next_review`      | ✅ Exists | `supabase/migrations/20260101180000_add_study_indexes.sql:37` |
 | `idx_flashcards_deck_next_review` | ✅ Exists | `supabase/migrations/20260101180000_add_study_indexes.sql:61` |
-| `idx_decks_user` | ✅ Exists | `supabase/migrations/20251210140000_initial_schema.sql:219` |
-| RLS: `decks` SELECT policy | ✅ Exists | `supabase/migrations/20251210140000_initial_schema.sql:338` |
-| RLS: `flashcards` SELECT policy | ✅ Exists | `supabase/migrations/20251210140000_initial_schema.sql:377` |
+| `idx_decks_user`                  | ✅ Exists | `supabase/migrations/20251210140000_initial_schema.sql:219`   |
+| RLS: `decks` SELECT policy        | ✅ Exists | `supabase/migrations/20251210140000_initial_schema.sql:338`   |
+| RLS: `flashcards` SELECT policy   | ✅ Exists | `supabase/migrations/20251210140000_initial_schema.sql:377`   |
 
 ---
 
@@ -121,10 +121,10 @@
 
 ### Required Variables ✅
 
-| Variable | Required | Location | Status |
-|----------|----------|----------|--------|
-| `SUPABASE_URL` | Yes | `.env` | ✅ Must be set |
-| `SUPABASE_KEY` | Yes | `.env` | ✅ Must be set |
+| Variable       | Required | Location | Status         |
+| -------------- | -------- | -------- | -------------- |
+| `SUPABASE_URL` | Yes      | `.env`   | ✅ Must be set |
+| `SUPABASE_KEY` | Yes      | `.env`   | ✅ Must be set |
 
 **Note**: These are already configured for existing endpoints. No new environment variables needed.
 
@@ -135,6 +135,7 @@
 ### Production Deployment Steps
 
 1. **Verify migrations applied** ✅
+
    ```sql
    -- Check if indexes exist
    SELECT indexname FROM pg_indexes
@@ -147,6 +148,7 @@
    ```
 
 2. **Verify RLS enabled** ✅
+
    ```sql
    -- Check RLS is enabled
    SELECT tablename, rowsecurity
@@ -185,25 +187,25 @@ Cookie: sb-access-token=<session-token>
 
 ### Response Codes
 
-| Code | Meaning | Condition |
-|------|---------|-----------|
-| 200 | Success | Valid session, data returned |
-| 401 | Unauthorized | No session or invalid session |
-| 500 | Server Error | Database error or unexpected exception |
+| Code | Meaning      | Condition                              |
+| ---- | ------------ | -------------------------------------- |
+| 200  | Success      | Valid session, data returned           |
+| 401  | Unauthorized | No session or invalid session          |
+| 500  | Server Error | Database error or unexpected exception |
 
 ### Response Schema
 
 ```typescript
 interface StudySummaryResponseDTO {
-  total_due: number;              // Total due cards across all decks
+  total_due: number; // Total due cards across all decks
   next_review_date: string | null; // ISO 8601 or null if no future reviews
-  decks: DeckSummaryDTO[];        // Only decks with due_count > 0
+  decks: DeckSummaryDTO[]; // Only decks with due_count > 0
 }
 
 interface DeckSummaryDTO {
-  id: string;         // UUID
-  name: string;       // Deck name
-  due_count: number;  // Number of due cards in this deck
+  id: string; // UUID
+  name: string; // Deck name
+  due_count: number; // Number of due cards in this deck
 }
 ```
 
@@ -234,12 +236,12 @@ interface DeckSummaryDTO {
 
 ### Query Performance
 
-| Metric | Target | Notes |
-|--------|--------|-------|
-| Query 1 (Decks + Due Cards) | < 50ms | With proper indexes |
-| Query 2 (Next Review Date) | < 30ms | LIMIT 1 optimization |
-| Data Transformation | < 5ms | In-memory operations |
-| **Total API Response** | **< 100ms** | End-to-end |
+| Metric                      | Target      | Notes                |
+| --------------------------- | ----------- | -------------------- |
+| Query 1 (Decks + Due Cards) | < 50ms      | With proper indexes  |
+| Query 2 (Next Review Date)  | < 30ms      | LIMIT 1 optimization |
+| Data Transformation         | < 5ms       | In-memory operations |
+| **Total API Response**      | **< 100ms** | End-to-end           |
 
 ### Scalability
 
@@ -251,6 +253,7 @@ interface DeckSummaryDTO {
 ### Load Testing (Future)
 
 Recommended testing scenarios:
+
 - 100 concurrent users
 - Users with 50+ decks
 - Users with 5000+ flashcards
@@ -263,16 +266,19 @@ Recommended testing scenarios:
 ### Recommended Metrics
 
 **Response Time Metrics**:
+
 - P50, P95, P99 latency
 - Average response time by hour/day
 - Slow query detection (> 200ms)
 
 **Error Metrics**:
+
 - 401 rate (authentication failures)
 - 500 rate (server errors)
 - Database connection errors
 
 **Business Metrics**:
+
 - Total API calls per hour/day
 - Users with 0 due cards (%)
 - Average due cards per user
@@ -281,16 +287,18 @@ Recommended testing scenarios:
 ### Logging
 
 Current implementation logs:
+
 - ❌ No explicit logging (add in future iteration)
 
 **Recommended logging**:
+
 ```typescript
 // Add to service layer
-console.log('[getStudySummary]', {
+console.log("[getStudySummary]", {
   userId: userId.substring(0, 8),
   total_due,
   decks_count: decks.length,
-  duration_ms: Date.now() - startTime
+  duration_ms: Date.now() - startTime,
 });
 ```
 
@@ -351,6 +359,7 @@ console.log('[getStudySummary]', {
 See detailed test cases in: `.ai/GET-study-summary-test-cases.md`
 
 **Critical tests**:
+
 - [ ] User with no decks (200)
 - [ ] User with due cards (200)
 - [ ] User isolation (security)
@@ -363,13 +372,13 @@ Recommended test framework: **Vitest**
 
 ```typescript
 // Example test structure
-describe('GET /api/study/summary', () => {
-  it('returns 401 for unauthenticated requests', async () => {
-    const response = await fetch('/api/study/summary');
+describe("GET /api/study/summary", () => {
+  it("returns 401 for unauthenticated requests", async () => {
+    const response = await fetch("/api/study/summary");
     expect(response.status).toBe(401);
   });
 
-  it('returns summary for authenticated user', async () => {
+  it("returns summary for authenticated user", async () => {
     // Test implementation
   });
 });
@@ -494,6 +503,7 @@ git push origin main --force
 ### Future Enhancements
 
 1. **Caching Layer**
+
    ```typescript
    // Redis cache with 30s TTL
    const cacheKey = `study:summary:${userId}`;
@@ -502,6 +512,7 @@ git push origin main --force
    ```
 
 2. **Single Optimized Query**
+
    ```sql
    -- Combine both queries with window functions
    WITH deck_summaries AS (...)
@@ -510,29 +521,30 @@ git push origin main --force
    ```
 
 3. **Observability**
+
    ```typescript
-   import { logger } from '@/lib/logger';
-   logger.info('study.summary', { userId, total_due, duration_ms });
+   import { logger } from "@/lib/logger";
+   logger.info("study.summary", { userId, total_due, duration_ms });
    ```
 
 4. **Rate Limiting**
    ```typescript
-   import { rateLimit } from '@/lib/rate-limit';
-   await rateLimit.check(userId, 'study:summary', { max: 60, window: '1m' });
+   import { rateLimit } from "@/lib/rate-limit";
+   await rateLimit.check(userId, "study:summary", { max: 60, window: "1m" });
    ```
 
 ---
 
 ## Documentation Links
 
-| Document | Location | Purpose |
-|----------|----------|---------|
+| Document            | Location                                       | Purpose                       |
+| ------------------- | ---------------------------------------------- | ----------------------------- |
 | Implementation Plan | `.ai/GET-study-summary-implementation-plan.md` | Detailed implementation guide |
-| Test Cases | `.ai/GET-study-summary-test-cases.md` | Manual testing documentation |
-| Type Definitions | `src/types.ts:272-285` | API response types |
-| Service Layer | `src/lib/services/study.service.ts:190-259` | Business logic |
-| API Route | `src/pages/api/study/summary.ts` | HTTP endpoint handler |
-| CLAUDE.md | `CLAUDE.md` | Project coding standards |
+| Test Cases          | `.ai/GET-study-summary-test-cases.md`          | Manual testing documentation  |
+| Type Definitions    | `src/types.ts:272-285`                         | API response types            |
+| Service Layer       | `src/lib/services/study.service.ts:190-259`    | Business logic                |
+| API Route           | `src/pages/api/study/summary.ts`               | HTTP endpoint handler         |
+| CLAUDE.md           | `CLAUDE.md`                                    | Project coding standards      |
 
 ---
 
@@ -556,6 +568,7 @@ git push origin main --force
 **Version**: 1.0.0
 
 **Notes**:
+
 - Core functionality implemented and tested
 - Security measures in place
 - Performance expectations defined
@@ -596,6 +609,7 @@ git push origin main --force
 **Repository**: `/Users/mtokarski/Prywatne/Projekty/10xdevs-cert`
 
 For issues or questions:
+
 1. Check implementation plan: `.ai/GET-study-summary-implementation-plan.md`
 2. Review test cases: `.ai/GET-study-summary-test-cases.md`
 3. Consult CLAUDE.md for coding standards

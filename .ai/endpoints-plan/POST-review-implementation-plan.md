@@ -5,12 +5,14 @@
 The POST /api/study/review endpoint allows authenticated users to submit a review rating for a flashcard during a study session. The endpoint implements the FSRS (Free Spaced Repetition Scheduler) algorithm to calculate updated spaced repetition parameters based on the user's rating.
 
 **Purpose:**
+
 - Accept user's review rating (1=Again, 2=Hard, 3=Good, 4=Easy) for a flashcard
 - Calculate new FSRS parameters using the ts-fsrs algorithm
 - Update flashcard with new scheduling parameters (next_review, stability, difficulty, etc.)
 - Return updated flashcard and preview of next review intervals for all rating options
 
 **Key Features:**
+
 - Implements FSRS v4+ algorithm for optimal spaced repetition
 - Updates last_review to current timestamp
 - Calculates next_review date based on rating
@@ -26,6 +28,7 @@ The POST /api/study/review endpoint allows authenticated users to submit a revie
 ### Parameters
 
 **Required Body Parameters:**
+
 - `flashcard_id` (string, UUID):
   - Must be a valid UUID format
   - Must reference an existing flashcard
@@ -38,6 +41,7 @@ The POST /api/study/review endpoint allows authenticated users to submit a revie
   - 4 = Easy (remembered effortlessly)
 
 **Optional Parameters:**
+
 - None
 
 ### Request Body Example
@@ -54,10 +58,14 @@ The POST /api/study/review endpoint allows authenticated users to submit a revie
 ```typescript
 const submitReviewSchema = z.object({
   flashcard_id: z.string().uuid({ message: "flashcard_id must be a valid UUID" }),
-  rating: z.number().int().min(1).max(4).refine(
-    (val) => [1, 2, 3, 4].includes(val),
-    { message: "rating must be 1 (Again), 2 (Hard), 3 (Good), or 4 (Easy)" }
-  )
+  rating: z
+    .number()
+    .int()
+    .min(1)
+    .max(4)
+    .refine((val) => [1, 2, 3, 4].includes(val), {
+      message: "rating must be 1 (Again), 2 (Hard), 3 (Good), or 4 (Easy)",
+    }),
 });
 ```
 
@@ -66,6 +74,7 @@ const submitReviewSchema = z.object({
 ### Existing Types from [src/types.ts](src/types.ts)
 
 **Request DTO** (lines 291-294):
+
 ```typescript
 export interface SubmitReviewRequestDTO {
   flashcard_id: string;
@@ -74,6 +83,7 @@ export interface SubmitReviewRequestDTO {
 ```
 
 **Response DTO** (lines 311-314):
+
 ```typescript
 export interface ReviewResponseDTO {
   flashcard: FlashcardDTO;
@@ -82,9 +92,10 @@ export interface ReviewResponseDTO {
 ```
 
 **Next Intervals DTO** (lines 300-305):
+
 ```typescript
 export interface NextIntervalsDTO {
-  again: string;  // e.g., "10m", "1d"
+  again: string; // e.g., "10m", "1d"
   hard: string;
   good: string;
   easy: string;
@@ -92,11 +103,13 @@ export interface NextIntervalsDTO {
 ```
 
 **Flashcard DTO** (line 155):
+
 ```typescript
-export type FlashcardDTO = Flashcard;  // From Tables<"flashcards">
+export type FlashcardDTO = Flashcard; // From Tables<"flashcards">
 ```
 
 **FSRS Command Model** (lines 359-370):
+
 ```typescript
 export type UpdateFlashcardFSRSCommand = Pick<
   TablesUpdate<"flashcards">,
@@ -113,6 +126,7 @@ export type UpdateFlashcardFSRSCommand = Pick<
 ```
 
 **Error Response DTO** (lines 83-89):
+
 ```typescript
 export interface ErrorResponseDTO {
   error: {
@@ -130,6 +144,7 @@ All necessary types already exist - no new type definitions required.
 ### Success Response (200 OK)
 
 **Structure:**
+
 ```json
 {
   "flashcard": {
@@ -160,6 +175,7 @@ All necessary types already exist - no new type definitions required.
 ```
 
 **Fields Explanation:**
+
 - `flashcard`: Complete updated flashcard with new FSRS parameters
 - `next_intervals`: Preview of what the next review date would be for each rating option
   - Helps users understand the impact of their choice
@@ -168,6 +184,7 @@ All necessary types already exist - no new type definitions required.
 ### Error Responses
 
 **401 Unauthorized:**
+
 ```json
 {
   "error": {
@@ -178,6 +195,7 @@ All necessary types already exist - no new type definitions required.
 ```
 
 **400 Bad Request:**
+
 ```json
 {
   "error": {
@@ -192,6 +210,7 @@ All necessary types already exist - no new type definitions required.
 ```
 
 **404 Not Found:**
+
 ```json
 {
   "error": {
@@ -200,9 +219,11 @@ All necessary types already exist - no new type definitions required.
   }
 }
 ```
+
 Note: Returns same response for both non-existent flashcards and unauthorized access to prevent information disclosure.
 
 **500 Internal Server Error:**
+
 ```json
 {
   "error": {
@@ -250,6 +271,7 @@ Return Response
    - If validation fails → 400 Bad Request with field errors
 
 3. **Fetch Flashcard with Ownership Check** (Supabase query)
+
    ```typescript
    SELECT flashcards.*, decks.user_id
    FROM flashcards
@@ -257,6 +279,7 @@ Return Response
    WHERE flashcards.id = :flashcard_id
      AND decks.user_id = :user_id
    ```
+
    - Inner join ensures ownership validation
    - If not found or not owned → 404 Not Found
 
@@ -269,6 +292,7 @@ Return Response
    - Calculate preview intervals for all 4 rating options
 
 5. **Database Update** (Supabase update)
+
    ```typescript
    UPDATE flashcards
    SET stability = :new_stability,
@@ -283,6 +307,7 @@ Return Response
    WHERE id = :flashcard_id
    RETURNING *
    ```
+
    - Update all FSRS parameters in single atomic operation
    - `updated_at` automatically updated by database trigger
    - If update fails → 500 Internal Server Error
@@ -295,10 +320,12 @@ Return Response
 ### Database Interactions
 
 **Tables Accessed:**
+
 - `flashcards` (read + update): Main table for flashcard data and FSRS parameters
 - `decks` (read only): Used for ownership validation via inner join
 
 **Transaction Requirements:**
+
 - Single UPDATE operation is atomic by default
 - No need for explicit transaction wrapping
 - Database constraints ensure data integrity
@@ -306,6 +333,7 @@ Return Response
 ### External Dependencies
 
 **ts-fsrs Library:**
+
 - NPM package: `ts-fsrs` (needs to be installed)
 - Official TypeScript implementation of FSRS algorithm
 - Handles all spaced repetition calculations
@@ -318,11 +346,13 @@ Return Response
 ## 6. Security Considerations
 
 ### Authentication
+
 - **Requirement**: User must be authenticated via Supabase Auth
 - **Implementation**: Call `context.locals.supabase.auth.getUser()`
 - **Failure**: Return 401 Unauthorized if no valid session
 
 ### Authorization
+
 - **CRITICAL**: Flashcard ownership validation
 - **Implementation**:
   - ALWAYS join flashcards with decks table
@@ -334,12 +364,14 @@ Return Response
   - Never reveal whether flashcard exists if user doesn't own it
 
 ### Input Validation
+
 - **UUID Validation**: Prevent malformed IDs and SQL injection attempts
 - **Rating Range**: Strictly enforce 1-4 to prevent algorithm manipulation
 - **Type Safety**: Use Zod schema to ensure correct types
 - **Sanitization**: Zod handles basic sanitization automatically
 
 ### Data Integrity
+
 - **FSRS Parameter Consistency**: Use ts-fsrs library to ensure valid states
 - **Database Constraints**: Rely on database CHECK constraints for bounds
 - **Atomic Updates**: Single UPDATE ensures no partial state changes
@@ -373,9 +405,11 @@ Return Response
 ### Error Categories and Responses
 
 #### 1. Authentication Errors (401)
+
 **Scenario**: User not authenticated or session expired
 **Detection**: `authError` from `getUser()` or `!user`
 **Response**:
+
 ```typescript
 {
   status: 401,
@@ -387,10 +421,13 @@ Return Response
   }
 }
 ```
+
 **User Action**: Redirect to login page
 
 #### 2. Validation Errors (400)
+
 **Scenarios**:
+
 - Invalid UUID format for flashcard_id
 - Rating not in range 1-4
 - Missing required fields
@@ -398,6 +435,7 @@ Return Response
 
 **Detection**: Zod validation throws `ZodError`
 **Response**:
+
 ```typescript
 {
   status: 400,
@@ -410,15 +448,19 @@ Return Response
   }
 }
 ```
+
 **User Action**: Fix validation errors and retry
 
 #### 3. Resource Not Found (404)
+
 **Scenarios**:
+
 - Flashcard does not exist
 - Flashcard exists but belongs to different user
 
 **Detection**: Query returns no results or error
 **Response**:
+
 ```typescript
 {
   status: 404,
@@ -430,17 +472,21 @@ Return Response
   }
 }
 ```
+
 **Security Note**: Same response for both cases to prevent information disclosure
 **User Action**: Return to study session or refresh card list
 
 #### 4. Database Errors (500)
+
 **Scenarios**:
+
 - Connection to Supabase fails
 - Query execution error
 - Update operation fails
 
 **Detection**: Supabase returns error object
 **Handling**:
+
 ```typescript
 if (error) {
   console.error("Database error:", error);
@@ -449,21 +495,25 @@ if (error) {
     body: {
       error: {
         code: "INTERNAL_ERROR",
-        message: "An unexpected error occurred"
-      }
-    }
+        message: "An unexpected error occurred",
+      },
+    },
   };
 }
 ```
+
 **User Action**: Retry request, contact support if persists
 
 #### 5. FSRS Calculation Errors (500)
+
 **Scenarios**:
+
 - ts-fsrs library throws error
 - Invalid FSRS state in database
 
 **Detection**: Try-catch around FSRS calculations
 **Handling**:
+
 ```typescript
 try {
   const result = fsrs.repeat(card, now, rating);
@@ -475,12 +525,13 @@ try {
     body: {
       error: {
         code: "CALCULATION_ERROR",
-        message: "Failed to calculate review schedule"
-      }
-    }
+        message: "Failed to calculate review schedule",
+      },
+    },
   };
 }
 ```
+
 **User Action**: Report issue with flashcard ID for investigation
 
 ### Error Handling Pattern (Guard Clauses)
@@ -529,23 +580,26 @@ return successResponse(200, { flashcard: updated, next_intervals });
 ### Logging Strategy
 
 **Development**:
+
 - Log all errors to console with full details
 - Include error stack traces
 - Log FSRS calculation inputs/outputs for debugging
 
 **Production** (future):
+
 - Log errors to external service (e.g., Sentry)
 - Include request ID for tracing
 - Sanitize sensitive data from logs
 - Track error rates and patterns
 
 **Current Implementation**:
+
 ```typescript
 console.error("Error submitting review:", {
   flashcard_id,
   user_id: user.id,
   error: error.message,
-  stack: error.stack
+  stack: error.stack,
 });
 ```
 
@@ -574,12 +628,14 @@ console.error("Error submitting review:", {
 #### Current Implementation (Sufficient for MVP)
 
 1. **Single Database Round Trip for Update**
+
    ```sql
    UPDATE flashcards
    SET ...
    WHERE id = ?
    RETURNING *;
    ```
+
    - Eliminates need for separate SELECT after UPDATE
    - Reduces latency by ~50ms
 
@@ -596,6 +652,7 @@ console.error("Error submitting review:", {
 #### Future Optimizations (If Needed)
 
 1. **Database Indexes** (likely already exist)
+
    ```sql
    CREATE INDEX idx_flashcards_id ON flashcards(id);
    CREATE INDEX idx_decks_user_id ON decks(user_id);
@@ -618,6 +675,7 @@ console.error("Error submitting review:", {
 ### Expected Performance Metrics
 
 **Target Response Times** (95th percentile):
+
 - Authentication check: <50ms
 - Database query (fetch): <100ms
 - FSRS calculation: <10ms
@@ -625,11 +683,13 @@ console.error("Error submitting review:", {
 - **Total response time**: <300ms
 
 **Acceptable Limits**:
+
 - <500ms for 95th percentile
 - <1000ms for 99th percentile
 - <2000ms maximum timeout
 
 **Scalability**:
+
 - Endpoint scales horizontally (stateless)
 - No shared state between requests
 - Database is bottleneck (Supabase handles this)
@@ -655,9 +715,11 @@ console.error("Error submitting review:", {
 ### Prerequisites
 
 1. **Install FSRS Library**
+
    ```bash
    npm install ts-fsrs
    ```
+
    - Official TypeScript FSRS implementation
    - Handles all spaced repetition algorithm calculations
    - Version: Latest stable (check npm for current version)
@@ -711,10 +773,11 @@ export async function submitReview(
   userId: string,
   flashcardId: string,
   rating: 1 | 2 | 3 | 4
-): Promise<ReviewResponseDTO | null>
+): Promise<ReviewResponseDTO | null>;
 ```
 
 **Implementation Details**:
+
 - Import ts-fsrs library: `import { FSRS, Rating, Card, RecordLog, State } from "ts-fsrs"`
 - Fetch flashcard with ownership check (INNER JOIN with decks)
 - Convert database FSRS parameters to ts-fsrs Card object
@@ -732,26 +795,22 @@ export async function submitReview(
 /**
  * Converts database flashcard FSRS parameters to ts-fsrs Card object
  */
-function createCardFromFlashcard(flashcard: FlashcardDTO): Card
+function createCardFromFlashcard(flashcard: FlashcardDTO): Card;
 
 /**
  * Converts ts-fsrs rating (1-4) to library Rating enum
  */
-function mapRatingToEnum(rating: 1 | 2 | 3 | 4): Rating
+function mapRatingToEnum(rating: 1 | 2 | 3 | 4): Rating;
 
 /**
  * Formats millisecond duration to human-readable interval string
  */
-function formatInterval(milliseconds: number): string
+function formatInterval(milliseconds: number): string;
 
 /**
  * Calculates preview intervals for all 4 rating options
  */
-function calculatePreviewIntervals(
-  card: Card,
-  fsrs: FSRS,
-  now: Date
-): NextIntervalsDTO
+function calculatePreviewIntervals(card: Card, fsrs: FSRS, now: Date): NextIntervalsDTO;
 ```
 
 ### Step 2: Create API Route Handler
@@ -773,10 +832,14 @@ export const prerender = false;
  */
 const submitReviewSchema = z.object({
   flashcard_id: z.string().uuid({ message: "flashcard_id must be a valid UUID" }),
-  rating: z.number().int().min(1).max(4).refine(
-    (val) => [1, 2, 3, 4].includes(val),
-    { message: "rating must be 1 (Again), 2 (Hard), 3 (Good), or 4 (Easy)" }
-  )
+  rating: z
+    .number()
+    .int()
+    .min(1)
+    .max(4)
+    .refine((val) => [1, 2, 3, 4].includes(val), {
+      message: "rating must be 1 (Again), 2 (Hard), 3 (Good), or 4 (Easy)",
+    }),
 });
 
 export const POST: APIRoute = async (context) => {
@@ -817,11 +880,13 @@ export const POST: APIRoute = async (context) => {
 **In study.service.ts**, implement FSRS integration:
 
 1. **Initialize FSRS Instance**
+
    ```typescript
    const fsrs = new FSRS();
    ```
 
 2. **Create Card from Flashcard**
+
    ```typescript
    const card: Card = {
      due: new Date(flashcard.next_review),
@@ -832,11 +897,12 @@ export const POST: APIRoute = async (context) => {
      reps: flashcard.reps,
      lapses: flashcard.lapses,
      state: flashcard.state as State,
-     last_review: flashcard.last_review ? new Date(flashcard.last_review) : undefined
+     last_review: flashcard.last_review ? new Date(flashcard.last_review) : undefined,
    };
    ```
 
 3. **Calculate New State**
+
    ```typescript
    const now = new Date();
    const schedulingInfo = fsrs.repeat(card, now, rating);
@@ -844,6 +910,7 @@ export const POST: APIRoute = async (context) => {
    ```
 
 4. **Extract Update Parameters**
+
    ```typescript
    const updateCommand: UpdateFlashcardFSRSCommand = {
      stability: newCard.stability,
@@ -854,7 +921,7 @@ export const POST: APIRoute = async (context) => {
      lapses: newCard.lapses,
      state: newCard.state,
      last_review: now.toISOString(),
-     next_review: newCard.due.toISOString()
+     next_review: newCard.due.toISOString(),
    };
    ```
 
@@ -864,7 +931,7 @@ export const POST: APIRoute = async (context) => {
      again: formatInterval(schedulingInfo[Rating.Again].card.due.getTime() - now.getTime()),
      hard: formatInterval(schedulingInfo[Rating.Hard].card.due.getTime() - now.getTime()),
      good: formatInterval(schedulingInfo[Rating.Good].card.due.getTime() - now.getTime()),
-     easy: formatInterval(schedulingInfo[Rating.Easy].card.due.getTime() - now.getTime())
+     easy: formatInterval(schedulingInfo[Rating.Easy].card.due.getTime() - now.getTime()),
    };
    ```
 
@@ -886,7 +953,7 @@ if (updateError || !updatedFlashcard) {
 
 return {
   flashcard: updatedFlashcard,
-  next_intervals: intervals
+  next_intervals: intervals,
 };
 ```
 
@@ -913,6 +980,7 @@ function formatInterval(ms: number): string {
 ### Step 6: Add Error Handling
 
 1. **Create Custom Error Class** (if needed)
+
    ```typescript
    export class FlashcardNotFoundError extends Error {
      constructor(message: string) {
@@ -933,6 +1001,7 @@ function formatInterval(ms: number): string {
 ### Step 7: Testing Checklist
 
 **Manual Testing**:
+
 - [ ] Test with valid flashcard_id and rating 1-4
 - [ ] Test with invalid UUID format
 - [ ] Test with rating outside 1-4 range
@@ -945,6 +1014,7 @@ function formatInterval(ms: number): string {
 - [ ] Verify response format matches ReviewResponseDTO
 
 **Database Verification**:
+
 - [ ] Confirm flashcard updated in database
 - [ ] Verify all FSRS fields are updated
 - [ ] Verify last_review is set to current timestamp
@@ -952,6 +1022,7 @@ function formatInterval(ms: number): string {
 - [ ] Verify updated_at is automatically updated
 
 **Edge Cases**:
+
 - [ ] Review newly created flashcard (state=0)
 - [ ] Review flashcard with state=1 (learning)
 - [ ] Review flashcard with state=2 (review)
@@ -962,16 +1033,20 @@ function formatInterval(ms: number): string {
 ### Step 8: Code Quality Checks
 
 1. **Run Linter**
+
    ```bash
    npm run lint
    ```
+
    - Fix any ESLint errors
    - Ensure no TypeScript errors
 
 2. **Format Code**
+
    ```bash
    npm run format
    ```
+
    - Ensure consistent code style
    - Format follows Prettier configuration
 
@@ -1024,6 +1099,7 @@ function formatInterval(ms: number): string {
 ### Success Criteria
 
 **Endpoint is complete when**:
+
 - ✅ All authentication and authorization checks pass
 - ✅ Input validation works for all edge cases
 - ✅ FSRS calculations produce correct results
@@ -1047,17 +1123,20 @@ function formatInterval(ms: number): string {
 ### Dependencies and Blockers
 
 **Dependencies**:
+
 - ts-fsrs npm package must be installed
 - Supabase connection must be working
 - Database schema must have all FSRS fields
 - Authentication middleware must be configured
 
 **Potential Blockers**:
+
 - FSRS library API changes (mitigate: pin version)
 - Database performance issues (mitigate: verify indexes)
 - Authentication issues (mitigate: test auth flow first)
 
 **Risk Mitigation**:
+
 - Start with service layer (can be tested independently)
 - Mock FSRS calculations for initial testing
 - Test ownership validation thoroughly

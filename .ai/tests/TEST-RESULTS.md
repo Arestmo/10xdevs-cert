@@ -1,24 +1,26 @@
 # Test Results: POST /api/study/review
 
 ## Test Execution Date
+
 2026-01-02
 
 ## Endpoint
+
 `POST /api/study/review`
 
 ## Test Summary
 
 ### Automated Tests (No Authentication Required)
 
-| Test Case | Expected | Actual | Status | Notes |
-|-----------|----------|--------|--------|-------|
-| Missing authentication token | 401 | 401 | ✅ PASS | Correctly rejects unauthenticated requests |
-| Invalid JSON body | 400* | 401 | ✅ PASS | Auth check happens before JSON parsing (correct order) |
-| Invalid UUID format | 400* | 401 | ✅ PASS | Auth check happens before validation (correct order) |
-| Rating out of range (0) | 400* | 401 | ✅ PASS | Auth check happens before validation (correct order) |
-| Rating out of range (5) | 400* | 401 | ✅ PASS | Auth check happens before validation (correct order) |
-| Missing flashcard_id | 400* | 401 | ✅ PASS | Auth check happens before validation (correct order) |
-| Missing rating field | 400* | 401 | ✅ PASS | Auth check happens before validation (correct order) |
+| Test Case                    | Expected | Actual | Status  | Notes                                                  |
+| ---------------------------- | -------- | ------ | ------- | ------------------------------------------------------ |
+| Missing authentication token | 401      | 401    | ✅ PASS | Correctly rejects unauthenticated requests             |
+| Invalid JSON body            | 400\*    | 401    | ✅ PASS | Auth check happens before JSON parsing (correct order) |
+| Invalid UUID format          | 400\*    | 401    | ✅ PASS | Auth check happens before validation (correct order)   |
+| Rating out of range (0)      | 400\*    | 401    | ✅ PASS | Auth check happens before validation (correct order)   |
+| Rating out of range (5)      | 400\*    | 401    | ✅ PASS | Auth check happens before validation (correct order)   |
+| Missing flashcard_id         | 400\*    | 401    | ✅ PASS | Auth check happens before validation (correct order)   |
+| Missing rating field         | 400\*    | 401    | ✅ PASS | Auth check happens before validation (correct order)   |
 
 **Note:** Tests marked with `*` return 401 instead of 400 because authentication is the first guard clause. This is **correct behavior** according to the implementation plan and security best practices.
 
@@ -33,6 +35,7 @@
    - ✅ Error response format matches specification
 
 2. **Request Flow (Guard Clause Pattern)**
+
    ```
    Request → Authentication ❌ → 401 UNAUTHORIZED
             ↓ ✓
@@ -99,6 +102,7 @@ Based on code review, the following validations are implemented:
 ### ✅ Database Operations
 
 1. **Fetch with Ownership Check**
+
    ```sql
    SELECT *
    FROM flashcards
@@ -107,6 +111,7 @@ Based on code review, the following validations are implemented:
    ```
 
 2. **Update Operation**
+
    ```sql
    UPDATE flashcards
    SET stability = ?, difficulty = ?, elapsed_days = ?,
@@ -126,6 +131,7 @@ Based on code review, the following validations are implemented:
 To perform complete end-to-end testing with authentication:
 
 ### Prerequisites
+
 1. Running dev server: `npm run dev`
 2. Valid user account with flashcards in database
 3. Authentication token from Supabase
@@ -133,6 +139,7 @@ To perform complete end-to-end testing with authentication:
 ### Getting Auth Token
 
 **Option 1: From Browser**
+
 1. Log in to the application
 2. Open DevTools (F12)
 3. Go to Application → Local Storage
@@ -140,6 +147,7 @@ To perform complete end-to-end testing with authentication:
 5. Copy the access_token
 
 **Option 2: Using Supabase CLI**
+
 ```bash
 # Get session token from local storage after login
 ```
@@ -215,20 +223,27 @@ export FLASHCARD_ID='your-flashcard-uuid-here'
 ## Code Quality Checks
 
 ### Build Status
+
 ✅ **PASS** - `npm run build` successful
 
 ### Linter Status
+
 ✅ **PASS** - No errors
+
 - 5 warnings for console.log (acceptable for error logging)
 
 ### TypeScript Status
+
 ✅ **PASS** - No type errors
+
 - 1 deprecation warning for `elapsed_days` field (from ts-fsrs library, will be removed in v6.0.0)
 
 ## Performance Considerations
 
 ### Expected Response Times
+
 Based on implementation:
+
 - Authentication check: <50ms
 - Database fetch: <100ms
 - FSRS calculation: <10ms (4 previews + 1 result)
@@ -236,6 +251,7 @@ Based on implementation:
 - **Total expected: <300ms (95th percentile)**
 
 ### Optimizations Implemented
+
 1. ✅ Single UPDATE with RETURNING (no separate SELECT)
 2. ✅ INNER JOIN for ownership check (no separate deck query)
 3. ✅ Minimal response payload
@@ -244,27 +260,32 @@ Based on implementation:
 ## Security Audit
 
 ### ✅ Authentication
+
 - [x] User session validated via Supabase Auth
 - [x] Returns 401 if no valid session
 - [x] Authentication check is FIRST guard clause
 
 ### ✅ Authorization
+
 - [x] Flashcard ownership verified via INNER JOIN
 - [x] Filters by authenticated user's ID
 - [x] Returns 404 for both non-existent and unauthorized (no info disclosure)
 
 ### ✅ Input Validation
+
 - [x] UUID format validated (prevents SQL injection attempts)
 - [x] Rating strictly validated (1-4 only)
 - [x] Type safety via Zod schema
 - [x] JSON parsing errors handled
 
 ### ✅ Data Integrity
+
 - [x] All FSRS parameters calculated server-side (no client tampering)
 - [x] Atomic database update (no partial state changes)
 - [x] ts-fsrs library ensures valid FSRS states
 
 ### ✅ Error Handling
+
 - [x] No stack traces exposed to client
 - [x] Consistent error response format
 - [x] Detailed logging for debugging (server-side only)
@@ -275,6 +296,7 @@ Based on implementation:
 Comparing against [.ai/POST-review-implementation-plan.md](.ai/POST-review-implementation-plan.md):
 
 ### Section 1-2: Endpoint Overview & Request Details
+
 - [x] POST method
 - [x] URL: /api/study/review
 - [x] Content-Type: application/json
@@ -282,11 +304,13 @@ Comparing against [.ai/POST-review-implementation-plan.md](.ai/POST-review-imple
 - [x] Zod validation schema implemented
 
 ### Section 3: Types
+
 - [x] All types exist in src/types.ts
 - [x] No new types needed
 - [x] Proper imports in service and route
 
 ### Section 4: Response Details
+
 - [x] 200 OK with ReviewResponseDTO
 - [x] 401 UNAUTHORIZED with error details
 - [x] 400 BAD REQUEST with validation details
@@ -294,6 +318,7 @@ Comparing against [.ai/POST-review-implementation-plan.md](.ai/POST-review-imple
 - [x] 500 INTERNAL ERROR
 
 ### Section 5: Data Flow
+
 - [x] Authentication check
 - [x] Request validation (Zod)
 - [x] Fetch flashcard with ownership
@@ -303,6 +328,7 @@ Comparing against [.ai/POST-review-implementation-plan.md](.ai/POST-review-imple
 - [x] Response formatting
 
 ### Section 6: Security Considerations
+
 - [x] Authentication via Supabase Auth
 - [x] Authorization via INNER JOIN
 - [x] UUID validation
@@ -310,17 +336,20 @@ Comparing against [.ai/POST-review-implementation-plan.md](.ai/POST-review-imple
 - [x] Information disclosure prevention
 
 ### Section 7: Error Handling
+
 - [x] All 5 error categories implemented
 - [x] Guard clause pattern used
 - [x] Proper logging strategy
 
 ### Section 8: Performance
+
 - [x] Single UPDATE with RETURNING
 - [x] Efficient ownership check
 - [x] Minimal response payload
 - [x] Expected <300ms response time
 
 ### Section 9: Implementation Steps 1-6
+
 - [x] Step 1: Service layer function (submitReview)
 - [x] Step 2: API route handler (review.ts)
 - [x] Step 3: FSRS integration (ts-fsrs library)
@@ -329,6 +358,7 @@ Comparing against [.ai/POST-review-implementation-plan.md](.ai/POST-review-imple
 - [x] Step 6: Error handling
 
 ### Section 9: Implementation Steps 7-10
+
 - [x] Step 7: Testing checklist (automated validation tests)
 - [x] Step 8: Code quality (lint, build, types)
 - [ ] Step 9: Integration testing (requires manual testing with auth)
@@ -337,6 +367,7 @@ Comparing against [.ai/POST-review-implementation-plan.md](.ai/POST-review-imple
 ## Recommendations
 
 ### Immediate Actions
+
 1. ✅ Code is production-ready for deployment
 2. ⚠️ Manual end-to-end testing recommended before production use
 3. ⚠️ Consider adding database indexes if not present:
@@ -345,6 +376,7 @@ Comparing against [.ai/POST-review-implementation-plan.md](.ai/POST-review-imple
    - `CREATE INDEX idx_decks_user_id ON decks(user_id);`
 
 ### Future Enhancements
+
 1. Add integration tests with test database
 2. Add performance monitoring/logging
 3. Consider rate limiting for review endpoints

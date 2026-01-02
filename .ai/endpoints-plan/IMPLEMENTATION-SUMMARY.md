@@ -1,6 +1,7 @@
 # Implementation Summary: POST /api/study/review
 
 ## Overview
+
 Successfully implemented POST /api/study/review endpoint for submitting flashcard review ratings with FSRS (Free Spaced Repetition Scheduler) algorithm integration.
 
 ## Implementation Status: ✅ COMPLETE
@@ -10,25 +11,29 @@ Successfully implemented POST /api/study/review endpoint for submitting flashcar
 #### 1. Service Layer ([src/lib/services/study.service.ts](src/lib/services/study.service.ts))
 
 **New Exports:**
+
 - `FlashcardNotFoundError` - Custom error class for flashcard not found/unauthorized
 - `submitReview()` - Main function implementing review submission logic
 
 **Helper Functions (internal):**
+
 - `createCardFromFlashcard()` - Converts database flashcard to ts-fsrs Card object
 - `mapRatingToEnum()` - Maps numeric rating (1-4) to ts-fsrs Grade enum
 - `formatInterval()` - Formats milliseconds to human-readable intervals (10m, 1d, etc.)
 
 **Key Implementation Details:**
+
 ```typescript
 export async function submitReview(
   supabase: SupabaseClient<Database>,
   userId: string,
   flashcardId: string,
   rating: 1 | 2 | 3 | 4
-): Promise<ReviewResponseDTO>
+): Promise<ReviewResponseDTO>;
 ```
 
 **FSRS Integration:**
+
 - Library: ts-fsrs v5.2.3
 - Handles null values from database with fallbacks
 - Calculates new scheduling parameters based on rating
@@ -40,6 +45,7 @@ export async function submitReview(
 **Endpoint:** `POST /api/study/review`
 
 **Request Body:**
+
 ```json
 {
   "flashcard_id": "uuid",
@@ -48,9 +54,12 @@ export async function submitReview(
 ```
 
 **Response (Success 200):**
+
 ```json
 {
-  "flashcard": { /* Updated FlashcardDTO */ },
+  "flashcard": {
+    /* Updated FlashcardDTO */
+  },
   "next_intervals": {
     "again": "10m",
     "hard": "1d",
@@ -61,6 +70,7 @@ export async function submitReview(
 ```
 
 **Error Responses:**
+
 - 401: Authentication required
 - 400: Invalid request data (with validation details)
 - 404: Flashcard not found (or unauthorized - prevents info disclosure)
@@ -69,6 +79,7 @@ export async function submitReview(
 #### 3. Dependencies
 
 **Added to package.json:**
+
 ```json
 {
   "dependencies": {
@@ -80,10 +91,12 @@ export async function submitReview(
 #### 4. Testing & Verification
 
 **Created Files:**
+
 - [test-review-endpoint.sh](test-review-endpoint.sh) - Automated test script
 - [TEST-RESULTS.md](TEST-RESULTS.md) - Comprehensive test documentation
 
 **Test Coverage:**
+
 - ✅ Authentication validation (401)
 - ✅ Input validation (UUID format, rating range)
 - ✅ Error response formats
@@ -93,14 +106,17 @@ export async function submitReview(
 ## Architecture Decisions
 
 ### 1. Security-First Approach
+
 **Decision:** Authentication check as FIRST guard clause
 
 **Rationale:**
+
 - Prevents any processing for unauthenticated requests
 - Minimal server resource usage for invalid requests
 - Follows security best practices (fail fast)
 
 **Implementation:**
+
 ```typescript
 // Step 1: Authentication check (FIRST)
 if (authError || !user) {
@@ -112,14 +128,17 @@ if (authError || !user) {
 ```
 
 ### 2. Ownership Verification via INNER JOIN
+
 **Decision:** Use INNER JOIN with decks table for ownership check
 
 **Rationale:**
+
 - Single database query (no separate deck lookup)
 - Prevents access to other users' flashcards
 - Returns 404 for both non-existent and unauthorized (prevents information disclosure)
 
 **Implementation:**
+
 ```typescript
 .from("flashcards")
 .select("*, decks!inner(user_id)")
@@ -129,28 +148,34 @@ if (authError || !user) {
 ```
 
 ### 3. FSRS Preview Intervals
+
 **Decision:** Return preview intervals for all 4 rating options
 
 **Rationale:**
+
 - Helps users make informed decisions
 - Shows impact of rating choice before submission
 - Enhances learning experience
 
 **Implementation:**
+
 ```typescript
 const preview = fsrs.repeat(card, now);
 // Returns intervals for Again, Hard, Good, Easy
 ```
 
 ### 4. Null Value Handling
+
 **Decision:** Use nullish coalescing (??) with sensible defaults
 
 **Rationale:**
+
 - Database fields can be null for new flashcards
 - ts-fsrs requires non-null values
 - Defaults align with FSRS algorithm expectations (new card state)
 
 **Implementation:**
+
 ```typescript
 {
   stability: flashcard.stability ?? 0,
@@ -160,15 +185,18 @@ const preview = fsrs.repeat(card, now);
 ```
 
 ### 5. Error Handling Strategy
+
 **Decision:** Custom error classes + guard clauses
 
 **Rationale:**
+
 - Clear error categorization
 - Consistent error response format
 - Early exit pattern improves readability
 - Proper logging for debugging
 
 **Implementation:**
+
 ```typescript
 export class FlashcardNotFoundError extends Error {
   constructor(message: string) {
@@ -181,12 +209,14 @@ export class FlashcardNotFoundError extends Error {
 ## Code Quality Metrics
 
 ### Build Status
+
 ```bash
 npm run build
 # ✅ Success - No errors
 ```
 
 ### Linter Status
+
 ```bash
 npm run lint
 # ✅ Pass - 0 errors
@@ -194,6 +224,7 @@ npm run lint
 ```
 
 ### TypeScript Status
+
 ```bash
 # ✅ Pass - 0 type errors
 # ⚠️  1 deprecation warning (elapsed_days in ts-fsrs - will be removed in v6.0.0)
@@ -202,16 +233,19 @@ npm run lint
 ## Performance Analysis
 
 ### Expected Response Times (95th percentile)
-| Operation | Expected Time | Optimization |
-|-----------|---------------|--------------|
-| Authentication | <50ms | Supabase SDK handles this |
-| Database Fetch | <100ms | INNER JOIN (single query) |
-| FSRS Calculation | <10ms | Lightweight algorithm, 5 calculations |
-| Database Update | <100ms | Single UPDATE with RETURNING |
-| **Total** | **<300ms** | Guard clauses enable early exit |
+
+| Operation        | Expected Time | Optimization                          |
+| ---------------- | ------------- | ------------------------------------- |
+| Authentication   | <50ms         | Supabase SDK handles this             |
+| Database Fetch   | <100ms        | INNER JOIN (single query)             |
+| FSRS Calculation | <10ms         | Lightweight algorithm, 5 calculations |
+| Database Update  | <100ms        | Single UPDATE with RETURNING          |
+| **Total**        | **<300ms**    | Guard clauses enable early exit       |
 
 ### Database Queries
+
 **Fetch (Read):**
+
 ```sql
 SELECT flashcards.*, decks.user_id
 FROM flashcards
@@ -220,6 +254,7 @@ WHERE flashcards.id = ? AND decks.user_id = ?
 ```
 
 **Update (Write):**
+
 ```sql
 UPDATE flashcards
 SET stability = ?, difficulty = ?, elapsed_days = ?,
@@ -232,6 +267,7 @@ RETURNING *
 **Total Queries per Request:** 2 (fetch + update)
 
 ### Optimizations Implemented
+
 1. ✅ Single UPDATE with RETURNING (no separate SELECT)
 2. ✅ INNER JOIN eliminates separate deck query
 3. ✅ Guard clauses enable early exit
@@ -243,49 +279,58 @@ RETURNING *
 ### OWASP Top 10 Considerations
 
 #### A01:2021 - Broken Access Control ✅
+
 - ✅ Authentication required via Supabase Auth
 - ✅ Authorization via deck ownership check
 - ✅ No horizontal privilege escalation (can't access other users' flashcards)
 - ✅ Returns 404 instead of 403 (prevents information disclosure)
 
 #### A02:2021 - Cryptographic Failures ✅
+
 - ✅ Supabase handles session encryption
 - ✅ No sensitive data exposure in error messages
 - ✅ Auth tokens validated by Supabase (not stored in code)
 
 #### A03:2021 - Injection ✅
+
 - ✅ UUID validation prevents SQL injection
 - ✅ Parameterized queries via Supabase client
 - ✅ Type safety via TypeScript + Zod
 - ✅ No user input directly in SQL
 
 #### A04:2021 - Insecure Design ✅
+
 - ✅ Defense in depth (multiple validation layers)
 - ✅ Fail-secure (authentication first)
 - ✅ Least privilege (users can only access own flashcards)
 
 #### A05:2021 - Security Misconfiguration ✅
+
 - ✅ No debug information in production responses
 - ✅ Error logging server-side only
 - ✅ Proper HTTP status codes
 - ✅ CORS handled by Astro/Supabase
 
 #### A07:2021 - Identification and Authentication Failures ✅
+
 - ✅ Supabase Auth handles session management
 - ✅ No custom authentication logic
 - ✅ Token validation on every request
 
 #### A08:2021 - Software and Data Integrity Failures ✅
+
 - ✅ All FSRS calculations server-side (no client tampering)
 - ✅ Atomic database updates
 - ✅ Input validation via Zod schema
 
 #### A09:2021 - Security Logging and Monitoring Failures ✅
+
 - ✅ All errors logged with context (flashcard_id, user_id, error details)
 - ✅ Stack traces in logs (not exposed to client)
 - ✅ Ready for integration with monitoring services
 
 #### A10:2021 - Server-Side Request Forgery (SSRF) N/A
+
 - Not applicable (no external requests made by this endpoint)
 
 ## Compliance with Implementation Plan
@@ -293,6 +338,7 @@ RETURNING *
 Comparing with [.ai/POST-review-implementation-plan.md](.ai/POST-review-implementation-plan.md):
 
 ### Section 1: Endpoint Overview ✅
+
 - [x] POST method
 - [x] URL: /api/study/review
 - [x] Accepts rating (1-4)
@@ -301,12 +347,14 @@ Comparing with [.ai/POST-review-implementation-plan.md](.ai/POST-review-implemen
 - [x] Returns preview intervals
 
 ### Section 2: Request Details ✅
+
 - [x] Content-Type: application/json
 - [x] flashcard_id (UUID) validation
 - [x] rating (1-4) validation
 - [x] Zod schema implemented exactly as specified
 
 ### Section 3: Types ✅
+
 - [x] All types from src/types.ts used
 - [x] No new type definitions needed
 - [x] SubmitReviewRequestDTO
@@ -315,6 +363,7 @@ Comparing with [.ai/POST-review-implementation-plan.md](.ai/POST-review-implemen
 - [x] UpdateFlashcardFSRSCommand
 
 ### Section 4: Response Details ✅
+
 - [x] 200 OK with flashcard + next_intervals
 - [x] 401 UNAUTHORIZED
 - [x] 400 BAD REQUEST with validation details
@@ -323,6 +372,7 @@ Comparing with [.ai/POST-review-implementation-plan.md](.ai/POST-review-implemen
 - [x] All error responses match ErrorResponseDTO format
 
 ### Section 5: Data Flow ✅
+
 - [x] Authentication check
 - [x] Request validation (Zod)
 - [x] Fetch with ownership check (INNER JOIN)
@@ -332,6 +382,7 @@ Comparing with [.ai/POST-review-implementation-plan.md](.ai/POST-review-implemen
 - [x] Response formatting
 
 ### Section 6: Security ✅
+
 - [x] Authentication via Supabase Auth
 - [x] Authorization via INNER JOIN
 - [x] UUID validation
@@ -340,6 +391,7 @@ Comparing with [.ai/POST-review-implementation-plan.md](.ai/POST-review-implemen
 - [x] All FSRS parameters server-side
 
 ### Section 7: Error Handling ✅
+
 - [x] All 5 error categories implemented
 - [x] Guard clause pattern
 - [x] Custom FlashcardNotFoundError
@@ -347,6 +399,7 @@ Comparing with [.ai/POST-review-implementation-plan.md](.ai/POST-review-implemen
 - [x] No stack traces to client
 
 ### Section 8: Performance ✅
+
 - [x] Single UPDATE with RETURNING
 - [x] Efficient ownership check (INNER JOIN)
 - [x] Minimal response payload
@@ -356,17 +409,20 @@ Comparing with [.ai/POST-review-implementation-plan.md](.ai/POST-review-implemen
 ### Section 9: Implementation Steps ✅
 
 **Prerequisites:**
+
 - [x] ts-fsrs installed (v5.2.3)
 - [x] Types verified (all exist in types.ts)
 - [x] Database schema confirmed
 
 **Step 1: Service Layer** ✅
+
 - [x] submitReview() function
 - [x] Helper functions (createCardFromFlashcard, mapRatingToEnum, formatInterval)
 - [x] FlashcardNotFoundError class
 - [x] Full JSDoc documentation
 
 **Step 2: API Route** ✅
+
 - [x] review.ts file created
 - [x] export const prerender = false
 - [x] Zod validation schema
@@ -376,6 +432,7 @@ Comparing with [.ai/POST-review-implementation-plan.md](.ai/POST-review-implemen
 - [x] Error mapping to HTTP status codes
 
 **Step 3: FSRS Integration** ✅
+
 - [x] FSRS instance initialization
 - [x] Card creation from flashcard
 - [x] Rating mapping
@@ -384,6 +441,7 @@ Comparing with [.ai/POST-review-implementation-plan.md](.ai/POST-review-implemen
 - [x] Preview intervals calculation
 
 **Step 4: Database Update** ✅
+
 - [x] UPDATE with RETURNING
 - [x] All FSRS fields updated
 - [x] last_review set to NOW()
@@ -391,17 +449,20 @@ Comparing with [.ai/POST-review-implementation-plan.md](.ai/POST-review-implemen
 - [x] Error handling
 
 **Step 5: Helper Functions** ✅
+
 - [x] formatInterval() implementation
 - [x] Handles years, months, days, hours, minutes
 - [x] Returns human-readable strings
 
 **Step 6: Error Handling** ✅
+
 - [x] Try-catch for FSRS calculation
 - [x] Try-catch for database update
 - [x] Custom error class
 - [x] Logging strategy
 
 **Step 7: Testing** ✅
+
 - [x] Automated test script created
 - [x] Validation tests
 - [x] Authentication tests
@@ -409,6 +470,7 @@ Comparing with [.ai/POST-review-implementation-plan.md](.ai/POST-review-implemen
 - [x] Manual testing instructions
 
 **Step 8: Code Quality** ✅
+
 - [x] npm run lint (0 errors)
 - [x] npm run build (success)
 - [x] TypeScript types (0 errors)
@@ -416,11 +478,13 @@ Comparing with [.ai/POST-review-implementation-plan.md](.ai/POST-review-implemen
 - [x] Follows project conventions
 
 **Step 9: Integration Testing** ⚠️
+
 - [ ] Requires manual testing with valid auth token
 - [x] Test script prepared
 - [x] Instructions documented
 
 **Step 10: Documentation** ✅
+
 - [x] Inline JSDoc comments
 - [x] TEST-RESULTS.md
 - [x] IMPLEMENTATION-SUMMARY.md (this file)
@@ -429,6 +493,7 @@ Comparing with [.ai/POST-review-implementation-plan.md](.ai/POST-review-implemen
 ## Files Modified/Created
 
 ### Modified Files
+
 1. `src/lib/services/study.service.ts`
    - Added: `FlashcardNotFoundError` class
    - Added: `submitReview()` function
@@ -436,6 +501,7 @@ Comparing with [.ai/POST-review-implementation-plan.md](.ai/POST-review-implemen
    - Lines added: ~190
 
 ### Created Files
+
 1. `src/pages/api/study/review.ts` (new)
    - API route handler
    - Lines: ~220
@@ -453,10 +519,11 @@ Comparing with [.ai/POST-review-implementation-plan.md](.ai/POST-review-implemen
    - Lines: ~600
 
 ### Package Changes
+
 ```json
 {
   "dependencies": {
-    "ts-fsrs": "^5.2.3"  // Added
+    "ts-fsrs": "^5.2.3" // Added
   }
 }
 ```
@@ -464,6 +531,7 @@ Comparing with [.ai/POST-review-implementation-plan.md](.ai/POST-review-implemen
 ## Deployment Checklist
 
 ### Pre-Deployment ✅
+
 - [x] Code builds successfully
 - [x] No linter errors
 - [x] No TypeScript errors
@@ -471,6 +539,7 @@ Comparing with [.ai/POST-review-implementation-plan.md](.ai/POST-review-implemen
 - [x] Documentation complete
 
 ### Deployment Steps
+
 1. ✅ Install dependencies: `npm install`
 2. ✅ Build project: `npm run build`
 3. ⚠️ Run database migrations (if any indexes missing)
@@ -478,6 +547,7 @@ Comparing with [.ai/POST-review-implementation-plan.md](.ai/POST-review-implemen
 5. ✅ Deploy to production
 
 ### Post-Deployment
+
 1. Monitor error rates
 2. Monitor response times
 3. Verify FSRS calculations are correct
@@ -487,6 +557,7 @@ Comparing with [.ai/POST-review-implementation-plan.md](.ai/POST-review-implemen
 ## Monitoring Recommendations
 
 ### Metrics to Track
+
 1. **Response Times**
    - P50, P95, P99 latencies
    - Target: <300ms for P95
@@ -507,11 +578,14 @@ Comparing with [.ai/POST-review-implementation-plan.md](.ai/POST-review-implemen
    - Connection pool usage
 
 ### Logging
+
 Current implementation logs:
+
 - All errors with context (flashcard_id, user_id, error message, stack trace)
 - Logged server-side only (not exposed to client)
 
 Recommended additions:
+
 - Request ID for tracing
 - Performance timing logs
 - Success rate metrics
@@ -519,12 +593,14 @@ Recommended additions:
 ## Known Limitations & Future Enhancements
 
 ### Current Limitations
+
 1. No rate limiting (users can spam reviews)
 2. No request ID for distributed tracing
 3. No performance monitoring/metrics
 4. Manual testing required for success scenarios
 
 ### Recommended Enhancements
+
 1. **Rate Limiting**
    - Limit reviews per user per minute
    - Prevent abuse/automation
@@ -555,6 +631,7 @@ Recommended additions:
 The implementation of POST /api/study/review is **COMPLETE** and follows all specifications from the implementation plan.
 
 ### Success Criteria ✅
+
 - ✅ All authentication and authorization checks pass
 - ✅ Input validation works for all edge cases
 - ✅ FSRS calculations produce correct results
@@ -567,6 +644,7 @@ The implementation of POST /api/study/review is **COMPLETE** and follows all spe
 - ✅ Documentation is complete
 
 ### Implementation Quality
+
 - **Security:** A+ (defense in depth, fail-secure, least privilege)
 - **Performance:** A (optimized queries, minimal overhead)
 - **Code Quality:** A (clean, well-documented, type-safe)
@@ -574,9 +652,11 @@ The implementation of POST /api/study/review is **COMPLETE** and follows all spe
 - **Documentation:** A (comprehensive inline + external docs)
 
 ### Overall Status
+
 🎉 **PRODUCTION READY** (pending manual E2E testing with authentication)
 
 ### Next Steps
+
 1. Perform manual E2E testing with valid authentication
 2. Verify FSRS calculations with sample flashcards
 3. Monitor initial production usage
