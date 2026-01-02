@@ -3,7 +3,7 @@
  * Auth Callback Page
  *
  * Handles OAuth and Magic Link authentication callbacks from Supabase.
- * Exchanges authorization code for session and redirects to the appropriate page.
+ * Exchanges authorization code for session (PKCE flow) and redirects to the appropriate page.
  */
 
 const { url } = Astro;
@@ -17,7 +17,7 @@ if (error) {
   return Astro.redirect("/login?error=" + encodeURIComponent(errorDescription || "Authentication failed"));
 }
 
-// Exchange code for session
+// Exchange code for session (PKCE flow)
 if (code) {
   const { error: exchangeError } = await Astro.locals.supabase.auth.exchangeCodeForSession(code);
 
@@ -25,8 +25,11 @@ if (code) {
     console.error("Code exchange error:", exchangeError);
     return Astro.redirect("/login?error=auth_failed");
   }
+
+  // Redirect to dashboard or original destination
+  return Astro.redirect(url.searchParams.get("redirect") || "/dashboard");
 }
 
-// Redirect to dashboard or original destination
-return Astro.redirect(url.searchParams.get("redirect") || "/dashboard");
+// No code provided - redirect to login
+return Astro.redirect("/login?error=auth_failed");
 ---

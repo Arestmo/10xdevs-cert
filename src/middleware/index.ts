@@ -1,5 +1,5 @@
 import { defineMiddleware } from "astro:middleware";
-import { createClient } from "@supabase/supabase-js";
+import { createServerClient } from "@supabase/ssr";
 
 import type { Database } from "../db/database.types.ts";
 
@@ -10,21 +10,30 @@ const supabaseAnonKey = import.meta.env.SUPABASE_KEY;
 const publicRoutes = ["/login", "/auth/callback", "/privacy-policy", "/terms-of-service"];
 
 export const onRequest = defineMiddleware(async (context, next) => {
-  const { url, redirect } = context;
+  const { url, redirect, cookies, request } = context;
   const pathname = url.pathname;
 
-  // Extract Authorization header
-  const authHeader = context.request.headers.get("Authorization");
-  const accessToken = authHeader?.replace("Bearer ", "");
+  // Create a Supabase client with cookie-based session storage
+  const supabase = createServerClient<Database>(supabaseUrl, supabaseAnonKey, {
+    cookies: {
+      getAll() {
+        // Parse cookies from request headers since Astro doesn't have getAll()
+        const cookieHeader = request.headers.get("Cookie") || "";
+        if (!cookieHeader) return [];
 
-  // Create a new Supabase client for each request with the user's token
-  const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
-    global: {
-      headers: accessToken
-        ? {
-            Authorization: `Bearer ${accessToken}`,
-          }
-        : {},
+        return cookieHeader.split(";").map((cookie) => {
+          const [name, ...valueParts] = cookie.trim().split("=");
+          return {
+            name: name.trim(),
+            value: valueParts.join("=").trim(),
+          };
+        });
+      },
+      setAll(cookiesToSet) {
+        cookiesToSet.forEach(({ name, value, options }) => {
+          cookies.set(name, value, options);
+        });
+      },
     },
   });
 
