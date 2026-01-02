@@ -1,41 +1,53 @@
-### 2.1 Strona logowania (`/login`)
+### 2.2 Dashboard (`/dashboard`)
 
-**Główny cel**: Umożliwienie użytkownikom zalogowania się do aplikacji.
+**Główny cel**: Centralny hub aplikacji z przeglądem materiałów i szybkim dostępem do głównych funkcji.
 
 **Kluczowe informacje**:
 
-- Logo aplikacji
-- Opcje logowania (Google OAuth, Magic Link)
-- Linki do dokumentów prawnych
+- Liczba fiszek do powtórki
+- Lista talii użytkownika
+- Status AI limitu (opcjonalnie w UI)
 
 **Kluczowe komponenty**:
 
-| Komponent           | Opis                                         | Typ             |
-| ------------------- | -------------------------------------------- | --------------- |
-| `LoginPage`         | Główny kontener strony logowania             | Astro Page      |
-| `GoogleOAuthButton` | Przycisk logowania przez Google (główny CTA) | React Component |
-| `MagicLinkForm`     | Formularz wysyłania magic link               | React Component |
-| `LegalLinks`        | Linki do regulaminu i polityki prywatności   | Astro Component |
+| Komponent          | Opis                                      | Typ             |
+| ------------------ | ----------------------------------------- | --------------- |
+| `DashboardPage`    | Główny kontener z layoutem                | Astro Page      |
+| `AppHeader`        | Nagłówek z logo i menu użytkownika        | React Component |
+| `UserDropdownMenu` | Dropdown z opcjami Ustawienia/Wyloguj     | React Component |
+| `DueReviewTile`    | Kafelek "Do powtórki: X"                  | React Component |
+| `CreateDeckTile`   | Kafelek CTA "Nowa talia / Generuj fiszki" | React Component |
+| `DeckGrid`         | Grid z kafelkami talii                    | React Component |
+| `DeckTile`         | Pojedynczy kafelek talii                  | React Component |
+| `EmptyState`       | Pusty stan dla nowych użytkowników        | React Component |
+| `GenerationModal`  | Modal generowania AI                      | React Component |
 
 **Wymagania UX**:
 
-- Minimalistyczny design bez rozpraszaczy
-- Przycisk Google OAuth jako główne CTA (wyróżniony wizualnie)
-- Opcja Magic Link jako alternatywa (mniej wyróżniona)
-- Komunikat o wysłaniu linku po wypełnieniu formularza email
+- Layout kafelkowy responsywny (1/2/3-4 kolumny)
+- Kafelek "Do powtórki" ukryty gdy 0 fiszek
+- Pusty stan z CTA "Utwórz pierwszą talię" dla nowych użytkowników
+- Kliknięcie kafelka talii otwiera widok talii
+- Kliknięcie "Do powtórki" rozpoczyna sesję nauki
 
 **Dostępność**:
 
-- Focus visible na wszystkich interaktywnych elementach
-- Prawidłowe etykiety ARIA dla formularzy
-- Kontrast kolorów zgodny z WCAG 2.1 AA
+- Kafelki jako interaktywne elementy z `role="button"` lub jako linki
+- `aria-label` dla kafelków z dodatkowymi informacjami
+- Keyboard navigation między kafelkami
+- `aria-live` dla dynamicznych aktualizacji liczby fiszek
 
 **Bezpieczeństwo**:
 
-- Walidacja adresu email po stronie klienta i serwera
-- CSRF protection przez Supabase
-- Rate limiting na wysyłanie magic linków
+- Strona chroniona - wymaga autentykacji
+- Dane ładowane tylko dla zalogowanego użytkownika (RLS)
 
-**Mapowanie historyjek**: US-001, US-002, US-003
+**Mapowanie historyjek**: US-006, US-021, US-022, US-030, US-040, US-041, US-042
+
+**Integracja z API**:
+
+- `GET /api/decks` - lista talii
+- `GET /api/study/summary` - liczba fiszek do powtórki
+- `POST /api/decks` - tworzenie nowej talii
 
 ---

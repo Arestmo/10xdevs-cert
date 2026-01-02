@@ -1,0 +1,35 @@
+---
+/**
+ * Dashboard Page
+ *
+ * Main dashboard view for authenticated users.
+ * Displays:
+ * - Count of flashcards due for review
+ * - CTA tile for creating new deck or generating AI flashcards
+ * - Grid of user's decks
+ * - Empty state for new users without decks
+ *
+ * Protected route - redirects to /login if user is not authenticated.
+ */
+
+import DashboardLayout from "@/layouts/DashboardLayout.astro";
+import { DashboardContent } from "@/components/dashboard/DashboardContent";
+
+// Step 1: Check authentication
+const {
+  data: { user },
+  error: authError,
+} = await Astro.locals.supabase.auth.getUser();
+
+// Step 2: Redirect to login if not authenticated
+if (authError || !user) {
+  return Astro.redirect(`/login?redirect=/dashboard`);
+}
+
+// Step 3: Get user email for header
+const userEmail = user.email;
+---
+
+<DashboardLayout userEmail={userEmail}>
+  <DashboardContent client:load />
+</DashboardLayout>

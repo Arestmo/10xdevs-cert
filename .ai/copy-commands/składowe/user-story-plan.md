@@ -1,31 +1,73 @@
-US-001
-Tytuł: Rejestracja i logowanie przez Google
-Opis: Jako nowy użytkownik chcę zalogować się jednym klikiem przez konto Google, aby szybko rozpocząć korzystanie z aplikacji bez wypełniania formularzy rejestracyjnych.
+US-006
+Tytuł: Otwieranie modalu generowania fiszek
+Opis: Jako użytkownik chcę mieć łatwy dostęp do funkcji generowania fiszek, aby szybko tworzyć nowe materiały do nauki.
 Kryteria akceptacji:
 
-- Na stronie logowania widoczny jest przycisk "Zaloguj przez Google"
-- Po kliknięciu użytkownik jest przekierowany do autoryzacji Google
-- Po pomyślnej autoryzacji użytkownik jest przekierowany do dashboardu
-- Przy pierwszym logowaniu automatycznie tworzone jest konto użytkownika
-- Przy kolejnych logowaniach użytkownik jest rozpoznawany i logowany do istniejącego konta
+- Na dashboardzie widoczny jest kafelek/przycisk "Generuj fiszki"
+- W widoku talii dostępny jest przycisk "Generuj fiszki"
+- Po kliknięciu otwiera się modal z formularzem generowania
+- Modal można zamknąć przyciskiem X lub kliknięciem poza obszar
 
-US-002
-Tytuł: Logowanie przez Magic Link
-Opis: Jako użytkownik bez konta Google chcę zalogować się przez link wysłany na email, aby mieć alternatywną metodę dostępu do aplikacji.
+US-021
+Tytuł: Tworzenie nowej talii
+Opis: Jako użytkownik chcę utworzyć nową talię, aby organizować fiszki tematycznie.
 Kryteria akceptacji:
 
-- Na stronie logowania dostępna jest opcja "Zaloguj przez email"
-- Po wpisaniu adresu email i kliknięciu przycisku wysyłany jest link logowania
-- Wyświetlany jest komunikat o wysłaniu linku na podany adres
-- Link w emailu jest ważny przez 1 godzinę
-- Po kliknięciu linku użytkownik jest automatycznie zalogowany i przekierowany do dashboardu
-- Przy pierwszym logowaniu automatycznie tworzone jest konto
+- Na dashboardzie dostępny jest przycisk "Nowa talia"
+- Po kliknięciu wyświetla się formularz z polem na nazwę talii
+- Nazwa talii jest wymagana (nie może być pusta)
+- Po zapisaniu talia pojawia się na dashboardzie
+- Użytkownik jest przekierowany do widoku nowej talii
+- Można utworzyć nieograniczoną liczbę talii
 
-US-003
-Tytuł: Automatyczne przekierowanie do logowania
-Opis: Jako niezalogowany użytkownik próbujący wejść na chronioną stronę chcę być automatycznie przekierowany do logowania, aby zrozumieć, że muszę się zalogować.
+US-022
+Tytuł: Przeglądanie listy talii
+Opis: Jako użytkownik chcę widzieć wszystkie moje talie na dashboardzie, aby mieć przegląd moich materiałów.
 Kryteria akceptacji:
 
-- Próba wejścia na dowolną stronę aplikacji bez zalogowania przekierowuje do strony logowania
-- Po zalogowaniu użytkownik jest przekierowany do pierwotnie żądanej strony
-- Jeśli pierwotna strona nie była określona, przekierowanie następuje do dashboardu
+- Dashboard wyświetla wszystkie talie użytkownika jako kafelki
+- Każdy kafelek pokazuje nazwę talii
+- Kafelki są klikalane i prowadzą do widoku talii
+- Dla nowego użytkownika wyświetlany jest pusty stan z CTA do utworzenia talii
+
+US-030
+Tytuł: Wyświetlanie liczby kart do powtórki
+Opis: Jako użytkownik chcę widzieć ile mam kart do powtórki, aby planować czas nauki.
+Kryteria akceptacji:
+
+- Na dashboardzie widoczny jest kafelek "Do powtórki: X"
+- Liczba X to suma fiszek ze wszystkich talii zaplanowanych na dziś lub wcześniej
+- Liczba aktualizuje się po każdej sesji nauki
+- Gdy X = 0, kafelek pokazuje "Brak fiszek do powtórki"
+
+US-040
+Tytuł: Wyświetlanie dashboardu
+Opis: Jako zalogowany użytkownik chcę widzieć przegląd moich materiałów i szybki dostęp do głównych funkcji.
+Kryteria akceptacji:
+
+- Po zalogowaniu wyświetlany jest dashboard
+- Widoczny jest kafelek "Do powtórki: X"
+- Widoczny jest kafelek "Nowa talia / Generuj fiszki"
+- Widoczna jest lista talii użytkownika
+- Layout jest responsywny (mobile-first)
+
+US-041
+Tytuł: Nawigacja z poziomu dashboardu
+Opis: Jako użytkownik chcę łatwo nawigować do głównych funkcji aplikacji.
+Kryteria akceptacji:
+
+- Kliknięcie kafelka "Do powtórki" rozpoczyna sesję nauki
+- Kliknięcie "Nowa talia" otwiera formularz tworzenia talii
+- Kliknięcie "Generuj fiszki" otwiera modal generowania
+- Kliknięcie kafelka talii otwiera widok talii
+- Dostępne jest menu użytkownika z opcją wylogowania i ustawień
+
+US-042
+Tytuł: Pusty stan dla nowego użytkownika
+Opis: Jako nowy użytkownik bez talii chcę otrzymać wskazówki jak zacząć.
+Kryteria akceptacji:
+
+- Gdy użytkownik nie ma żadnych talii, wyświetlany jest pusty stan
+- Pusty stan zawiera komunikat powitalny
+- Widoczny jest wyraźny CTA "Utwórz pierwszą talię"
+- Opcjonalnie: krótka instrukcja korzystania z aplikacji
