@@ -9,7 +9,17 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/db/database.types";
-import type { StudyCardsResponseDTO, StudyCardDTO, StudySummaryResponseDTO, DeckSummaryDTO } from "@/types";
+import type {
+  StudyCardsResponseDTO,
+  StudyCardDTO,
+  StudySummaryResponseDTO,
+  DeckSummaryDTO,
+  ReviewResponseDTO,
+  NextIntervalsDTO,
+  FlashcardDTO,
+  UpdateFlashcardFSRSCommand,
+} from "@/types";
+import { FSRS, Rating, type Card, State, type Grade } from "ts-fsrs";
 
 /**
  * Custom error for deck not found or not owned by user
@@ -256,5 +266,196 @@ export async function getStudySummary(
     total_due,
     next_review_date: nextReviewData?.next_review ?? null,
     decks: deckSummaries,
+  };
+}
+
+/**
+ * Custom error for flashcard not found or not owned by user
+ */
+export class FlashcardNotFoundError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "FlashcardNotFoundError";
+  }
+}
+
+/**
+ * Converts database flashcard FSRS parameters to ts-fsrs Card object.
+ *
+ * @param flashcard - Flashcard from database with FSRS parameters
+ * @returns Card object compatible with ts-fsrs library
+ */
+function createCardFromFlashcard(flashcard: FlashcardDTO): Card {
+  return {
+    due: new Date(flashcard.next_review),
+    stability: flashcard.stability ?? 0,
+    difficulty: flashcard.difficulty ?? 0,
+    elapsed_days: flashcard.elapsed_days ?? 0,
+    scheduled_days: flashcard.scheduled_days ?? 0,
+    learning_steps: 0, // Default value, managed by FSRS when empty learning steps
+    reps: flashcard.reps ?? 0,
+    lapses: flashcard.lapses ?? 0,
+    state: (flashcard.state as State) ?? State.New,
+    last_review: flashcard.last_review ? new Date(flashcard.last_review) : undefined,
+  };
+}
+
+/**
+ * Converts numeric rating (1-4) to ts-fsrs Grade enum.
+ *
+ * Grade excludes Rating.Manual (0) and only includes valid review ratings.
+ *
+ * @param rating - Numeric rating from API request
+ * @returns Grade enum value for ts-fsrs (Again, Hard, Good, Easy)
+ */
+function mapRatingToEnum(rating: 1 | 2 | 3 | 4): Grade {
+  const ratingMap: Record<1 | 2 | 3 | 4, Grade> = {
+    1: Rating.Again,
+    2: Rating.Hard,
+    3: Rating.Good,
+    4: Rating.Easy,
+  };
+  return ratingMap[rating];
+}
+
+/**
+ * Formats millisecond duration to human-readable interval string.
+ *
+ * Examples: "10m", "2h", "5d", "3mo", "1y"
+ *
+ * @param ms - Duration in milliseconds
+ * @returns Human-readable interval string
+ */
+function formatInterval(ms: number): string {
+  const minutes = Math.floor(ms / 60000);
+  const hours = Math.floor(ms / 3600000);
+  const days = Math.floor(ms / 86400000);
+  const months = Math.floor(days / 30);
+  const years = Math.floor(days / 365);
+
+  if (years > 0) return `${years}y`;
+  if (months > 0) return `${months}mo`;
+  if (days > 0) return `${days}d`;
+  if (hours > 0) return `${hours}h`;
+  return `${minutes}m`;
+}
+
+/**
+ * Submits a review rating for a flashcard and updates FSRS parameters.
+ *
+ * This function implements the core spaced repetition algorithm by:
+ * 1. Fetching the current flashcard with ownership validation
+ * 2. Calculating new FSRS parameters based on user's rating
+ * 3. Updating flashcard with new scheduling parameters
+ * 4. Calculating preview intervals for all rating options
+ *
+ * Flow:
+ * 1. Fetch flashcard with INNER JOIN to verify ownership
+ * 2. Create FSRS Card object from current parameters
+ * 3. Call FSRS algorithm to calculate new state
+ * 4. Update database with new parameters
+ * 5. Calculate preview intervals for UI
+ * 6. Return updated flashcard and intervals
+ *
+ * Security:
+ * - CRITICAL: Always join with decks table and filter by user_id
+ * - Prevents users from reviewing other users' flashcards
+ * - Returns null if flashcard not found or not owned
+ *
+ * @param supabase - Authenticated Supabase client instance
+ * @param userId - UUID of the authenticated user
+ * @param flashcardId - UUID of the flashcard being reviewed
+ * @param rating - Review rating (1=Again, 2=Hard, 3=Good, 4=Easy)
+ * @returns Review response with updated flashcard and interval previews, or null if not found
+ * @throws {FlashcardNotFoundError} If flashcard not found or not owned by user
+ * @throws {Error} If database operation or FSRS calculation fails
+ */
+export async function submitReview(
+  supabase: SupabaseClient<Database>,
+  userId: string,
+  flashcardId: string,
+  rating: 1 | 2 | 3 | 4
+): Promise<ReviewResponseDTO> {
+  // Step 1: Fetch flashcard with ownership check
+  // CRITICAL SECURITY: Inner join with decks table to verify ownership
+  const { data: flashcard, error: fetchError } = await supabase
+    .from("flashcards")
+    .select(
+      `
+      *,
+      decks!inner(user_id)
+    `
+    )
+    .eq("id", flashcardId)
+    .eq("decks.user_id", userId)
+    .single();
+
+  // Guard clause: flashcard not found or not owned
+  if (fetchError || !flashcard) {
+    throw new FlashcardNotFoundError("Flashcard not found");
+  }
+
+  // Step 2: Calculate FSRS parameters
+  let newParameters: UpdateFlashcardFSRSCommand;
+  let intervals: NextIntervalsDTO;
+
+  try {
+    // Initialize FSRS instance
+    const fsrs = new FSRS();
+    const now = new Date();
+
+    // Convert flashcard to Card object
+    const card = createCardFromFlashcard(flashcard);
+
+    // Map rating to FSRS Rating enum
+    const fsrsRating = mapRatingToEnum(rating);
+
+    // Calculate new scheduling parameters using repeat() which returns preview for all ratings
+    const preview = fsrs.repeat(card, now);
+
+    // Get the specific result for the selected rating
+    const { card: newCard } = preview[fsrsRating];
+
+    // Extract update parameters
+    newParameters = {
+      stability: newCard.stability,
+      difficulty: newCard.difficulty,
+      elapsed_days: newCard.elapsed_days,
+      scheduled_days: newCard.scheduled_days,
+      reps: newCard.reps,
+      lapses: newCard.lapses,
+      state: newCard.state,
+      last_review: now.toISOString(),
+      next_review: newCard.due.toISOString(),
+    };
+
+    // Calculate preview intervals for UI (show what would happen for each rating)
+    intervals = {
+      again: formatInterval(preview[Rating.Again].card.due.getTime() - now.getTime()),
+      hard: formatInterval(preview[Rating.Hard].card.due.getTime() - now.getTime()),
+      good: formatInterval(preview[Rating.Good].card.due.getTime() - now.getTime()),
+      easy: formatInterval(preview[Rating.Easy].card.due.getTime() - now.getTime()),
+    };
+  } catch (error) {
+    throw new Error(`Failed to calculate FSRS parameters: ${error instanceof Error ? error.message : "Unknown error"}`);
+  }
+
+  // Step 3: Update flashcard in database
+  const { data: updatedFlashcard, error: updateError } = await supabase
+    .from("flashcards")
+    .update(newParameters)
+    .eq("id", flashcardId)
+    .select()
+    .single();
+
+  // Guard clause: update failed
+  if (updateError || !updatedFlashcard) {
+    throw new Error(`Failed to update flashcard: ${updateError?.message ?? "Unknown error"}`);
+  }
+
+  // Step 4: Return success response (happy path)
+  return {
+    flashcard: updatedFlashcard,
+    next_intervals: intervals,
   };
 }
