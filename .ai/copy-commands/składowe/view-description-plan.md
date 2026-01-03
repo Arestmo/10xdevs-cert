@@ -1,58 +1,61 @@
-### 2.3 Widok talii (`/decks/{deckId}`)
+### 2.4 Modal generowania AI
 
-**Główny cel**: Zarządzanie pojedynczą talią i jej fiszkami.
+**Główny cel**: Generowanie fiszek z tekstu za pomocą AI.
 
 **Kluczowe informacje**:
 
-- Nazwa talii (edytowalna inline)
-- Liczba fiszek w talii
-- Liczba fiszek do powtórki w tej talii
-- Lista fiszek z podglądem
+- Pole tekstowe na materiał źródłowy
+- Wybór talii docelowej
+- Licznik pozostałego limitu AI
+- Lista wygenerowanych draftów
 
 **Kluczowe komponenty**:
 
-| Komponent                | Opis                                            | Typ             |
-| ------------------------ | ----------------------------------------------- | --------------- |
-| `DeckPage`               | Główny kontener widoku talii                    | Astro Page      |
-| `DeckHeader`             | Nagłówek z nazwą talii i akcjami                | React Component |
-| `InlineEditField`        | Edytowalne pole nazwy talii                     | React Component |
-| `DeckActions`            | Przyciski akcji (Ucz się, Generuj, Dodaj, Usuń) | React Component |
-| `FlashcardList`          | Lista fiszek z accordion                        | React Component |
-| `FlashcardAccordionItem` | Pojedyncza fiszka z rozwinięciem                | React Component |
-| `FlashcardForm`          | Formularz tworzenia/edycji fiszki               | React Component |
-| `DeleteDeckDialog`       | Dialog potwierdzenia usunięcia talii            | React Component |
-| `DeleteFlashcardDialog`  | Dialog potwierdzenia usunięcia fiszki           | React Component |
+| Komponent            | Opis                                  | Typ             |
+| -------------------- | ------------------------------------- | --------------- |
+| `GenerationModal`    | Główny modal z logiką generowania     | React Component |
+| `SourceTextArea`     | Pole tekstowe z licznikiem znaków     | React Component |
+| `DeckSelector`       | Dropdown wyboru talii                 | React Component |
+| `AILimitIndicator`   | Wskaźnik "Pozostało: X/200"           | React Component |
+| `GenerationSpinner`  | Spinner z tekstem podczas generowania | React Component |
+| `DraftsList`         | Lista przewijana draftów              | React Component |
+| `DraftItem`          | Pojedynczy draft z akcjami            | React Component |
+| `DraftEditForm`      | Formularz inline edycji draftu        | React Component |
+| `CloseConfirmDialog` | Dialog ostrzeżenia przy zamknięciu    | React Component |
 
 **Wymagania UX**:
 
-- Inline editing nazwy talii (Enter/Escape lub przyciski Save/Cancel)
-- Przycisk "Ucz się (X)" pokazujący liczbę due flashcards
-- Lista fiszek z accordion pattern (pierwsze ~50 znaków, rozwijane)
-- Rozwinięta fiszka pokazuje przód/tył + przyciski Edytuj/Usuń
-- Dialog potwierdzenia przed usunięciem talii/fiszki
+- Blokujący modal z możliwością zamknięcia (X, klik poza obszar)
+- Pole tekstowe do 5000 znaków z licznikiem real-time
+- Preselekcja talii jeśli modal otwierany z widoku talii
+- Spinner z tekstem "Generowanie fiszek..." podczas ładowania
+- Lista przewijana draftów z numeracją "1/15", "2/15"
+- Przyciski Akceptuj/Edytuj/Odrzuć przy każdym drafcie
+- Natychmiastowy zapis przy akceptacji (bez możliwości cofnięcia)
+- Ostrzeżenie przy zamknięciu z nieprzetworzonymi draftami
+- Przyjazny komunikat przy pustych wynikach lub błędach AI
 
 **Dostępność**:
 
-- Accordion z `aria-expanded` i `aria-controls`
-- Focus trap w dialogach
-- Keyboard shortcuts (Enter/Escape dla inline edit)
-- `aria-describedby` dla pól formularza z walidacją
+- Focus trap wewnątrz modalu
+- `aria-modal="true"` i `role="dialog"`
+- Focus na pierwszym interaktywnym elemencie przy otwarciu
+- `aria-live="polite"` dla statusu generowania
+- Obsługa Escape do zamknięcia
 
 **Bezpieczeństwo**:
 
-- Weryfikacja własności talii (RLS + sprawdzenie w API)
-- Walidacja danych wejściowych (front: max 200, back: max 500 znaków)
+- Walidacja długości tekstu (max 5000 znaków)
+- Sprawdzenie limitu AI przed generowaniem
+- Sanityzacja tekstu wejściowego
 
-**Mapowanie historyjek**: US-018, US-019, US-023, US-024, US-025, US-026, US-027, US-028, US-029, US-032
+**Mapowanie historyjek**: US-007, US-008, US-009, US-010, US-011, US-012, US-013, US-014, US-015, US-016, US-017
 
 **Integracja z API**:
 
-- `GET /api/decks/{deckId}` - dane talii
-- `PATCH /api/decks/{deckId}` - aktualizacja nazwy
-- `DELETE /api/decks/{deckId}` - usunięcie talii
-- `GET /api/flashcards?deck_id={deckId}` - lista fiszek
-- `POST /api/flashcards` - tworzenie fiszki
-- `PATCH /api/flashcards/{flashcardId}` - edycja fiszki
-- `DELETE /api/flashcards/{flashcardId}` - usunięcie fiszki
+- `GET /api/profile` - sprawdzenie limitu AI
+- `POST /api/generations` - generowanie draftów
+- `POST /api/flashcards` - akceptacja draftu (source: "ai")
+- `POST /api/generations/{generationId}/reject` - odrzucenie draftu
 
 ---

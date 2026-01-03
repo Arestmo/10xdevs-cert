@@ -4,7 +4,7 @@
  * Action bar with main deck operation buttons.
  * Buttons:
  * - Study (X) - navigate to study session (disabled if X = 0)
- * - Generate flashcards - navigate to AI generator
+ * - Generate flashcards - open AI generation modal
  * - Add flashcard - open flashcard form modal
  * - Delete deck - open delete confirmation dialog
  */
@@ -13,7 +13,13 @@ import { Play, Sparkles, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { DeckActionsProps } from "./types";
 
-export function DeckActions({ deckId, dueCount, onAddFlashcard, onDeleteDeck }: DeckActionsProps) {
+export function DeckActions({
+  deckId,
+  dueCount,
+  onAddFlashcard,
+  onGenerateFlashcards,
+  onDeleteDeck,
+}: DeckActionsProps) {
   const hasCardsToStudy = dueCount > 0;
 
   return (
@@ -27,11 +33,9 @@ export function DeckActions({ deckId, dueCount, onAddFlashcard, onDeleteDeck }: 
       </Button>
 
       {/* Generate flashcards button */}
-      <Button variant="outline" asChild className="gap-2">
-        <a href={`/generate?deck=${deckId}`}>
-          <Sparkles className="h-4 w-4" />
-          Generuj fiszki
-        </a>
+      <Button variant="outline" onClick={onGenerateFlashcards} className="gap-2">
+        <Sparkles className="h-4 w-4" />
+        Generuj fiszki
       </Button>
 
       {/* Add flashcard button */}

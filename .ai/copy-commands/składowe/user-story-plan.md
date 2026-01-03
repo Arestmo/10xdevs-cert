@@ -1,108 +1,113 @@
-US-018
-Tytuł: Otwieranie formularza tworzenia fiszki
-Opis: Jako użytkownik chcę mieć dostęp do formularza tworzenia fiszki, aby dodawać własne karty do nauki.
+US-007
+Tytuł: Wprowadzanie tekstu źródłowego
+Opis: Jako użytkownik chcę wkleić tekst, z którego AI wygeneruje fiszki, aby nie musieć ręcznie przepisywać materiałów.
 Kryteria akceptacji:
 
-- W widoku talii dostępny jest przycisk "Dodaj fiszkę"
-- Po kliknięciu otwiera się formularz tworzenia fiszki
-- Formularz można zamknąć bez zapisywania
+- W modalu generowania dostępne jest pole tekstowe na materiał źródłowy
+- Pole akceptuje tekst do 5000 znaków
+- Widoczny jest licznik znaków pokazujący wykorzystanie limitu (np. "2500/5000")
+- Przy przekroczeniu limitu tekst jest obcinany lub wyświetlany jest komunikat błędu
+- Pole obsługuje wklejanie tekstu ze schowka (Ctrl+V / Cmd+V)
 
-US-019
-Tytuł: Tworzenie fiszki manualnie
-Opis: Jako użytkownik chcę ręcznie utworzyć fiszkę wpisując przód i tył, aby dodać specyficzne karty których AI nie wygenerował.
+US-008
+Tytuł: Wybór talii docelowej przy generowaniu
+Opis: Jako użytkownik chcę wybrać talię, do której trafią zaakceptowane fiszki, aby zachować organizację materiałów.
 Kryteria akceptacji:
 
-- Formularz zawiera pola: przód (max 200 znaków) i tył (max 500 znaków)
-- Widoczne są liczniki znaków dla obu pól
-- Przycisk "Zapisz" jest aktywny gdy oba pola są wypełnione i w limitach
-- Po zapisaniu fiszka pojawia się w wybranej talii
-- Formularz może być użyty ponownie do dodania kolejnych fiszek
-- Brak limitu ilościowego dla manualnie tworzonych fiszek
+- W modalu generowania dostępna jest lista rozwijana z taliami użytkownika
+- Można wybrać istniejącą talię z listy
+- Dostępna jest opcja utworzenia nowej talii (pole tekstowe na nazwę)
+- Wybór talii jest wymagany przed rozpoczęciem generowania
 
-US-023
-Tytuł: Otwieranie widoku talii
-Opis: Jako użytkownik chcę otworzyć talię, aby zobaczyć i zarządzać jej fiszkami.
+US-009
+Tytuł: Generowanie fiszek z tekstu
+Opis: Jako użytkownik chcę uruchomić generowanie fiszek AI, aby otrzymać gotowe propozycje kart do nauki.
 Kryteria akceptacji:
 
-- Po kliknięciu kafelka talii otwiera się widok talii
-- Widok zawiera nazwę talii, liczbę fiszek i listę fiszek
-- Dostępne są przyciski: "Dodaj fiszkę", "Generuj fiszki", "Edytuj talię", "Usuń talię"
-- Można wrócić do dashboardu
+- Przycisk "Generuj" jest aktywny gdy wprowadzono tekst i wybrano talię
+- Po kliknięciu przycisku wyświetlany jest spinner/animacja ładowania
+- Generowanych jest maksymalnie 20 fiszek na sesję
+- Po zakończeniu generowania wyświetlana jest lista draftów
+- Każdy draft zawiera przód i tył fiszki
 
-US-024
-Tytuł: Edycja nazwy talii
-Opis: Jako użytkownik chcę zmienić nazwę talii, aby lepiej odzwierciedlała jej zawartość.
+US-010
+Tytuł: Przeglądanie wygenerowanych draftów
+Opis: Jako użytkownik chcę przejrzeć propozycje fiszek wygenerowane przez AI, aby ocenić ich jakość przed zapisaniem.
 Kryteria akceptacji:
 
-- W widoku talii dostępna jest opcja "Edytuj nazwę"
-- Po kliknięciu nazwa staje się edytowalna
-- Nowa nazwa jest zapisywana po potwierdzeniu
-- Zmiana jest natychmiast widoczna w interfejsie
+- Lista draftów wyświetla wszystkie wygenerowane fiszki
+- Dla każdego draftu widoczny jest przód i tył fiszki
+- Drafty są ponumerowane (np. "1/15", "2/15")
+- Można przewijać listę draftów
+- Dla każdego draftu dostępne są przyciski: Akceptuj / Edytuj / Odrzuć
 
-US-025
-Tytuł: Usuwanie talii
-Opis: Jako użytkownik chcę usunąć talię której już nie potrzebuję, aby utrzymać porządek w materiałach.
+US-011
+Tytuł: Akceptowanie draftu fiszki
+Opis: Jako użytkownik chcę zaakceptować dobry draft, aby zapisać go jako fiszkę w wybranej talii.
 Kryteria akceptacji:
 
-- W widoku talii dostępna jest opcja "Usuń talię"
-- Przed usunięciem wyświetlane jest okno potwierdzenia
-- Potwierdzenie informuje o liczbie fiszek które zostaną usunięte
-- Po potwierdzeniu talia i wszystkie jej fiszki są trwale usuwane
-- Użytkownik jest przekierowany do dashboardu
-- Wyświetlany jest komunikat potwierdzający usunięcie
+- Przycisk "Akceptuj" jest dostępny przy każdym drafcie
+- Po kliknięciu fiszka jest zapisywana do bazy danych w wybranej talii
+- Draft znika z listy lub jest oznaczony jako zaakceptowany
+- Logowany jest event fiszka_zaakceptowana
+- Wyświetlane jest potwierdzenie akceptacji (np. zielony checkmark)
 
-US-026
-Tytuł: Przeglądanie fiszek w talii
-Opis: Jako użytkownik chcę przeglądać fiszki w talii, aby zobaczyć co zawiera i znaleźć konkretne karty.
+US-012
+Tytuł: Edycja draftu przed akceptacją
+Opis: Jako użytkownik chcę poprawić treść draftu przed zapisaniem, aby dostosować fiszkę do moich potrzeb.
 Kryteria akceptacji:
 
-- Widok talii wyświetla listę fiszek
-- Każda fiszka pokazuje początek przodu (pierwsze ~50 znaków)
-- Lista jest przewijalna gdy fiszek jest dużo
-- Kliknięcie fiszki rozwija pełny widok (przód i tył)
-- Ponowne kliknięcie zwija fiszkę
-
-US-027
-Tytuł: Rozwijanie szczegółów fiszki
-Opis: Jako użytkownik chcę zobaczyć pełną treść fiszki, aby zweryfikować jej zawartość.
-Kryteria akceptacji:
-
-- Po kliknięciu fiszki na liście rozwija się pełny widok
-- Widoczny jest pełny przód i tył fiszki
-- Dostępne są przyciski "Edytuj" i "Usuń"
-- Można zwinąć fiszkę klikając ponownie lub przycisk "Zwiń"
-
-### Zarządzanie fiszkami
-
-US-028
-Tytuł: Edycja istniejącej fiszki
-Opis: Jako użytkownik chcę edytować fiszkę, aby poprawić błędy lub zaktualizować treść.
-Kryteria akceptacji:
-
-- W rozwiniętym widoku fiszki dostępny jest przycisk "Edytuj"
+- Przycisk "Edytuj" jest dostępny przy każdym drafcie
 - Po kliknięciu pola przód i tył stają się edytowalne
 - Widoczne są liczniki znaków (przód: max 200, tył: max 500)
 - Dostępne są przyciski "Zapisz" i "Anuluj"
-- Po zapisaniu zaktualizowana treść jest widoczna w interfejsie
-- Edycja nie resetuje parametrów FSRS fiszki
+- Po zapisaniu draft pozostaje na liście z zaktualizowaną treścią
+- Logowany jest event fiszka_edytowana
+- Można następnie zaakceptować edytowany draft
 
-US-029
-Tytuł: Usuwanie fiszki
-Opis: Jako użytkownik chcę usunąć fiszkę której już nie potrzebuję, aby utrzymać jakość materiałów.
+US-013
+Tytuł: Odrzucanie draftu fiszki
+Opis: Jako użytkownik chcę odrzucić nieprzydatny draft, aby nie zaśmiecać mojej talii niskiej jakości fiszkami.
 Kryteria akceptacji:
 
-- W rozwiniętym widoku fiszki dostępny jest przycisk "Usuń"
-- Przed usunięciem wyświetlane jest okno potwierdzenia
-- Po potwierdzeniu fiszka jest trwale usuwana
-- Fiszka znika z listy w widoku talii
-- Wyświetlany jest komunikat potwierdzający usunięcie
+- Przycisk "Odrzuć" jest dostępny przy każdym drafcie
+- Po kliknięciu draft znika z listy bez zapisywania do bazy
+- Logowany jest event fiszka_odrzucona
+- Odrzucone drafty nie są nigdzie przechowywane
+- Nie jest wymagane potwierdzenie odrzucenia
 
-US-032
-Tytuł: Rozpoczynanie sesji nauki z pojedynczej talii
-Opis: Jako użytkownik chcę uczyć się tylko z wybranej talii, gdy przygotowuję się do egzaminu z konkretnego tematu.
+US-014
+Tytuł: Zamykanie modalu z draftami
+Opis: Jako użytkownik chcę móc zamknąć modal generowania, gdy skończę przeglądać drafty.
 Kryteria akceptacji:
 
-- W widoku talii dostępny jest przycisk "Ucz się"
-- Przycisk pokazuje liczbę fiszek do powtórki w tej talii
-- Po kliknięciu rozpoczyna się sesja tylko z tej talii
-- Fiszki z innych talii nie są uwzględniane
+- Dostępny jest przycisk zamknięcia modalu (X)
+- Można zamknąć modal kliknięciem poza jego obszar
+- Niezaakceptowane drafty przepadają przy zamknięciu modalu
+- Przed zamknięciem z niezaakceptowanymi draftami wyświetlane jest ostrzeżenie
+- Zaakceptowane fiszki pozostają zapisane w talii
+
+US-015
+Tytuł: Wyświetlanie limitu fiszek AI
+Opis: Jako użytkownik chcę widzieć ile fiszek AI mogę jeszcze wygenerować w tym miesiącu, aby planować korzystanie z funkcji.
+Kryteria akceptacji:
+
+- W modalu generowania widoczny jest licznik "Pozostało: X/200 fiszek w tym miesiącu"
+- Licznik aktualizuje się po każdym generowaniu
+- Gdy limit zostanie wyczerpany, wyświetlana jest informacja o dacie resetu
+- Limit resetuje się pierwszego dnia każdego miesiąca kalendarzowego
+
+US-016
+Tytuł: Komunikat o wyczerpaniu limitu AI
+Opis: Jako użytkownik z wyczerpanym limitem chcę otrzymać jasną informację, aby wiedzieć kiedy będę mógł ponownie generować fiszki.
+Kryteria akceptacji:
+
+- Przy próbie generowania po wyczerpaniu limitu wyświetlany jest komunikat
+- Komunikat zawiera informację o dacie resetu limitu (pierwszy dzień następnego miesiąca)
+- Sugerowane jest manualne tworzenie fiszek jako alternatywa
+- Przycisk "Generuj" jest nieaktywny gdy limit wyczerpany
+
+US-017
+Tytuł: Obsługa błędu generowania AI
+Opis: Jako użytkownik chcę otrzymać zrozumiały komunikat gdy wystąpi błąd AI, aby wiedzieć co robić dalej.
+Kryteria akceptacji:

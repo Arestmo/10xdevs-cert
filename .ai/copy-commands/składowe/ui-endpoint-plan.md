@@ -1,82 +1,124 @@
-#### GET /api/decks/{deckId}
+#### GET /api/profile
 
-Get a specific deck with metadata.
+Get current user's profile with AI limit information.
 
 **Response (200):**
 
 ```json
 {
-  "id": "uuid",
   "user_id": "uuid",
-  "name": "Biology 101",
-  "created_at": "2024-12-01T10:00:00Z",
-  "updated_at": "2024-12-05T14:00:00Z",
-  "total_flashcards": 50,
-  "due_flashcards": 12
+  "monthly_ai_flashcards_count": 45,
+  "ai_limit_reset_date": "2024-12-01",
+  "remaining_ai_limit": 155,
+  "created_at": "2024-11-15T10:30:00Z",
+  "updated_at": "2024-12-05T14:20:00Z"
 }
 ```
 
 **Errors:**
 
 - `401 Unauthorized` - User not authenticated
-- `404 Not Found` - Deck not found or not owned by user
+- `404 Not Found` - Profile not found
 
 ---
 
-#### PATCH /api/decks/{deckId}
+#### POST /api/generations
 
-Update a deck's name.
+Generate flashcard drafts from source text using AI.
 
 **Request:**
 
 ```json
 {
-  "name": "Advanced Biology"
+  "source_text": "Long text content to generate flashcards from...",
+  "deck_id": "uuid"
 }
 ```
 
 **Validation:**
 
-- `name`: required, string, 1-100 characters
+- `source_text`: required, string, 1-5000 characters
+- `deck_id`: required, valid UUID, must belong to user
 
 **Response (200):**
 
 ```json
 {
-  "id": "uuid",
-  "user_id": "uuid",
-  "name": "Advanced Biology",
-  "created_at": "2024-12-01T10:00:00Z",
-  "updated_at": "2024-12-10T15:00:00Z"
+  "generation_id": "uuid",
+  "drafts": [
+    {
+      "index": 0,
+      "front": "What is the main topic?",
+      "back": "The main topic is..."
+    },
+    {
+      "index": 1,
+      "front": "Define term X",
+      "back": "Term X means..."
+    }
+  ],
+  "generated_count": 15,
+  "remaining_ai_limit": 140
 }
 ```
 
+**Business Logic:**
+
+1. Check monthly AI limit (200 flashcards/month)
+2. Reset limit if `ai_limit_reset_date < start_of_current_month`
+3. Generate up to 20 flashcard drafts via OpenRouter API
+4. Increment `monthly_ai_flashcards_count` by generated count
+5. Create `GENERATED` events for each draft (flashcard_id = NULL)
+6. Return drafts with generation_id for subsequent accept/reject
+
+**Note:** Drafts are NOT saved to database. Only accepted drafts become flashcards.
+
 **Errors:**
 
 - `401 Unauthorized` - User not authenticated
-- `400 Bad Request` - Validation error
+- `400 Bad Request` - Validation error (text too long, deck not found)
+- `403 Forbidden` - Monthly AI limit exceeded
 - `404 Not Found` - Deck not found or not owned by user
-- `409 Conflict` - Deck with this name already exists for user
+- `503 Service Unavailable` - AI service error (failed generation does not decrement limit)
 
 ---
 
-#### DELETE /api/decks/{deckId}
+#### POST /api/generations/{generationId}/reject
 
-Delete a deck and all its flashcards (cascade delete).
+Log rejection of an AI-generated draft.
 
-**Response (204):** No content
+**Request:**
+
+```json
+{
+  "draft_index": 0
+}
+```
+
+**Validation:**
+
+- `draft_index`: required, integer >= 0
+
+**Response (201):**
+
+```json
+{
+  "id": "uuid",
+  "generation_id": "uuid",
+  "event_type": "REJECTED",
+  "created_at": "2024-12-10T10:05:00Z"
+}
+```
+
+**Side Effects:**
+
+- Creates `REJECTED` event in `generation_events` (flashcard_id = NULL)
 
 **Errors:**
 
-- `400 Bad Request` - Invalid deck ID format (not a valid UUID)
 - `401 Unauthorized` - User not authenticated
-- `404 Not Found` - Deck not found or not owned by user
-- `500 Internal Server Error` - Unexpected server error
-
-**Security Notes:**
-
-- Returns 404 for both non-existent decks AND decks not owned by user (IDOR protection)
-- Never returns 403 Forbidden to avoid information disclosure
+- `400 Bad Request` - Invalid draft_index
+- `404 Not Found` - Generation not found or not owned by user
 
 ---
 
@@ -150,108 +192,5 @@ Create a new flashcard (manual or from AI generation).
 - `401 Unauthorized` - User not authenticated
 - `400 Bad Request` - Validation error
 - `404 Not Found` - Deck not found or not owned by user
-
----
-
-#### GET /api/flashcards/{flashcardId}
-
-Get a specific flashcard.
-
-**Response (200):**
-
-```json
-{
-  "id": "uuid",
-  "deck_id": "uuid",
-  "front": "What is mitochondria?",
-  "back": "The powerhouse of the cell",
-  "source": "ai",
-  "stability": 2.5,
-  "difficulty": 0.3,
-  "elapsed_days": 5,
-  "scheduled_days": 7,
-  "reps": 3,
-  "lapses": 0,
-  "state": 2,
-  "last_review": "2024-12-05T10:00:00Z",
-  "next_review": "2024-12-12T10:00:00Z",
-  "created_at": "2024-11-20T10:00:00Z",
-  "updated_at": "2024-12-05T10:00:00Z"
-}
-```
-
-**Errors:**
-
-- `401 Unauthorized` - User not authenticated
-- `404 Not Found` - Flashcard not found or not owned by user
-
----
-
-#### PATCH /api/flashcards/{flashcardId}
-
-Update a flashcard's content.
-
-**Request:**
-
-```json
-{
-  "front": "Updated question",
-  "back": "Updated answer"
-}
-```
-
-**Validation:**
-
-- `front`: optional, string, 1-200 characters
-- `back`: optional, string, 1-500 characters
-- At least one field must be provided
-
-**Response (200):**
-
-```json
-{
-  "id": "uuid",
-  "deck_id": "uuid",
-  "front": "Updated question",
-  "back": "Updated answer",
-  "source": "ai",
-  "stability": 2.5,
-  "difficulty": 0.3,
-  "elapsed_days": 5,
-  "scheduled_days": 7,
-  "reps": 3,
-  "lapses": 0,
-  "state": 2,
-  "last_review": "2024-12-05T10:00:00Z",
-  "next_review": "2024-12-12T10:00:00Z",
-  "created_at": "2024-11-20T10:00:00Z",
-  "updated_at": "2024-12-10T15:00:00Z"
-}
-```
-
-**Note:** Editing flashcard content does NOT reset FSRS parameters.
-
-**Errors:**
-
-- `401 Unauthorized` - User not authenticated
-- `400 Bad Request` - Validation error
-- `404 Not Found` - Flashcard not found or not owned by user
-
----
-
-#### DELETE /api/flashcards/{flashcardId}
-
-Delete a flashcard.
-
-**Response (204):** No content
-
-**Side Effects:**
-
-- Related `generation_events.flashcard_id` set to NULL (preserves analytics)
-
-**Errors:**
-
-- `401 Unauthorized` - User not authenticated
-- `404 Not Found` - Flashcard not found or not owned by user
 
 ---

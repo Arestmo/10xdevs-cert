@@ -6,7 +6,7 @@
  * Handles data fetching, CRUD operations, and user interactions.
  */
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { Loader2, AlertCircle } from "lucide-react";
 import { useDeckView } from "@/components/hooks/useDeckView";
 import { DeckHeader } from "./DeckHeader";
@@ -15,7 +15,9 @@ import { FlashcardList } from "./FlashcardList";
 import { FlashcardFormModal } from "./FlashcardFormModal";
 import { DeleteDeckDialog } from "./DeleteDeckDialog";
 import { DeleteFlashcardDialog } from "./DeleteFlashcardDialog";
+import { GenerationModal } from "@/components/generation/GenerationModal";
 import type { DeckViewProps, FlashcardViewModel } from "./types";
+import type { DeckOption } from "@/components/generation/types";
 
 export function DeckView({ deckId }: DeckViewProps) {
   // Data and operations from custom hook
@@ -35,6 +37,7 @@ export function DeckView({ deckId }: DeckViewProps) {
     isUpdatingFlashcard,
     isDeletingFlashcard,
     nameUpdateError,
+    refetch,
   } = useDeckView(deckId);
 
   // UI state for deck name editing
@@ -49,6 +52,7 @@ export function DeckView({ deckId }: DeckViewProps) {
   const [editingFlashcard, setEditingFlashcard] = useState<FlashcardViewModel | null>(null);
   const [isDeleteDeckDialogOpen, setIsDeleteDeckDialogOpen] = useState(false);
   const [deletingFlashcard, setDeletingFlashcard] = useState<FlashcardViewModel | null>(null);
+  const [isGenerationModalOpen, setIsGenerationModalOpen] = useState(false);
 
   // Handlers for deck name editing
   const handleEditNameStart = useCallback(() => {
@@ -106,6 +110,31 @@ export function DeckView({ deckId }: DeckViewProps) {
     // Note: deleteDeck redirects to dashboard on success
   }, [deleteDeck]);
 
+  // Handlers for AI generation
+  const handleOpenGenerationModal = useCallback(() => {
+    setIsGenerationModalOpen(true);
+  }, []);
+
+  const handleCloseGenerationModal = useCallback(() => {
+    setIsGenerationModalOpen(false);
+  }, []);
+
+  const handleGenerationSuccess = useCallback(
+    async (acceptedCount: number) => {
+      // eslint-disable-next-line no-console
+      console.log("Generated flashcards:", acceptedCount);
+      // Refetch deck data to update counts and flashcard list
+      await refetch();
+    },
+    [refetch]
+  );
+
+  // Prepare deck options for GenerationModal
+  const deckOptions: DeckOption[] = useMemo(() => {
+    if (!deck) return [];
+    return [{ id: deck.id, name: deck.name }];
+  }, [deck]);
+
   // Loading state
   if (isLoading) {
     return (
@@ -160,6 +189,7 @@ export function DeckView({ deckId }: DeckViewProps) {
         deckId={deckId}
         dueCount={deck.dueFlashcards}
         onAddFlashcard={handleAddFlashcard}
+        onGenerateFlashcards={handleOpenGenerationModal}
         onDeleteDeck={() => setIsDeleteDeckDialogOpen(true)}
       />
 
@@ -205,6 +235,15 @@ export function DeckView({ deckId }: DeckViewProps) {
         onConfirm={handleConfirmDeleteFlashcard}
         flashcardPreview={deletingFlashcard?.frontPreview || ""}
         isDeleting={isDeletingFlashcard}
+      />
+
+      {/* AI Generation Modal */}
+      <GenerationModal
+        isOpen={isGenerationModalOpen}
+        onClose={handleCloseGenerationModal}
+        onSuccess={handleGenerationSuccess}
+        preselectedDeckId={deckId}
+        decks={deckOptions}
       />
     </div>
   );

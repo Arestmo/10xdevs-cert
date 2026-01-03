@@ -6,9 +6,11 @@
  * Displays logo, heading, Google OAuth button, separator, magic link form, and legal links.
  */
 
+import { Image } from "astro:assets";
 import { GoogleOAuthButton } from "@/components/auth/GoogleOAuthButton";
 import { MagicLinkForm } from "@/components/auth/MagicLinkForm";
 import LegalLinks from "@/components/LegalLinks.astro";
+import logo from "@/assets/logo.png";
 import "@/styles/global.css";
 
 interface Props {
@@ -36,7 +38,7 @@ const { error } = Astro.props;
       <div class="w-full max-w-md space-y-8">
         <!-- Logo -->
         <div class="flex justify-center">
-          <img src="/logo.png" alt="Flashcards AI" class="h-24 w-auto" />
+          <Image src={logo} alt="Flashcards AI" class="h-24 w-auto" width={536} height={482} loading="eager" />
         </div>
 
         <!-- Heading -->

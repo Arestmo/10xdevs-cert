@@ -7,6 +7,7 @@
  */
 
 import { UserDropdownMenu } from "@/components/UserDropdownMenu";
+import logo from "@/assets/logo.png";
 
 export interface AppHeaderProps {
   userEmail?: string;
@@ -22,7 +23,14 @@ export function AppHeader({ userEmail }: AppHeaderProps) {
           className="flex items-center gap-2 transition-opacity hover:opacity-80"
           aria-label="Flashcards AI - przejdź do dashboardu"
         >
-          <img src="/logo.png" alt="Flashcards AI" className="h-10 w-auto" />
+          <img
+            src={logo.src}
+            alt="Flashcards AI"
+            className="h-10 w-auto"
+            width={logo.width}
+            height={logo.height}
+            loading="eager"
+          />
         </a>
 
         {/* User menu */}

@@ -379,6 +379,7 @@ interface CreateDeckModalProps {
 Plik: `src/components/hooks/useDashboard.ts`
 
 Hook zarządza pobieraniem i agregacją danych z dwóch endpointów:
+
 - `GET /api/decks` - lista talii z metadanymi
 - `GET /api/study/summary` - podsumowanie nauki
 
@@ -396,6 +397,7 @@ interface UseDashboardReturn {
 ```
 
 **Logika hooka:**
+
 1. Przy montowaniu wywołuje równolegle oba endpointy
 2. Agreguje odpowiedzi do `DashboardViewModel`
 3. Mapuje `DeckWithMetadataDTO` na `DeckTileData` (camelCase)
@@ -405,6 +407,7 @@ interface UseDashboardReturn {
 ### 6.2 Stan modalu tworzenia talii
 
 Stan lokalny w `DashboardContent`:
+
 ```typescript
 const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 ```
@@ -412,8 +415,9 @@ const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 ### 6.3 Stan formularza w CreateDeckModal
 
 Stan lokalny w komponencie:
+
 ```typescript
-const [name, setName] = useState('');
+const [name, setName] = useState("");
 const [isSubmitting, setIsSubmitting] = useState(false);
 const [error, setError] = useState<string | null>(null);
 ```
@@ -425,16 +429,19 @@ const [error, setError] = useState<string | null>(null);
 **Wywołanie:** Przy montowaniu `DashboardContent` (przez `useDashboard`)
 
 **Request:**
+
 ```
 GET /api/decks?limit=100&sort=name&order=asc
 ```
 
 **Response (200):**
+
 ```typescript
-DecksListResponseDTO
+DecksListResponseDTO;
 ```
 
 **Obsługa błędów:**
+
 - `401` → Redirect do `/login`
 - `500` → Wyświetlenie komunikatu błędu
 
@@ -443,16 +450,19 @@ DecksListResponseDTO
 **Wywołanie:** Przy montowaniu `DashboardContent` (przez `useDashboard`)
 
 **Request:**
+
 ```
 GET /api/study/summary
 ```
 
 **Response (200):**
+
 ```typescript
-StudySummaryResponseDTO
+StudySummaryResponseDTO;
 ```
 
 **Obsługa błędów:**
+
 - `401` → Redirect do `/login`
 - `500` → Wyświetlenie komunikatu błędu
 
@@ -461,6 +471,7 @@ StudySummaryResponseDTO
 **Wywołanie:** Po kliknięciu "Utwórz" w `CreateDeckModal`
 
 **Request:**
+
 ```typescript
 POST /api/decks
 Content-Type: application/json
@@ -471,11 +482,13 @@ Content-Type: application/json
 ```
 
 **Response (201):**
+
 ```typescript
-DeckDTO
+DeckDTO;
 ```
 
 **Obsługa błędów:**
+
 - `400` → Wyświetlenie błędu walidacji
 - `401` → Redirect do `/login`
 - `409` → Wyświetlenie "Talia o tej nazwie już istnieje"
@@ -483,49 +496,49 @@ DeckDTO
 
 ## 8. Interakcje użytkownika
 
-| Interakcja | Komponent | Akcja |
-|------------|-----------|-------|
-| Kliknięcie logo | AppHeader | Nawigacja do `/dashboard` |
-| Kliknięcie avatara | UserDropdownMenu | Otwarcie menu |
-| "Ustawienia" w menu | UserDropdownMenu | Nawigacja do `/settings` |
-| "Wyloguj" w menu | UserDropdownMenu | Supabase signOut → redirect `/login` |
-| Kliknięcie "Do powtórki" | DueReviewTile | Nawigacja do `/study` |
-| Kliknięcie "Nowa talia" | CreateDeckTile | Otwarcie `CreateDeckModal` |
-| Kliknięcie kafelka talii | DeckTile | Nawigacja do `/decks/{id}` |
-| "Utwórz pierwszą talię" | EmptyState | Otwarcie `CreateDeckModal` |
-| Wpisanie nazwy w modalu | CreateDeckModal | Aktualizacja stanu `name` |
-| "Utwórz" w modalu | CreateDeckModal | POST /api/decks → zamknięcie → refetch |
-| "Anuluj" w modalu | CreateDeckModal | Zamknięcie modalu |
-| Kliknięcie poza modalem | CreateDeckModal | Zamknięcie modalu |
-| Escape w modalu | CreateDeckModal | Zamknięcie modalu |
+| Interakcja               | Komponent        | Akcja                                  |
+| ------------------------ | ---------------- | -------------------------------------- |
+| Kliknięcie logo          | AppHeader        | Nawigacja do `/dashboard`              |
+| Kliknięcie avatara       | UserDropdownMenu | Otwarcie menu                          |
+| "Ustawienia" w menu      | UserDropdownMenu | Nawigacja do `/settings`               |
+| "Wyloguj" w menu         | UserDropdownMenu | Supabase signOut → redirect `/login`   |
+| Kliknięcie "Do powtórki" | DueReviewTile    | Nawigacja do `/study`                  |
+| Kliknięcie "Nowa talia"  | CreateDeckTile   | Otwarcie `CreateDeckModal`             |
+| Kliknięcie kafelka talii | DeckTile         | Nawigacja do `/decks/{id}`             |
+| "Utwórz pierwszą talię"  | EmptyState       | Otwarcie `CreateDeckModal`             |
+| Wpisanie nazwy w modalu  | CreateDeckModal  | Aktualizacja stanu `name`              |
+| "Utwórz" w modalu        | CreateDeckModal  | POST /api/decks → zamknięcie → refetch |
+| "Anuluj" w modalu        | CreateDeckModal  | Zamknięcie modalu                      |
+| Kliknięcie poza modalem  | CreateDeckModal  | Zamknięcie modalu                      |
+| Escape w modalu          | CreateDeckModal  | Zamknięcie modalu                      |
 
 ## 9. Warunki i walidacja
 
 ### 9.1 Warunki wyświetlania komponentów
 
-| Warunek | Komponent | Zachowanie |
-|---------|-----------|------------|
+| Warunek              | Komponent        | Zachowanie                 |
+| -------------------- | ---------------- | -------------------------- |
 | `isLoading === true` | DashboardContent | Wyświetla skeleton/spinner |
-| `error !== null` | DashboardContent | Wyświetla Alert z błędem |
-| `totalDue > 0` | DueReviewTile | Wyświetla kafelek |
-| `totalDue === 0` | DueReviewTile | Ukrywa kafelek |
-| `hasDecks === true` | DeckGrid | Wyświetla siatkę talii |
-| `hasDecks === false` | EmptyState | Wyświetla pusty stan |
+| `error !== null`     | DashboardContent | Wyświetla Alert z błędem   |
+| `totalDue > 0`       | DueReviewTile    | Wyświetla kafelek          |
+| `totalDue === 0`     | DueReviewTile    | Ukrywa kafelek             |
+| `hasDecks === true`  | DeckGrid         | Wyświetla siatkę talii     |
+| `hasDecks === false` | EmptyState       | Wyświetla pusty stan       |
 
 ### 9.2 Walidacja formularza tworzenia talii
 
-| Pole | Warunek | Komunikat błędu |
-|------|---------|-----------------|
-| `name` | Wymagane (min 1 znak) | "Nazwa talii jest wymagana" |
-| `name` | Max 100 znaków | "Nazwa może mieć maksymalnie 100 znaków" |
-| `name` | Unikalność | "Talia o tej nazwie już istnieje" (z API 409) |
+| Pole   | Warunek               | Komunikat błędu                               |
+| ------ | --------------------- | --------------------------------------------- |
+| `name` | Wymagane (min 1 znak) | "Nazwa talii jest wymagana"                   |
+| `name` | Max 100 znaków        | "Nazwa może mieć maksymalnie 100 znaków"      |
+| `name` | Unikalność            | "Talia o tej nazwie już istnieje" (z API 409) |
 
 ### 9.3 Walidacja przycisków
 
-| Przycisk | Warunek aktywności |
-|----------|-------------------|
-| "Utwórz" w modalu | `name.length > 0 && name.length <= 100 && !isSubmitting` |
-| "Utwórz" w modalu (tekst) | `isSubmitting ? "Tworzenie..." : "Utwórz"` |
+| Przycisk                  | Warunek aktywności                                       |
+| ------------------------- | -------------------------------------------------------- |
+| "Utwórz" w modalu         | `name.length > 0 && name.length <= 100 && !isSubmitting` |
+| "Utwórz" w modalu (tekst) | `isSubmitting ? "Tworzenie..." : "Utwórz"`               |
 
 ## 10. Obsługa błędów
 

@@ -29,7 +29,7 @@ const { userEmail } = Astro.props;
     <title>Dashboard - Flashcards AI</title>
   </head>
   <body class="min-h-screen bg-background">
-    <AppHeader userEmail={userEmail} client:load />
+    <AppHeader userEmail={userEmail} client:idle />
 
     <main class="container mx-auto px-4 py-8">
       <slot />

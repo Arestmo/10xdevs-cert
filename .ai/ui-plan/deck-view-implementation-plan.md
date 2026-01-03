@@ -190,6 +190,7 @@ src/pages/decks/[deckId].astro (Astro Page)
   ```
 
 **Atrybuty dostępności**:
+
 - `aria-expanded` na triggerze
 - `aria-controls` wskazujący na panel treści
 - Unikalne `id` dla panelu treści
@@ -468,7 +469,7 @@ export function useDeckView(deckId: string): UseDeckViewReturn {
   const [pagination, setPagination] = useState({
     total: 0,
     offset: 0,
-    hasMore: false
+    hasMore: false,
   });
 
   // Stany operacji CRUD
@@ -505,6 +506,7 @@ const [deletingFlashcard, setDeletingFlashcard] = useState<FlashcardViewModel | 
 **Typ żądania**: Brak body (parametr w URL)
 
 **Typ odpowiedzi**: `DeckWithMetadataDTO`
+
 ```typescript
 {
   id: string;
@@ -517,6 +519,7 @@ const [deletingFlashcard, setDeletingFlashcard] = useState<FlashcardViewModel | 
 ```
 
 **Transformacja do ViewModel**:
+
 ```typescript
 const transformDeckDTO = (dto: DeckWithMetadataDTO): DeckViewModel => ({
   id: dto.id,
@@ -533,6 +536,7 @@ const transformDeckDTO = (dto: DeckWithMetadataDTO): DeckViewModel => ({
 **Endpoint**: `GET /api/flashcards?deck_id={deckId}&limit=50&offset=0&sort=created_at&order=desc`
 
 **Typ odpowiedzi**: `FlashcardsListResponseDTO`
+
 ```typescript
 {
   data: FlashcardDTO[];
@@ -546,6 +550,7 @@ const transformDeckDTO = (dto: DeckWithMetadataDTO): DeckViewModel => ({
 ```
 
 **Transformacja do ViewModel**:
+
 ```typescript
 const transformFlashcardDTO = (dto: FlashcardDTO): FlashcardViewModel => ({
   id: dto.id,
@@ -564,8 +569,11 @@ const transformFlashcardDTO = (dto: FlashcardDTO): FlashcardViewModel => ({
 **Endpoint**: `PATCH /api/decks/{deckId}`
 
 **Typ żądania**: `UpdateDeckRequestDTO`
+
 ```typescript
-{ name: string }
+{
+  name: string;
+}
 ```
 
 **Typ odpowiedzi**: `DeckDTO`
@@ -581,6 +589,7 @@ const transformFlashcardDTO = (dto: FlashcardDTO): FlashcardViewModel => ({
 **Endpoint**: `POST /api/flashcards`
 
 **Typ żądania**: `CreateFlashcardRequestDTO`
+
 ```typescript
 {
   deck_id: string;
@@ -597,6 +606,7 @@ const transformFlashcardDTO = (dto: FlashcardDTO): FlashcardViewModel => ({
 **Endpoint**: `PATCH /api/flashcards/{flashcardId}`
 
 **Typ żądania**: `UpdateFlashcardRequestDTO`
+
 ```typescript
 {
   front?: string;
@@ -616,92 +626,93 @@ const transformFlashcardDTO = (dto: FlashcardDTO): FlashcardViewModel => ({
 
 ### 8.1 Nawigacja
 
-| Interakcja | Akcja | Rezultat |
-|------------|-------|----------|
-| Kliknięcie przycisku powrotu | - | Nawigacja do `/dashboard` |
-| Kliknięcie "Ucz się (X)" | `window.location.href` | Nawigacja do `/study?deck={deckId}` |
-| Kliknięcie "Generuj fiszki" | - | Nawigacja do widoku generatora |
+| Interakcja                   | Akcja                  | Rezultat                            |
+| ---------------------------- | ---------------------- | ----------------------------------- |
+| Kliknięcie przycisku powrotu | -                      | Nawigacja do `/dashboard`           |
+| Kliknięcie "Ucz się (X)"     | `window.location.href` | Nawigacja do `/study?deck={deckId}` |
+| Kliknięcie "Generuj fiszki"  | -                      | Nawigacja do widoku generatora      |
 
 ### 8.2 Edycja nazwy talii
 
-| Interakcja | Akcja | Rezultat |
-|------------|-------|----------|
-| Kliknięcie nazwy talii | `setIsEditingName(true)` | Pole staje się edytowalne |
-| Wpisywanie tekstu | `setEditedName(value)` | Aktualizacja stanu |
-| Enter | `updateDeckName(editedName)` | Zapis do API, aktualizacja UI |
-| Escape | `setIsEditingName(false)` | Anulowanie, przywrócenie oryginalnej nazwy |
-| Kliknięcie poza polem | `onSave()` lub `onCancel()` | Zależnie od konfiguracji |
+| Interakcja             | Akcja                        | Rezultat                                   |
+| ---------------------- | ---------------------------- | ------------------------------------------ |
+| Kliknięcie nazwy talii | `setIsEditingName(true)`     | Pole staje się edytowalne                  |
+| Wpisywanie tekstu      | `setEditedName(value)`       | Aktualizacja stanu                         |
+| Enter                  | `updateDeckName(editedName)` | Zapis do API, aktualizacja UI              |
+| Escape                 | `setIsEditingName(false)`    | Anulowanie, przywrócenie oryginalnej nazwy |
+| Kliknięcie poza polem  | `onSave()` lub `onCancel()`  | Zależnie od konfiguracji                   |
 
 ### 8.3 Zarządzanie fiszkami
 
-| Interakcja | Akcja | Rezultat |
-|------------|-------|----------|
-| Kliknięcie "Dodaj fiszkę" | `setIsAddFormOpen(true)` | Otwarcie modalu formularza |
-| Zapisanie formularza | `createFlashcard(data)` | Utworzenie fiszki, dodanie do listy |
-| Kliknięcie fiszki | `setExpandedFlashcardId(id)` | Rozwinięcie/zwinięcie akordeonu |
-| Kliknięcie "Edytuj" | `setEditingFlashcard(flashcard)` | Otwarcie modalu z danymi |
-| Zapisanie edycji | `updateFlashcard(id, data)` | Aktualizacja fiszki w liście |
-| Kliknięcie "Usuń" | `setDeletingFlashcard(flashcard)` | Otwarcie dialogu potwierdzenia |
-| Potwierdzenie usunięcia | `deleteFlashcard(id)` | Usunięcie fiszki, aktualizacja listy |
+| Interakcja                | Akcja                             | Rezultat                             |
+| ------------------------- | --------------------------------- | ------------------------------------ |
+| Kliknięcie "Dodaj fiszkę" | `setIsAddFormOpen(true)`          | Otwarcie modalu formularza           |
+| Zapisanie formularza      | `createFlashcard(data)`           | Utworzenie fiszki, dodanie do listy  |
+| Kliknięcie fiszki         | `setExpandedFlashcardId(id)`      | Rozwinięcie/zwinięcie akordeonu      |
+| Kliknięcie "Edytuj"       | `setEditingFlashcard(flashcard)`  | Otwarcie modalu z danymi             |
+| Zapisanie edycji          | `updateFlashcard(id, data)`       | Aktualizacja fiszki w liście         |
+| Kliknięcie "Usuń"         | `setDeletingFlashcard(flashcard)` | Otwarcie dialogu potwierdzenia       |
+| Potwierdzenie usunięcia   | `deleteFlashcard(id)`             | Usunięcie fiszki, aktualizacja listy |
 
 ### 8.4 Usuwanie talii
 
-| Interakcja | Akcja | Rezultat |
-|------------|-------|----------|
-| Kliknięcie "Usuń talię" | `setIsDeleteDeckDialogOpen(true)` | Otwarcie dialogu |
-| Potwierdzenie | `deleteDeck()` | Usunięcie, przekierowanie do dashboard |
-| Anulowanie | `setIsDeleteDeckDialogOpen(false)` | Zamknięcie dialogu |
+| Interakcja              | Akcja                              | Rezultat                               |
+| ----------------------- | ---------------------------------- | -------------------------------------- |
+| Kliknięcie "Usuń talię" | `setIsDeleteDeckDialogOpen(true)`  | Otwarcie dialogu                       |
+| Potwierdzenie           | `deleteDeck()`                     | Usunięcie, przekierowanie do dashboard |
+| Anulowanie              | `setIsDeleteDeckDialogOpen(false)` | Zamknięcie dialogu                     |
 
 ## 9. Warunki i walidacja
 
 ### 9.1 Walidacja nazwy talii
 
-| Warunek | Komponent | Wpływ na UI |
-|---------|-----------|-------------|
-| Nazwa pusta | `InlineEditField` | Przycisk "Zapisz" nieaktywny, komunikat błędu |
-| Nazwa > 100 znaków | `InlineEditField` | Przycisk "Zapisz" nieaktywny, licznik czerwony |
-| Duplikat nazwy (409) | `InlineEditField` | Wyświetlenie błędu po stronie serwera |
+| Warunek              | Komponent         | Wpływ na UI                                    |
+| -------------------- | ----------------- | ---------------------------------------------- |
+| Nazwa pusta          | `InlineEditField` | Przycisk "Zapisz" nieaktywny, komunikat błędu  |
+| Nazwa > 100 znaków   | `InlineEditField` | Przycisk "Zapisz" nieaktywny, licznik czerwony |
+| Duplikat nazwy (409) | `InlineEditField` | Wyświetlenie błędu po stronie serwera          |
 
 ### 9.2 Walidacja formularza fiszki
 
-| Warunek | Komponent | Wpływ na UI |
-|---------|-----------|-------------|
-| Przód pusty | `FlashcardFormModal` | Przycisk "Zapisz" nieaktywny |
+| Warunek            | Komponent            | Wpływ na UI                           |
+| ------------------ | -------------------- | ------------------------------------- |
+| Przód pusty        | `FlashcardFormModal` | Przycisk "Zapisz" nieaktywny          |
 | Przód > 200 znaków | `FlashcardFormModal` | Licznik czerwony, przycisk nieaktywny |
-| Tył pusty | `FlashcardFormModal` | Przycisk "Zapisz" nieaktywny |
-| Tył > 500 znaków | `FlashcardFormModal` | Licznik czerwony, przycisk nieaktywny |
+| Tył pusty          | `FlashcardFormModal` | Przycisk "Zapisz" nieaktywny          |
+| Tył > 500 znaków   | `FlashcardFormModal` | Licznik czerwony, przycisk nieaktywny |
 
 ### 9.3 Warunki wyświetlania
 
-| Warunek | Komponent | Wpływ na UI |
-|---------|-----------|-------------|
-| `dueFlashcards === 0` | `DeckActions` | Przycisk "Ucz się" wyłączony lub ukryty |
-| `flashcards.length === 0` | `FlashcardList` | Wyświetlenie pustego stanu |
-| `hasMore === true` | `FlashcardList` | Wyświetlenie przycisku "Załaduj więcej" |
+| Warunek                   | Komponent       | Wpływ na UI                             |
+| ------------------------- | --------------- | --------------------------------------- |
+| `dueFlashcards === 0`     | `DeckActions`   | Przycisk "Ucz się" wyłączony lub ukryty |
+| `flashcards.length === 0` | `FlashcardList` | Wyświetlenie pustego stanu              |
+| `hasMore === true`        | `FlashcardList` | Wyświetlenie przycisku "Załaduj więcej" |
 
 ## 10. Obsługa błędów
 
 ### 10.1 Błędy pobierania danych
 
-| Kod błędu | Obsługa |
-|-----------|---------|
-| 401 Unauthorized | Przekierowanie do `/login?redirect=/decks/{deckId}` |
-| 404 Not Found | Wyświetlenie komunikatu "Talia nie została znaleziona" z przyciskiem powrotu |
-| 500 Server Error | Alert z komunikatem i przyciskiem "Spróbuj ponownie" |
-| Network Error | Alert z komunikatem o problemie z połączeniem |
+| Kod błędu        | Obsługa                                                                      |
+| ---------------- | ---------------------------------------------------------------------------- |
+| 401 Unauthorized | Przekierowanie do `/login?redirect=/decks/{deckId}`                          |
+| 404 Not Found    | Wyświetlenie komunikatu "Talia nie została znaleziona" z przyciskiem powrotu |
+| 500 Server Error | Alert z komunikatem i przyciskiem "Spróbuj ponownie"                         |
+| Network Error    | Alert z komunikatem o problemie z połączeniem                                |
 
 ### 10.2 Błędy operacji CRUD
 
-| Operacja | Błąd | Obsługa |
-|----------|------|---------|
-| Aktualizacja nazwy | 409 Conflict | Wyświetlenie błędu "Talia o tej nazwie już istnieje" |
-| Aktualizacja nazwy | 400 Validation | Wyświetlenie szczegółów walidacji |
-| Tworzenie fiszki | 400 Validation | Wyświetlenie błędów przy polach |
-| Usuwanie | 404 Not Found | Odświeżenie listy (element mógł być już usunięty) |
+| Operacja           | Błąd           | Obsługa                                              |
+| ------------------ | -------------- | ---------------------------------------------------- |
+| Aktualizacja nazwy | 409 Conflict   | Wyświetlenie błędu "Talia o tej nazwie już istnieje" |
+| Aktualizacja nazwy | 400 Validation | Wyświetlenie szczegółów walidacji                    |
+| Tworzenie fiszki   | 400 Validation | Wyświetlenie błędów przy polach                      |
+| Usuwanie           | 404 Not Found  | Odświeżenie listy (element mógł być już usunięty)    |
 
 ### 10.3 Optymistyczne aktualizacje
 
 Dla lepszego UX, rozważyć implementację optymistycznych aktualizacji:
+
 - Natychmiastowe dodanie fiszki do listy po kliknięciu "Zapisz"
 - Natychmiastowe usunięcie z listy po potwierdzeniu usunięcia
 - Rollback w przypadku błędu API
@@ -709,16 +720,19 @@ Dla lepszego UX, rozważyć implementację optymistycznych aktualizacji:
 ## 11. Kroki implementacji
 
 ### Krok 1: Struktura plików
+
 1. Utworzenie katalogu `src/components/deck/`
 2. Utworzenie pliku typów `src/components/deck/types.ts`
 3. Utworzenie strony Astro `src/pages/decks/[deckId].astro`
 
 ### Krok 2: Typy i ViewModel
+
 1. Zdefiniowanie `DeckViewModel` i `FlashcardViewModel`
 2. Zdefiniowanie wszystkich interfejsów Props
 3. Zdefiniowanie funkcji transformacji DTO → ViewModel
 
 ### Krok 3: Custom Hook useDeckView
+
 1. Implementacja pobierania danych talii i fiszek
 2. Implementacja paginacji (load more)
 3. Implementacja operacji CRUD dla talii
@@ -726,36 +740,43 @@ Dla lepszego UX, rozważyć implementację optymistycznych aktualizacji:
 5. Obsługa błędów i stanów ładowania
 
 ### Krok 4: Komponenty prezentacyjne
+
 1. `DeckStats` - statystyki talii
 2. `InlineEditField` - edycja inline z obsługą klawiatury
 3. `FlashcardAccordionItem` - element akordeonu
 4. `FlashcardList` - lista z akordeonem i pustym stanem
 
 ### Krok 5: Komponenty nagłówka i akcji
+
 1. `DeckHeader` - kompozycja nagłówka
 2. `DeckActions` - pasek akcji z przyciskami
 
 ### Krok 6: Modale i dialogi
+
 1. `FlashcardFormModal` - formularz tworzenia/edycji
 2. `DeleteDeckDialog` - potwierdzenie usunięcia talii
 3. `DeleteFlashcardDialog` - potwierdzenie usunięcia fiszki
 
 ### Krok 7: Główny kontener
+
 1. `DeckView` - kompozycja wszystkich komponentów
 2. Zarządzanie stanem UI (rozwinięty akordeon, otwarte modale)
 3. Integracja z useDeckView hook
 
 ### Krok 8: Strona Astro
+
 1. Implementacja autoryzacji SSR
 2. Renderowanie DeckView z `client:load`
 3. Przekazanie deckId z parametrów URL
 
 ### Krok 9: Instalacja brakujących komponentów shadcn/ui
+
 1. `npx shadcn@latest add accordion` (jeśli nie zainstalowany)
 2. `npx shadcn@latest add alert-dialog` (jeśli nie zainstalowany)
 3. `npx shadcn@latest add textarea` (jeśli nie zainstalowany)
 
 ### Krok 10: Testy i dostępność
+
 1. Weryfikacja atrybutów ARIA na akordeonach
 2. Test nawigacji klawiaturą (Tab, Enter, Escape)
 3. Test focus trap w modalach
