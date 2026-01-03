@@ -1,73 +1,108 @@
-US-006
-Tytuł: Otwieranie modalu generowania fiszek
-Opis: Jako użytkownik chcę mieć łatwy dostęp do funkcji generowania fiszek, aby szybko tworzyć nowe materiały do nauki.
+US-018
+Tytuł: Otwieranie formularza tworzenia fiszki
+Opis: Jako użytkownik chcę mieć dostęp do formularza tworzenia fiszki, aby dodawać własne karty do nauki.
 Kryteria akceptacji:
 
-- Na dashboardzie widoczny jest kafelek/przycisk "Generuj fiszki"
-- W widoku talii dostępny jest przycisk "Generuj fiszki"
-- Po kliknięciu otwiera się modal z formularzem generowania
-- Modal można zamknąć przyciskiem X lub kliknięciem poza obszar
+- W widoku talii dostępny jest przycisk "Dodaj fiszkę"
+- Po kliknięciu otwiera się formularz tworzenia fiszki
+- Formularz można zamknąć bez zapisywania
 
-US-021
-Tytuł: Tworzenie nowej talii
-Opis: Jako użytkownik chcę utworzyć nową talię, aby organizować fiszki tematycznie.
+US-019
+Tytuł: Tworzenie fiszki manualnie
+Opis: Jako użytkownik chcę ręcznie utworzyć fiszkę wpisując przód i tył, aby dodać specyficzne karty których AI nie wygenerował.
 Kryteria akceptacji:
 
-- Na dashboardzie dostępny jest przycisk "Nowa talia"
-- Po kliknięciu wyświetla się formularz z polem na nazwę talii
-- Nazwa talii jest wymagana (nie może być pusta)
-- Po zapisaniu talia pojawia się na dashboardzie
-- Użytkownik jest przekierowany do widoku nowej talii
-- Można utworzyć nieograniczoną liczbę talii
+- Formularz zawiera pola: przód (max 200 znaków) i tył (max 500 znaków)
+- Widoczne są liczniki znaków dla obu pól
+- Przycisk "Zapisz" jest aktywny gdy oba pola są wypełnione i w limitach
+- Po zapisaniu fiszka pojawia się w wybranej talii
+- Formularz może być użyty ponownie do dodania kolejnych fiszek
+- Brak limitu ilościowego dla manualnie tworzonych fiszek
 
-US-022
-Tytuł: Przeglądanie listy talii
-Opis: Jako użytkownik chcę widzieć wszystkie moje talie na dashboardzie, aby mieć przegląd moich materiałów.
+US-023
+Tytuł: Otwieranie widoku talii
+Opis: Jako użytkownik chcę otworzyć talię, aby zobaczyć i zarządzać jej fiszkami.
 Kryteria akceptacji:
 
-- Dashboard wyświetla wszystkie talie użytkownika jako kafelki
-- Każdy kafelek pokazuje nazwę talii
-- Kafelki są klikalane i prowadzą do widoku talii
-- Dla nowego użytkownika wyświetlany jest pusty stan z CTA do utworzenia talii
+- Po kliknięciu kafelka talii otwiera się widok talii
+- Widok zawiera nazwę talii, liczbę fiszek i listę fiszek
+- Dostępne są przyciski: "Dodaj fiszkę", "Generuj fiszki", "Edytuj talię", "Usuń talię"
+- Można wrócić do dashboardu
 
-US-030
-Tytuł: Wyświetlanie liczby kart do powtórki
-Opis: Jako użytkownik chcę widzieć ile mam kart do powtórki, aby planować czas nauki.
+US-024
+Tytuł: Edycja nazwy talii
+Opis: Jako użytkownik chcę zmienić nazwę talii, aby lepiej odzwierciedlała jej zawartość.
 Kryteria akceptacji:
 
-- Na dashboardzie widoczny jest kafelek "Do powtórki: X"
-- Liczba X to suma fiszek ze wszystkich talii zaplanowanych na dziś lub wcześniej
-- Liczba aktualizuje się po każdej sesji nauki
-- Gdy X = 0, kafelek pokazuje "Brak fiszek do powtórki"
+- W widoku talii dostępna jest opcja "Edytuj nazwę"
+- Po kliknięciu nazwa staje się edytowalna
+- Nowa nazwa jest zapisywana po potwierdzeniu
+- Zmiana jest natychmiast widoczna w interfejsie
 
-US-040
-Tytuł: Wyświetlanie dashboardu
-Opis: Jako zalogowany użytkownik chcę widzieć przegląd moich materiałów i szybki dostęp do głównych funkcji.
+US-025
+Tytuł: Usuwanie talii
+Opis: Jako użytkownik chcę usunąć talię której już nie potrzebuję, aby utrzymać porządek w materiałach.
 Kryteria akceptacji:
 
-- Po zalogowaniu wyświetlany jest dashboard
-- Widoczny jest kafelek "Do powtórki: X"
-- Widoczny jest kafelek "Nowa talia / Generuj fiszki"
-- Widoczna jest lista talii użytkownika
-- Layout jest responsywny (mobile-first)
+- W widoku talii dostępna jest opcja "Usuń talię"
+- Przed usunięciem wyświetlane jest okno potwierdzenia
+- Potwierdzenie informuje o liczbie fiszek które zostaną usunięte
+- Po potwierdzeniu talia i wszystkie jej fiszki są trwale usuwane
+- Użytkownik jest przekierowany do dashboardu
+- Wyświetlany jest komunikat potwierdzający usunięcie
 
-US-041
-Tytuł: Nawigacja z poziomu dashboardu
-Opis: Jako użytkownik chcę łatwo nawigować do głównych funkcji aplikacji.
+US-026
+Tytuł: Przeglądanie fiszek w talii
+Opis: Jako użytkownik chcę przeglądać fiszki w talii, aby zobaczyć co zawiera i znaleźć konkretne karty.
 Kryteria akceptacji:
 
-- Kliknięcie kafelka "Do powtórki" rozpoczyna sesję nauki
-- Kliknięcie "Nowa talia" otwiera formularz tworzenia talii
-- Kliknięcie "Generuj fiszki" otwiera modal generowania
-- Kliknięcie kafelka talii otwiera widok talii
-- Dostępne jest menu użytkownika z opcją wylogowania i ustawień
+- Widok talii wyświetla listę fiszek
+- Każda fiszka pokazuje początek przodu (pierwsze ~50 znaków)
+- Lista jest przewijalna gdy fiszek jest dużo
+- Kliknięcie fiszki rozwija pełny widok (przód i tył)
+- Ponowne kliknięcie zwija fiszkę
 
-US-042
-Tytuł: Pusty stan dla nowego użytkownika
-Opis: Jako nowy użytkownik bez talii chcę otrzymać wskazówki jak zacząć.
+US-027
+Tytuł: Rozwijanie szczegółów fiszki
+Opis: Jako użytkownik chcę zobaczyć pełną treść fiszki, aby zweryfikować jej zawartość.
 Kryteria akceptacji:
 
-- Gdy użytkownik nie ma żadnych talii, wyświetlany jest pusty stan
-- Pusty stan zawiera komunikat powitalny
-- Widoczny jest wyraźny CTA "Utwórz pierwszą talię"
-- Opcjonalnie: krótka instrukcja korzystania z aplikacji
+- Po kliknięciu fiszki na liście rozwija się pełny widok
+- Widoczny jest pełny przód i tył fiszki
+- Dostępne są przyciski "Edytuj" i "Usuń"
+- Można zwinąć fiszkę klikając ponownie lub przycisk "Zwiń"
+
+### Zarządzanie fiszkami
+
+US-028
+Tytuł: Edycja istniejącej fiszki
+Opis: Jako użytkownik chcę edytować fiszkę, aby poprawić błędy lub zaktualizować treść.
+Kryteria akceptacji:
+
+- W rozwiniętym widoku fiszki dostępny jest przycisk "Edytuj"
+- Po kliknięciu pola przód i tył stają się edytowalne
+- Widoczne są liczniki znaków (przód: max 200, tył: max 500)
+- Dostępne są przyciski "Zapisz" i "Anuluj"
+- Po zapisaniu zaktualizowana treść jest widoczna w interfejsie
+- Edycja nie resetuje parametrów FSRS fiszki
+
+US-029
+Tytuł: Usuwanie fiszki
+Opis: Jako użytkownik chcę usunąć fiszkę której już nie potrzebuję, aby utrzymać jakość materiałów.
+Kryteria akceptacji:
+
+- W rozwiniętym widoku fiszki dostępny jest przycisk "Usuń"
+- Przed usunięciem wyświetlane jest okno potwierdzenia
+- Po potwierdzeniu fiszka jest trwale usuwana
+- Fiszka znika z listy w widoku talii
+- Wyświetlany jest komunikat potwierdzający usunięcie
+
+US-032
+Tytuł: Rozpoczynanie sesji nauki z pojedynczej talii
+Opis: Jako użytkownik chcę uczyć się tylko z wybranej talii, gdy przygotowuję się do egzaminu z konkretnego tematu.
+Kryteria akceptacji:
+
+- W widoku talii dostępny jest przycisk "Ucz się"
+- Przycisk pokazuje liczbę fiszek do powtórki w tej talii
+- Po kliknięciu rozpoczyna się sesja tylko z tej talii
+- Fiszki z innych talii nie są uwzględniane
