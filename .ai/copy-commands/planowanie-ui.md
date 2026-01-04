@@ -2,10 +2,15 @@ Jako starszy programista frontendu Twoim zadaniem jest stworzenie szczegółoweg
 
 Najpierw przejrzyj następujące informacje:
 
-1. Product Requirements Document (PRD):
+0.Product Requirements Document (PRD):
    <prd>
    @.ai/prd.md  
    </prd>
+
+1.Global UI implementation plan:
+   <global_ui_plan>
+   @.ai/ui-plan.md  
+   </global_ui_plan>
 
 2. Opis widoku:
    <view_description>
@@ -41,7 +46,7 @@ Przed utworzeniem ostatecznego planu wdrożenia przeprowadź analizę i planowan
 
 W swoim podziale implementacji wykonaj następujące kroki:
 
-1. Dla każdej sekcji wejściowej (PRD, User Stories, Endpoint Description, Endpoint Implementation, Type Definitions, Tech Stack):
+1. Dla każdej sekcji wejściowej (PRD, UI PLAN, User Stories, Endpoint Description, Endpoint Implementation, Type Definitions, Tech Stack):
 
 - Podsumuj kluczowe punkty
 - Wymień wszelkie wymagania lub ograniczenia

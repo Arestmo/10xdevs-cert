@@ -1,0 +1,37 @@
+---
+/**
+ * Study Session Page - Single Deck
+ *
+ * Starts a study session with flashcards from a specific deck.
+ * Shows flashcards that are due for review from the selected deck.
+ *
+ * Protected route - redirects to /login if user is not authenticated.
+ */
+
+import StudyLayout from "@/layouts/StudyLayout.astro";
+import { StudyView } from "@/components/study/StudyView";
+
+// Step 1: Get deckId from URL params
+const { deckId } = Astro.params;
+
+// Step 2: Validate UUID format
+const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+if (!deckId || !uuidRegex.test(deckId)) {
+  return Astro.redirect("/dashboard");
+}
+
+// Step 3: Check authentication
+const {
+  data: { user },
+  error: authError,
+} = await Astro.locals.supabase.auth.getUser();
+
+// Step 4: Redirect to login if not authenticated
+if (authError || !user) {
+  return Astro.redirect(`/login?redirect=/study/${deckId}`);
+}
+---
+
+<StudyLayout title="Sesja nauki - Flashcards AI">
+  <StudyView client:load deckId={deckId} />
+</StudyLayout>

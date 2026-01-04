@@ -1,113 +1,91 @@
-US-007
-Tytuł: Wprowadzanie tekstu źródłowego
-Opis: Jako użytkownik chcę wkleić tekst, z którego AI wygeneruje fiszki, aby nie musieć ręcznie przepisywać materiałów.
+US-031
+Tytuł: Rozpoczynanie sesji nauki ze wszystkich talii
+Opis: Jako użytkownik chcę rozpocząć naukę wszystkich fiszek do powtórki, aby efektywnie przejrzeć cały materiał.
 Kryteria akceptacji:
 
-- W modalu generowania dostępne jest pole tekstowe na materiał źródłowy
-- Pole akceptuje tekst do 5000 znaków
-- Widoczny jest licznik znaków pokazujący wykorzystanie limitu (np. "2500/5000")
-- Przy przekroczeniu limitu tekst jest obcinany lub wyświetlany jest komunikat błędu
-- Pole obsługuje wklejanie tekstu ze schowka (Ctrl+V / Cmd+V)
+- Kliknięcie kafelka "Do powtórki" rozpoczyna sesję nauki
+- Sesja zawiera fiszki ze wszystkich talii zaplanowane na dziś lub wcześniej
+- Fiszki są prezentowane w kolejności wynikającej z algorytmu FSRS
+- Wyświetlany jest ekran nauki z pierwszą fiszką
 
-US-008
-Tytuł: Wybór talii docelowej przy generowaniu
-Opis: Jako użytkownik chcę wybrać talię, do której trafią zaakceptowane fiszki, aby zachować organizację materiałów.
+US-032
+Tytuł: Rozpoczynanie sesji nauki z pojedynczej talii
+Opis: Jako użytkownik chcę uczyć się tylko z wybranej talii, gdy przygotowuję się do egzaminu z konkretnego tematu.
 Kryteria akceptacji:
 
-- W modalu generowania dostępna jest lista rozwijana z taliami użytkownika
-- Można wybrać istniejącą talię z listy
-- Dostępna jest opcja utworzenia nowej talii (pole tekstowe na nazwę)
-- Wybór talii jest wymagany przed rozpoczęciem generowania
+- W widoku talii dostępny jest przycisk "Ucz się"
+- Przycisk pokazuje liczbę fiszek do powtórki w tej talii
+- Po kliknięciu rozpoczyna się sesja tylko z tej talii
+- Fiszki z innych talii nie są uwzględniane
 
-US-009
-Tytuł: Generowanie fiszek z tekstu
-Opis: Jako użytkownik chcę uruchomić generowanie fiszek AI, aby otrzymać gotowe propozycje kart do nauki.
+US-033
+Tytuł: Przeglądanie przodu fiszki w sesji nauki
+Opis: Jako użytkownik chcę zobaczyć przód fiszki i spróbować przypomnieć sobie odpowiedź, zanim zobaczę tył.
 Kryteria akceptacji:
 
-- Przycisk "Generuj" jest aktywny gdy wprowadzono tekst i wybrano talię
-- Po kliknięciu przycisku wyświetlany jest spinner/animacja ładowania
-- Generowanych jest maksymalnie 20 fiszek na sesję
-- Po zakończeniu generowania wyświetlana jest lista draftów
-- Każdy draft zawiera przód i tył fiszki
+- Ekran nauki wyświetla centralnie przód fiszki
+- Tył fiszki jest ukryty
+- Dostępny jest przycisk "Pokaż odpowiedź"
+- Widoczny jest pasek postępu "X/Y kart"
 
-US-010
-Tytuł: Przeglądanie wygenerowanych draftów
-Opis: Jako użytkownik chcę przejrzeć propozycje fiszek wygenerowane przez AI, aby ocenić ich jakość przed zapisaniem.
+US-034
+Tytuł: Odsłanianie odpowiedzi
+Opis: Jako użytkownik chcę odsłonić tył fiszki po zastanowieniu się nad odpowiedzią.
 Kryteria akceptacji:
 
-- Lista draftów wyświetla wszystkie wygenerowane fiszki
-- Dla każdego draftu widoczny jest przód i tył fiszki
-- Drafty są ponumerowane (np. "1/15", "2/15")
-- Można przewijać listę draftów
-- Dla każdego draftu dostępne są przyciski: Akceptuj / Edytuj / Odrzuć
+- Po kliknięciu "Pokaż odpowiedź" wyświetlany jest tył fiszki
+- Przód fiszki pozostaje widoczny
+- Przycisk "Pokaż odpowiedź" znika
+- Pojawiają się 4 przyciski oceny: Again / Hard / Good / Easy
 
-US-011
-Tytuł: Akceptowanie draftu fiszki
-Opis: Jako użytkownik chcę zaakceptować dobry draft, aby zapisać go jako fiszkę w wybranej talii.
+US-035
+Tytuł: Ocenianie znajomości fiszki
+Opis: Jako użytkownik chcę ocenić jak dobrze pamiętałem odpowiedź, aby algorytm FSRS zaplanował optymalny termin powtórki.
 Kryteria akceptacji:
 
-- Przycisk "Akceptuj" jest dostępny przy każdym drafcie
-- Po kliknięciu fiszka jest zapisywana do bazy danych w wybranej talii
-- Draft znika z listy lub jest oznaczony jako zaakceptowany
-- Logowany jest event fiszka_zaakceptowana
-- Wyświetlane jest potwierdzenie akceptacji (np. zielony checkmark)
+- Dostępne są 4 przyciski: Again (1), Hard (2), Good (3), Easy (4)
+- Każdy przycisk pokazuje przewidywany interwał do następnej powtórki
+- Po kliknięciu parametry FSRS fiszki są aktualizowane
+- Obliczana jest nowa data następnej powtórki
+- Wyświetlana jest następna fiszka z sesji
 
-US-012
-Tytuł: Edycja draftu przed akceptacją
-Opis: Jako użytkownik chcę poprawić treść draftu przed zapisaniem, aby dostosować fiszkę do moich potrzeb.
+US-036
+Tytuł: Śledzenie postępu sesji nauki
+Opis: Jako użytkownik chcę widzieć postęp sesji, aby wiedzieć ile kart zostało do końca.
 Kryteria akceptacji:
 
-- Przycisk "Edytuj" jest dostępny przy każdym drafcie
-- Po kliknięciu pola przód i tył stają się edytowalne
-- Widoczne są liczniki znaków (przód: max 200, tył: max 500)
-- Dostępne są przyciski "Zapisz" i "Anuluj"
-- Po zapisaniu draft pozostaje na liście z zaktualizowaną treścią
-- Logowany jest event fiszka_edytowana
-- Można następnie zaakceptować edytowany draft
+- Na ekranie nauki widoczny jest pasek postępu
+- Postęp pokazuje format "X/Y" gdzie X to przejrzane karty, Y to suma
+- Pasek wypełnia się proporcjonalnie do postępu
+- Po każdej ocenie X zwiększa się o 1
 
-US-013
-Tytuł: Odrzucanie draftu fiszki
-Opis: Jako użytkownik chcę odrzucić nieprzydatny draft, aby nie zaśmiecać mojej talii niskiej jakości fiszkami.
+US-037
+Tytuł: Zakończenie sesji nauki
+Opis: Jako użytkownik chcę wiedzieć że ukończyłem sesję i wrócić do dashboardu.
 Kryteria akceptacji:
 
-- Przycisk "Odrzuć" jest dostępny przy każdym drafcie
-- Po kliknięciu draft znika z listy bez zapisywania do bazy
-- Logowany jest event fiszka_odrzucona
-- Odrzucone drafty nie są nigdzie przechowywane
-- Nie jest wymagane potwierdzenie odrzucenia
+- Po ocenieniu ostatniej fiszki wyświetlany jest ekran zakończenia
+- Ekran pokazuje podsumowanie: "Ukończono X fiszek"
+- Dostępny jest przycisk "Wróć do dashboardu"
+- Po kliknięciu użytkownik wraca do dashboardu
+- Kafelek "Do powtórki" pokazuje zaktualizowaną liczbę (może być 0)
 
-US-014
-Tytuł: Zamykanie modalu z draftami
-Opis: Jako użytkownik chcę móc zamknąć modal generowania, gdy skończę przeglądać drafty.
+US-038
+Tytuł: Przerywanie sesji nauki
+Opis: Jako użytkownik chcę móc przerwać sesję nauki w dowolnym momencie.
 Kryteria akceptacji:
 
-- Dostępny jest przycisk zamknięcia modalu (X)
-- Można zamknąć modal kliknięciem poza jego obszar
-- Niezaakceptowane drafty przepadają przy zamknięciu modalu
-- Przed zamknięciem z niezaakceptowanymi draftami wyświetlane jest ostrzeżenie
-- Zaakceptowane fiszki pozostają zapisane w talii
+- Na ekranie nauki dostępny jest przycisk "Zakończ sesję" lub X
+- Po kliknięciu użytkownik wraca do dashboardu
+- Postęp do tego momentu jest zapisany (ocenione fiszki mają zaktualizowane daty)
+- Nieocenione fiszki pozostają do powtórki
 
-US-015
-Tytuł: Wyświetlanie limitu fiszek AI
-Opis: Jako użytkownik chcę widzieć ile fiszek AI mogę jeszcze wygenerować w tym miesiącu, aby planować korzystanie z funkcji.
+US-039
+Tytuł: Obsługa pustej sesji nauki
+Opis: Jako użytkownik bez fiszek do powtórki chcę otrzymać odpowiednią informację.
 Kryteria akceptacji:
 
-- W modalu generowania widoczny jest licznik "Pozostało: X/200 fiszek w tym miesiącu"
-- Licznik aktualizuje się po każdym generowaniu
-- Gdy limit zostanie wyczerpany, wyświetlana jest informacja o dacie resetu
-- Limit resetuje się pierwszego dnia każdego miesiąca kalendarzowego
-
-US-016
-Tytuł: Komunikat o wyczerpaniu limitu AI
-Opis: Jako użytkownik z wyczerpanym limitem chcę otrzymać jasną informację, aby wiedzieć kiedy będę mógł ponownie generować fiszki.
-Kryteria akceptacji:
-
-- Przy próbie generowania po wyczerpaniu limitu wyświetlany jest komunikat
-- Komunikat zawiera informację o dacie resetu limitu (pierwszy dzień następnego miesiąca)
-- Sugerowane jest manualne tworzenie fiszek jako alternatywa
-- Przycisk "Generuj" jest nieaktywny gdy limit wyczerpany
-
-US-017
-Tytuł: Obsługa błędu generowania AI
-Opis: Jako użytkownik chcę otrzymać zrozumiały komunikat gdy wystąpi błąd AI, aby wiedzieć co robić dalej.
-Kryteria akceptacji:
+- Gdy brak fiszek do powtórki, kafelek pokazuje "Brak fiszek do powtórki"
+- Kliknięcie kafelka nie rozpoczyna sesji
+- Wyświetlana jest informacja zachęcająca do tworzenia fiszek lub powrotu później
+- Podana jest data najbliższej zaplanowanej powtórki (jeśli istnieje)

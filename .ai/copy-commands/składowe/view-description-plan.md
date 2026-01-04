@@ -1,61 +1,55 @@
-### 2.4 Modal generowania AI
+### 2.5 Sesja nauki (`/study` lub `/study/{deckId}`)
 
-**Główny cel**: Generowanie fiszek z tekstu za pomocą AI.
+**Główny cel**: Nauka fiszek z wykorzystaniem algorytmu FSRS.
 
 **Kluczowe informacje**:
 
-- Pole tekstowe na materiał źródłowy
-- Wybór talii docelowej
-- Licznik pozostałego limitu AI
-- Lista wygenerowanych draftów
+- Aktualna fiszka (przód/tył)
+- Postęp sesji (X/Y kart)
+- Przyciski oceny po odsłonięciu odpowiedzi
 
 **Kluczowe komponenty**:
 
-| Komponent            | Opis                                  | Typ             |
-| -------------------- | ------------------------------------- | --------------- |
-| `GenerationModal`    | Główny modal z logiką generowania     | React Component |
-| `SourceTextArea`     | Pole tekstowe z licznikiem znaków     | React Component |
-| `DeckSelector`       | Dropdown wyboru talii                 | React Component |
-| `AILimitIndicator`   | Wskaźnik "Pozostało: X/200"           | React Component |
-| `GenerationSpinner`  | Spinner z tekstem podczas generowania | React Component |
-| `DraftsList`         | Lista przewijana draftów              | React Component |
-| `DraftItem`          | Pojedynczy draft z akcjami            | React Component |
-| `DraftEditForm`      | Formularz inline edycji draftu        | React Component |
-| `CloseConfirmDialog` | Dialog ostrzeżenia przy zamknięciu    | React Component |
+| Komponent          | Opis                                    | Typ             |
+| ------------------ | --------------------------------------- | --------------- |
+| `StudyPage`        | Główny kontener sesji nauki             | Astro Page      |
+| `StudyHeader`      | Minimalna nawigacja (X + pasek postępu) | React Component |
+| `ProgressBar`      | Pasek postępu "X/Y kart"                | React Component |
+| `FlashcardDisplay` | Centralna karta fiszki                  | React Component |
+| `RevealButton`     | Przycisk "Pokaż odpowiedź"              | React Component |
+| `RatingButtons`    | Przyciski oceny (Again/Hard/Good/Easy)  | React Component |
+| `SessionComplete`  | Ekran zakończenia sesji                 | React Component |
+| `EmptyStudyState`  | Stan gdy brak fiszek do powtórki        | React Component |
 
 **Wymagania UX**:
 
-- Blokujący modal z możliwością zamknięcia (X, klik poza obszar)
-- Pole tekstowe do 5000 znaków z licznikiem real-time
-- Preselekcja talii jeśli modal otwierany z widoku talii
-- Spinner z tekstem "Generowanie fiszek..." podczas ładowania
-- Lista przewijana draftów z numeracją "1/15", "2/15"
-- Przyciski Akceptuj/Edytuj/Odrzuć przy każdym drafcie
-- Natychmiastowy zapis przy akceptacji (bez możliwości cofnięcia)
-- Ostrzeżenie przy zamknięciu z nieprzetworzonymi draftami
-- Przyjazny komunikat przy pustych wynikach lub błędach AI
+- Minimalna nawigacja (tylko X/zakończ i pasek postępu)
+- Ukryty pełny header podczas sesji
+- Centralnie wyświetlana karta z przodu
+- Przycisk "Pokaż odpowiedź" odsłania tył
+- 4 przyciski oceny bez pokazywania interwałów czasowych
+- Automatyczny zapis po każdej ocenie
+- Ekran zakończenia: "Ukończono X fiszek" + przycisk powrotu
+- Możliwość przerwania sesji w dowolnym momencie (bez potwierdzenia)
 
 **Dostępność**:
 
-- Focus trap wewnątrz modalu
-- `aria-modal="true"` i `role="dialog"`
-- Focus na pierwszym interaktywnym elemencie przy otwarciu
-- `aria-live="polite"` dla statusu generowania
-- Obsługa Escape do zamknięcia
+- Duże przyciski (min 44px) dla obsługi dotykowej
+- Keyboard shortcuts dla ocen (1/2/3/4 lub A/H/G/E)
+- Focus automatycznie na przycisku "Pokaż odpowiedź"
+- `aria-live` dla aktualizacji postępu
 
 **Bezpieczeństwo**:
 
-- Walidacja długości tekstu (max 5000 znaków)
-- Sprawdzenie limitu AI przed generowaniem
-- Sanityzacja tekstu wejściowego
+- Weryfikacja własności fiszek (RLS)
+- Walidacja rating (1-4)
 
-**Mapowanie historyjek**: US-007, US-008, US-009, US-010, US-011, US-012, US-013, US-014, US-015, US-016, US-017
+**Mapowanie historyjek**: US-031, US-032, US-033, US-034, US-035, US-036, US-037, US-038, US-039
 
 **Integracja z API**:
 
-- `GET /api/profile` - sprawdzenie limitu AI
-- `POST /api/generations` - generowanie draftów
-- `POST /api/flashcards` - akceptacja draftu (source: "ai")
-- `POST /api/generations/{generationId}/reject` - odrzucenie draftu
+- `GET /api/study/cards` - fiszki do powtórki
+- `GET /api/study/cards?deck_id={deckId}` - fiszki z konkretnej talii
+- `POST /api/study/review` - wysłanie oceny
 
 ---
