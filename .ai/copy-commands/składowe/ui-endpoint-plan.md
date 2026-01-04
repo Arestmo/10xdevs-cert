@@ -1,109 +1,61 @@
-#### POST /api/study/review
+#### GET /api/profile
 
-Submit a review rating for a flashcard.
+Get current user's profile with AI limit information.
+
+**Response (200):**
+
+```json
+{
+  "user_id": "uuid",
+  "monthly_ai_flashcards_count": 45,
+  "ai_limit_reset_date": "2024-12-01",
+  "remaining_ai_limit": 155,
+  "created_at": "2024-11-15T10:30:00Z",
+  "updated_at": "2024-12-05T14:20:00Z"
+}
+```
+
+**Errors:**
+
+- `401 Unauthorized` - User not authenticated
+- `404 Not Found` - Profile not found
+
+---
+
+#### DELETE /api/account
+
+Delete user account and all associated data (GDPR compliance).
 
 **Request:**
 
 ```json
 {
-  "flashcard_id": "uuid",
-  "rating": 3
+  "confirmation": "USUŃ"
 }
 ```
 
 **Validation:**
 
-- `flashcard_id`: required, valid UUID, must belong to user
-- `rating`: required, integer 1-4 (1=Again, 2=Hard, 3=Good, 4=Easy)
+- `confirmation`: required, must equal "USUŃ" (Polish for "DELETE")
 
 **Response (200):**
 
 ```json
 {
-  "flashcard": {
-    "id": "uuid",
-    "stability": 5.2,
-    "difficulty": 0.28,
-    "elapsed_days": 0,
-    "scheduled_days": 14,
-    "reps": 4,
-    "lapses": 0,
-    "state": 2,
-    "last_review": "2024-12-10T10:00:00Z",
-    "next_review": "2024-12-24T10:00:00Z"
-  },
-  "next_intervals": {
-    "again": "10m",
-    "hard": "1d",
-    "good": "14d",
-    "easy": "30d"
-  }
+  "message": "Account successfully deleted"
 }
 ```
 
 **Business Logic:**
 
-1. Fetch current FSRS parameters
-2. Calculate new parameters based on rating using FSRS algorithm
-3. Update `last_review` to NOW()
-4. Calculate and set `next_review` date
-5. Return updated flashcard and preview intervals for UI
+1. Verify confirmation string matches
+2. Delete user from Supabase Auth (triggers cascade delete via database)
+3. Cascade deletes: profiles → decks → flashcards → generation_events
+4. Invalidate session
 
 **Errors:**
 
 - `401 Unauthorized` - User not authenticated
-- `400 Bad Request` - Invalid rating value
-- `404 Not Found` - Flashcard not found or not owned by user
-
----
-
-#### GET /api/study/cards
-
-Get flashcards due for review.
-
-**Query Parameters:**
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| deck_id | uuid | - | Filter by specific deck (optional) |
-| limit | integer | 50 | Max cards to return (1-200) |
-
-**Response (200):**
-
-```json
-{
-  "data": [
-    {
-      "id": "uuid",
-      "deck_id": "uuid",
-      "deck_name": "Biology 101",
-      "front": "What is mitochondria?",
-      "back": "The powerhouse of the cell",
-      "stability": 2.5,
-      "difficulty": 0.3,
-      "elapsed_days": 5,
-      "scheduled_days": 7,
-      "reps": 3,
-      "lapses": 0,
-      "state": 2,
-      "last_review": "2024-12-05T10:00:00Z",
-      "next_review": "2024-12-10T08:00:00Z"
-    }
-  ],
-  "total_due": 25,
-  "returned_count": 25
-}
-```
-
-**Business Logic:**
-
-- Returns flashcards where `next_review <= NOW()`
-- Sorted by `next_review ASC` (oldest due first)
-- If `deck_id` provided, filters to that deck only
-
-**Errors:**
-
-- `401 Unauthorized` - User not authenticated
-- `400 Bad Request` - Invalid query parameters
-- `404 Not Found` - Deck not found (if deck_id provided)
+- `400 Bad Request` - Confirmation string doesn't match
 
 ---

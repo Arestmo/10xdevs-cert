@@ -1,55 +1,50 @@
-### 2.5 Sesja nauki (`/study` lub `/study/{deckId}`)
+### 2.6 Strona ustawień (`/settings`)
 
-**Główny cel**: Nauka fiszek z wykorzystaniem algorytmu FSRS.
+**Główny cel**: Zarządzanie kontem użytkownika i preferencjami.
 
 **Kluczowe informacje**:
 
-- Aktualna fiszka (przód/tył)
-- Postęp sesji (X/Y kart)
-- Przyciski oceny po odsłonięciu odpowiedzi
+- Informacje o koncie (email)
+- Status limitu AI (wykorzystane/dostępne)
+- Opcja usunięcia konta
 
 **Kluczowe komponenty**:
 
-| Komponent          | Opis                                    | Typ             |
-| ------------------ | --------------------------------------- | --------------- |
-| `StudyPage`        | Główny kontener sesji nauki             | Astro Page      |
-| `StudyHeader`      | Minimalna nawigacja (X + pasek postępu) | React Component |
-| `ProgressBar`      | Pasek postępu "X/Y kart"                | React Component |
-| `FlashcardDisplay` | Centralna karta fiszki                  | React Component |
-| `RevealButton`     | Przycisk "Pokaż odpowiedź"              | React Component |
-| `RatingButtons`    | Przyciski oceny (Again/Hard/Good/Easy)  | React Component |
-| `SessionComplete`  | Ekran zakończenia sesji                 | React Component |
-| `EmptyStudyState`  | Stan gdy brak fiszek do powtórki        | React Component |
+| Komponent              | Opis                                | Typ             |
+| ---------------------- | ----------------------------------- | --------------- |
+| `SettingsPage`         | Główny kontener ustawień            | Astro Page      |
+| `AccountInfo`          | Sekcja z informacjami o koncie      | React Component |
+| `AILimitStatus`        | Status limitu AI z datą resetu      | React Component |
+| `DeleteAccountSection` | Sekcja usuwania konta               | React Component |
+| `DeleteAccountDialog`  | Dialog z dwuetapowym potwierdzeniem | React Component |
 
 **Wymagania UX**:
 
-- Minimalna nawigacja (tylko X/zakończ i pasek postępu)
-- Ukryty pełny header podczas sesji
-- Centralnie wyświetlana karta z przodu
-- Przycisk "Pokaż odpowiedź" odsłania tył
-- 4 przyciski oceny bez pokazywania interwałów czasowych
-- Automatyczny zapis po każdej ocenie
-- Ekran zakończenia: "Ukończono X fiszek" + przycisk powrotu
-- Możliwość przerwania sesji w dowolnym momencie (bez potwierdzenia)
+- Prosty layout z sekcjami
+- Wyraźne pokazanie wykorzystanego/pozostałego limitu AI
+- Informacja o dacie resetu limitu
+- Dwuetapowe usuwanie konta:
+  1. Kliknięcie "Usuń konto" pokazuje ostrzeżenie
+  2. Potwierdzenie przez wpisanie "USUŃ"
+- Przycisk powrotu do dashboardu
 
 **Dostępność**:
 
-- Duże przyciski (min 44px) dla obsługi dotykowej
-- Keyboard shortcuts dla ocen (1/2/3/4 lub A/H/G/E)
-- Focus automatycznie na przycisku "Pokaż odpowiedź"
-- `aria-live` dla aktualizacji postępu
+- Jasne etykiety sekcji
+- Focus trap w dialogu usuwania
+- Czytelne komunikaty ostrzegawcze
 
 **Bezpieczeństwo**:
 
-- Weryfikacja własności fiszek (RLS)
-- Walidacja rating (1-4)
+- Potwierdzenie przez wpisanie tekstu "USUŃ"
+- Cascade delete wszystkich danych użytkownika
+- Wylogowanie po usunięciu konta
 
-**Mapowanie historyjek**: US-031, US-032, US-033, US-034, US-035, US-036, US-037, US-038, US-039
+**Mapowanie historyjek**: US-005, US-043
 
 **Integracja z API**:
 
-- `GET /api/study/cards` - fiszki do powtórki
-- `GET /api/study/cards?deck_id={deckId}` - fiszki z konkretnej talii
-- `POST /api/study/review` - wysłanie oceny
+- `GET /api/profile` - informacje o koncie i limicie AI
+- `DELETE /api/account` - usunięcie konta
 
 ---
