@@ -3,6 +3,7 @@
 ## 1. Przegląd
 
 Widok ustawień (`/settings`) umożliwia zalogowanemu użytkownikowi zarządzanie swoim kontem. Strona prezentuje:
+
 - Informacje o koncie (adres email)
 - Status limitu generowania fiszek AI (wykorzystane/dostępne z datą resetu)
 - Sekcję usuwania konta z dwuetapowym dialogiem potwierdzenia
@@ -228,7 +229,7 @@ export interface DeleteAccountResult {
 /**
  * Krok w dialogu usuwania konta
  */
-export type DialogStep = 'warning' | 'confirmation';
+export type DialogStep = "warning" | "confirmation";
 
 /**
  * Props dla AccountInfo
@@ -270,16 +271,19 @@ export interface DeleteAccountDialogProps {
 Hook zarządzający pobieraniem danych profilu i operacją usuwania konta.
 
 **Stan wewnętrzny:**
+
 - `data: SettingsViewModel | null` - dane profilu
 - `isLoading: boolean` - stan ładowania
 - `error: string | null` - komunikat błędu
 
 **Funkcje:**
+
 - `fetchProfile()` - pobiera dane z `GET /api/profile`, transformuje do ViewModel
 - `deleteAccount(confirmation: string)` - wysyła `DELETE /api/account`, zwraca wynik
 - `refetch()` - ponownie pobiera dane profilu
 
 **Przepływ:**
+
 1. Przy montowaniu komponentu wywołuje `fetchProfile()`
 2. Transformuje `ProfileResponseDTO` do `SettingsViewModel`
 3. W przypadku błędu 401 → przekierowanie do `/login`
@@ -290,6 +294,7 @@ Hook zarządzający pobieraniem danych profilu i operacją usuwania konta.
 ### 6.2 Stan w `DeleteAccountDialog`
 
 **Stan lokalny:**
+
 - `step: DialogStep` - aktualny krok ('warning' | 'confirmation')
 - `confirmationText: string` - tekst wpisany przez użytkownika
 - `isDeleting: boolean` - czy trwa usuwanie
@@ -304,12 +309,14 @@ Hook zarządzający pobieraniem danych profilu i operacją usuwania konta.
 **Wywołanie:** Przy montowaniu `SettingsContent`
 
 **Żądanie:**
+
 ```http
 GET /api/profile
 Authorization: Bearer <token> (automatycznie przez cookies)
 ```
 
 **Odpowiedź sukcesu (200):**
+
 ```json
 {
   "user_id": "uuid",
@@ -322,6 +329,7 @@ Authorization: Bearer <token> (automatycznie przez cookies)
 ```
 
 **Transformacja do ViewModel:**
+
 ```typescript
 const viewModel: SettingsViewModel = {
   email: userEmail, // z sesji lub props
@@ -333,6 +341,7 @@ const viewModel: SettingsViewModel = {
 ```
 
 **Obsługa błędów:**
+
 - 401 → przekierowanie do `/login?redirect=/settings`
 - 404 → wyświetlenie komunikatu "Profil nie znaleziony"
 - 500 → wyświetlenie komunikatu z opcją retry
@@ -342,6 +351,7 @@ const viewModel: SettingsViewModel = {
 **Wywołanie:** Po kliknięciu "Potwierdź usunięcie" w dialogu
 
 **Żądanie:**
+
 ```http
 DELETE /api/account
 Content-Type: application/json
@@ -354,6 +364,7 @@ Content-Type: application/json
 **UWAGA:** Istniejący endpoint używa `"DELETE"` jako tekstu potwierdzenia (nie `"USUŃ"` jak w specyfikacji PRD). UI musi używać `"DELETE"`.
 
 **Odpowiedź sukcesu (200):**
+
 ```json
 {
   "message": "Account successfully deleted"
@@ -361,26 +372,28 @@ Content-Type: application/json
 ```
 
 **Po sukcesie:**
+
 1. Wyświetlenie komunikatu o usunięciu (opcjonalnie)
 2. Przekierowanie do `/login`
 
 **Obsługa błędów:**
+
 - 400 → wyświetlenie błędu "Nieprawidłowe potwierdzenie"
 - 401 → przekierowanie do `/login`
 - 500 → wyświetlenie błędu "Nie udało się usunąć konta. Spróbuj ponownie."
 
 ## 8. Interakcje użytkownika
 
-| Interakcja | Element | Oczekiwany rezultat |
-|------------|---------|---------------------|
-| Kliknięcie "Wróć do dashboardu" | BackButton | Nawigacja do `/dashboard` |
-| Kliknięcie "Usuń konto" | DeleteAccountSection | Otwarcie dialogu (krok 1 - warning) |
-| Kliknięcie "Anuluj" w dialogu | AlertDialogCancel | Zamknięcie dialogu, reset stanu |
-| Kliknięcie "Kontynuuj" | AlertDialogAction (krok 1) | Przejście do kroku 2 |
-| Wpisanie tekstu | Input (krok 2) | Aktualizacja stanu, walidacja |
+| Interakcja                       | Element                    | Oczekiwany rezultat                    |
+| -------------------------------- | -------------------------- | -------------------------------------- |
+| Kliknięcie "Wróć do dashboardu"  | BackButton                 | Nawigacja do `/dashboard`              |
+| Kliknięcie "Usuń konto"          | DeleteAccountSection       | Otwarcie dialogu (krok 1 - warning)    |
+| Kliknięcie "Anuluj" w dialogu    | AlertDialogCancel          | Zamknięcie dialogu, reset stanu        |
+| Kliknięcie "Kontynuuj"           | AlertDialogAction (krok 1) | Przejście do kroku 2                   |
+| Wpisanie tekstu                  | Input (krok 2)             | Aktualizacja stanu, walidacja          |
 | Kliknięcie "Potwierdź usunięcie" | AlertDialogAction (krok 2) | Wywołanie API, spinner, obsługa wyniku |
-| Naciśnięcie ESC | Dialog | Zamknięcie dialogu |
-| Kliknięcie overlay | Dialog | Zamknięcie dialogu |
+| Naciśnięcie ESC                  | Dialog                     | Zamknięcie dialogu                     |
+| Kliknięcie overlay               | Dialog                     | Zamknięcie dialogu                     |
 
 ## 9. Warunki i walidacja
 
@@ -389,6 +402,7 @@ Content-Type: application/json
 **Warunek:** Tekst wpisany przez użytkownika musi być dokładnie `"DELETE"` (case-sensitive)
 
 **Wpływ na UI:**
+
 - Przycisk "Potwierdź usunięcie" jest `disabled` gdy `confirmationText !== "DELETE"`
 - Opcjonalnie: komunikat walidacji pod polem input gdy tekst niepusty ale niepoprawny
 
@@ -399,6 +413,7 @@ Content-Type: application/json
 **Warunek:** Użytkownik musi być zalogowany
 
 **Wpływ na UI:**
+
 - Strona Astro przekierowuje do `/login` przed renderowaniem
 - Hook przekierowuje do `/login` przy błędzie 401
 
@@ -411,10 +426,12 @@ Content-Type: application/json
 **Scenariusz:** `GET /api/profile` zwraca błąd
 
 **Obsługa:**
+
 - Wyświetlenie komponentu `Alert` z komunikatem błędu
 - Przycisk "Spróbuj ponownie" wywołujący `refetch()`
 
 **Komunikaty:**
+
 - 401: Przekierowanie (brak komunikatu)
 - 404: "Nie znaleziono profilu użytkownika"
 - 500/sieć: "Nie udało się załadować danych. Sprawdź połączenie i spróbuj ponownie."
@@ -424,11 +441,13 @@ Content-Type: application/json
 **Scenariusz:** `DELETE /api/account` zwraca błąd
 
 **Obsługa:**
+
 - Wyświetlenie komunikatu błędu w dialogu (pod inputem)
 - Dialog pozostaje otwarty
 - Użytkownik może spróbować ponownie
 
 **Komunikaty:**
+
 - 400: "Nieprawidłowy tekst potwierdzenia"
 - 401: Przekierowanie do `/login`
 - 500/sieć: "Nie udało się usunąć konta. Spróbuj ponownie."
@@ -438,6 +457,7 @@ Content-Type: application/json
 **Scenariusz:** Brak połączenia z internetem
 
 **Obsługa:**
+
 - Wyświetlenie ogólnego komunikatu o problemie z połączeniem
 - Opcja retry dla operacji pobierania danych
 
@@ -446,6 +466,7 @@ Content-Type: application/json
 ### Krok 1: Utworzenie struktury plików
 
 Utworzyć następujące pliki:
+
 - `src/pages/settings.astro`
 - `src/components/settings/SettingsContent.tsx`
 - `src/components/settings/AccountInfo.tsx`
@@ -458,6 +479,7 @@ Utworzyć następujące pliki:
 ### Krok 2: Implementacja typów
 
 Utworzyć plik `src/components/settings/types.ts` z definicjami:
+
 - `SettingsViewModel`
 - `UseSettingsState`
 - `UseSettingsReturn`
@@ -468,6 +490,7 @@ Utworzyć plik `src/components/settings/types.ts` z definicjami:
 ### Krok 3: Implementacja hooka useSettings
 
 Utworzyć `src/components/hooks/useSettings.ts`:
+
 1. Zdefiniować stan: `data`, `isLoading`, `error`
 2. Zaimplementować `fetchProfile()` z transformacją DTO → ViewModel
 3. Zaimplementować `deleteAccount(confirmation)` z obsługą błędów
@@ -477,12 +500,14 @@ Utworzyć `src/components/hooks/useSettings.ts`:
 ### Krok 4: Implementacja komponentu AccountInfo
 
 Utworzyć prosty komponent wyświetlający:
+
 - Card z tytułem "Informacje o koncie"
 - Wiersz: "Email: {email}"
 
 ### Krok 5: Implementacja komponentu AILimitStatus
 
 Utworzyć komponent z:
+
 - Card z tytułem "Limit fiszek AI"
 - Tekst: "Wykorzystano: X / 200 fiszek w tym miesiącu"
 - Komponent Progress z wartością `(usedCount / totalLimit) * 100`
@@ -493,6 +518,7 @@ Dodać funkcję formatowania daty ISO → DD.MM.YYYY.
 ### Krok 6: Implementacja DeleteAccountDialog
 
 Utworzyć komponent z dwuetapowym flow:
+
 1. Stan: `step`, `confirmationText`, `isDeleting`, `deleteError`
 2. Krok 1 (warning): ostrzeżenie + przyciski Anuluj/Kontynuuj
 3. Krok 2 (confirmation): input + walidacja + przyciski Anuluj/Potwierdź
@@ -503,6 +529,7 @@ Utworzyć komponent z dwuetapowym flow:
 ### Krok 7: Implementacja DeleteAccountSection
 
 Utworzyć komponent z:
+
 - Card (wariant ostrzegawczy - czerwone/pomarańczowe tło)
 - Tytuł "Strefa niebezpieczna"
 - Opis konsekwencji usunięcia
@@ -513,6 +540,7 @@ Utworzyć komponent z:
 ### Krok 8: Implementacja SettingsContent
 
 Złożyć wszystkie komponenty:
+
 1. Użyć hooka `useSettings`
 2. Obsłużyć stany: loading, error, success
 3. Renderować sekcje: AccountInfo, AILimitStatus, DeleteAccountSection
@@ -522,6 +550,7 @@ Złożyć wszystkie komponenty:
 ### Krok 9: Implementacja strony Astro
 
 Utworzyć `src/pages/settings.astro`:
+
 1. Sprawdzić autentykację
 2. Przekierować do `/login` jeśli brak sesji
 3. Pobrać email z `user.email`
@@ -531,11 +560,13 @@ Utworzyć `src/pages/settings.astro`:
 ### Krok 10: Aktualizacja tytułu strony
 
 W `DashboardLayout` lub dedykowanym `SettingsLayout`:
+
 - Tytuł strony: "Ustawienia - Flashcards AI"
 
 ### Krok 11: Testy manualne
 
 Przetestować:
+
 1. Nawigacja z dropdown menu → /settings
 2. Wyświetlanie danych profilu (email, limit AI)
 3. Flow usuwania konta (oba kroki)
@@ -547,6 +578,7 @@ Przetestować:
 ### Krok 12: Dostępność i finalizacja
 
 Upewnić się, że:
+
 - Dialog ma `aria-modal="true"` i `role="dialog"`
 - Focus trap działa w dialogu
 - Przycisk powrotu do dashboardu jest widoczny i dostępny

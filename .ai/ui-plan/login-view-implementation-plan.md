@@ -236,7 +236,7 @@ const handleGoogleLogin = async () => {
         aria-describedby={error ? "email-error" : undefined}
       />
       {error && (
-        <p id="email-error" className="text-sm text-destructive">
+        <p id="email-error" className="text-destructive text-sm">
           {error}
         </p>
       )}
@@ -1271,7 +1271,7 @@ export function MagicLinkForm() {
 8.1. Utwórz `src/components/LegalLinks.astro`:
 
 ```astro
-<footer class="mt-8 flex items-center justify-center gap-2 text-sm text-muted-foreground">
+<footer class="text-muted-foreground mt-8 flex items-center justify-center gap-2 text-sm">
   <a href="/privacy-policy" class="hover:text-foreground underline-offset-4 hover:underline"> Polityka prywatności </a>
   <span aria-hidden="true">•</span>
   <a href="/terms-of-service" class="hover:text-foreground underline-offset-4 hover:underline"> Regulamin </a>
@@ -1296,7 +1296,7 @@ import LegalLinks from "@/components/LegalLinks.astro";
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Logowanie - Flashcards AI</title>
   </head>
-  <body class="min-h-screen bg-background">
+  <body class="bg-background min-h-screen">
     <main class="container flex min-h-screen items-center justify-center px-4 py-8">
       <div class="w-full max-w-md space-y-8">
         {/* Logo */}
@@ -1307,7 +1307,7 @@ import LegalLinks from "@/components/LegalLinks.astro";
         {/* Nagłówek */}
         <div class="text-center">
           <h1 class="text-3xl font-bold tracking-tight">Zaloguj się do Flashcards AI</h1>
-          <p class="mt-2 text-sm text-muted-foreground">Efektywna nauka z fiszkami wspieranymi przez AI</p>
+          <p class="text-muted-foreground mt-2 text-sm">Efektywna nauka z fiszkami wspieranymi przez AI</p>
         </div>
 
         {/* Google OAuth Button */}
@@ -1319,7 +1319,7 @@ import LegalLinks from "@/components/LegalLinks.astro";
             <div class="w-full border-t"></div>
           </div>
           <div class="relative flex justify-center text-xs uppercase">
-            <span class="bg-background px-2 text-muted-foreground"> lub </span>
+            <span class="bg-background text-muted-foreground px-2"> lub </span>
           </div>
         </div>
 

@@ -28,8 +28,8 @@ export function AILimitIndicator({ remainingLimit, resetDate, isLoading = false 
 
   if (isLoading) {
     return (
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <div className="h-4 w-32 animate-pulse rounded bg-muted" />
+      <div className="text-muted-foreground flex items-center gap-2 text-sm">
+        <div className="bg-muted h-4 w-32 animate-pulse rounded" />
       </div>
     );
   }
@@ -43,11 +43,11 @@ export function AILimitIndicator({ remainingLimit, resetDate, isLoading = false 
         </span>
       </div>
 
-      {isLimitExhausted && <span className="text-xs text-muted-foreground">Reset: {formatResetDate(resetDate)}</span>}
+      {isLimitExhausted && <span className="text-muted-foreground text-xs">Reset: {formatResetDate(resetDate)}</span>}
 
       <div className="group relative">
-        <Info className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors cursor-help" />
-        <div className="absolute right-0 top-6 z-50 hidden w-64 rounded-md border bg-popover p-3 text-xs text-popover-foreground shadow-md group-hover:block">
+        <Info className="text-muted-foreground hover:text-foreground h-4 w-4 cursor-help transition-colors" />
+        <div className="bg-popover text-popover-foreground absolute top-6 right-0 z-50 hidden w-64 rounded-md border p-3 text-xs shadow-md group-hover:block">
           <p>
             Możesz wygenerować do {totalLimit} fiszek miesięcznie za pomocą AI. Limit odnawia się pierwszego dnia
             każdego miesiąca.

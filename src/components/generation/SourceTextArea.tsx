@@ -21,7 +21,7 @@ export function SourceTextArea({ value, onChange, disabled = false, error = null
     <div className="space-y-2">
       <Label htmlFor="source-text">
         Materiał źródłowy
-        <span className="ml-1 text-xs text-muted-foreground">(wklej tekst, z którego chcesz wygenerować fiszki)</span>
+        <span className="text-muted-foreground ml-1 text-xs">(wklej tekst, z którego chcesz wygenerować fiszki)</span>
       </Label>
 
       <Textarea
@@ -56,7 +56,7 @@ export function SourceTextArea({ value, onChange, disabled = false, error = null
       </div>
 
       {error && (
-        <p className="text-xs text-destructive" role="alert">
+        <p className="text-destructive text-xs" role="alert">
           {error}
         </p>
       )}

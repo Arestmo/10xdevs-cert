@@ -55,8 +55,8 @@ export function AILimitStatus({ usedCount, totalLimit, resetDate }: AILimitStatu
         </div>
 
         {/* Reset date */}
-        <div className="text-sm text-muted-foreground">
-          Limit odnowi się: <span className="font-medium text-foreground">{formattedResetDate}</span>
+        <div className="text-muted-foreground text-sm">
+          Limit odnowi się: <span className="text-foreground font-medium">{formattedResetDate}</span>
         </div>
       </CardContent>
     </Card>

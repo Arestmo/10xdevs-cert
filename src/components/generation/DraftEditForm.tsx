@@ -45,7 +45,7 @@ export function DraftEditForm({ initialFront, initialBack, onSave, onCancel, isS
         />
         <div
           className={
-            front.length > MAX_FRONT_LENGTH ? "text-xs text-destructive font-semibold" : "text-xs text-muted-foreground"
+            front.length > MAX_FRONT_LENGTH ? "text-destructive text-xs font-semibold" : "text-muted-foreground text-xs"
           }
         >
           {front.length} / {MAX_FRONT_LENGTH} znaków
@@ -67,7 +67,7 @@ export function DraftEditForm({ initialFront, initialBack, onSave, onCancel, isS
         />
         <div
           className={
-            back.length > MAX_BACK_LENGTH ? "text-xs text-destructive font-semibold" : "text-xs text-muted-foreground"
+            back.length > MAX_BACK_LENGTH ? "text-destructive text-xs font-semibold" : "text-muted-foreground text-xs"
           }
         >
           {back.length} / {MAX_BACK_LENGTH} znaków

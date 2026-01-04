@@ -18,13 +18,13 @@ export function RevealButton({ onReveal, autoFocus = true }: RevealButtonProps) 
   }, [autoFocus]);
 
   return (
-    <div className="flex justify-center mt-6">
+    <div className="mt-6 flex justify-center">
       <Button
         ref={buttonRef}
         variant="default"
         size="lg"
         onClick={onReveal}
-        className="min-w-[200px] min-h-[44px]"
+        className="min-h-[44px] min-w-[200px]"
         aria-label="Pokaż odpowiedź. Naciśnij spację"
       >
         Pokaż odpowiedź

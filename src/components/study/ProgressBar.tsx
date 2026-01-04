@@ -15,7 +15,7 @@ export const ProgressBar = memo(function ProgressBar({ current, total, className
   return (
     <div className={`space-y-2 ${className}`}>
       {/* Tekst postępu */}
-      <div className="text-sm text-muted-foreground text-center">
+      <div className="text-muted-foreground text-center text-sm">
         <span className="font-medium">{current}</span> / {total} kart
       </div>
 
@@ -26,10 +26,10 @@ export const ProgressBar = memo(function ProgressBar({ current, total, className
         aria-valuemin={0}
         aria-valuemax={total}
         aria-label={`Postęp sesji nauki: ${current} z ${total} kart`}
-        className="relative h-2 w-full overflow-hidden rounded-full bg-secondary"
+        className="bg-secondary relative h-2 w-full overflow-hidden rounded-full"
       >
         <div
-          className="h-full bg-primary transition-all duration-300 ease-in-out"
+          className="bg-primary h-full transition-all duration-300 ease-in-out"
           style={{ width: `${percentage}%` }}
         />
       </div>

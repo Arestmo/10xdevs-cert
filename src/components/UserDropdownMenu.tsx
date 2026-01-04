@@ -70,8 +70,8 @@ export function UserDropdownMenu({ userEmail }: UserDropdownMenuProps) {
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col gap-1">
-            <p className="text-sm font-medium leading-none">Twoje konto</p>
-            {userEmail && <p className="text-xs leading-none text-muted-foreground">{userEmail}</p>}
+            <p className="text-sm leading-none font-medium">Twoje konto</p>
+            {userEmail && <p className="text-muted-foreground text-xs leading-none">{userEmail}</p>}
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />

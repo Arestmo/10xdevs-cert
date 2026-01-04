@@ -30,8 +30,8 @@ export function DraftItem({
     <Card className={isAccepted ? "border-green-500 bg-green-50 dark:bg-green-950/20" : isRejected ? "opacity-50" : ""}>
       <CardContent className="pt-6">
         {/* Header with number and status */}
-        <div className="flex items-center justify-between mb-4">
-          <div className="text-sm font-medium text-muted-foreground">
+        <div className="mb-4 flex items-center justify-between">
+          <div className="text-muted-foreground text-sm font-medium">
             Fiszka {index + 1}/{total}
           </div>
           {isAccepted && (
@@ -41,7 +41,7 @@ export function DraftItem({
             </div>
           )}
           {isRejected && (
-            <div className="flex items-center gap-1 text-sm text-muted-foreground">
+            <div className="text-muted-foreground flex items-center gap-1 text-sm">
               <X className="h-4 w-4" />
               <span className="font-medium">Odrzucono</span>
             </div>
@@ -61,13 +61,13 @@ export function DraftItem({
           <div className="space-y-4">
             {/* Front */}
             <div className="space-y-1">
-              <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Przód</div>
+              <div className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">Przód</div>
               <div className="text-sm">{draft.front}</div>
             </div>
 
             {/* Back */}
             <div className="space-y-1">
-              <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Tył</div>
+              <div className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">Tył</div>
               <div className="text-sm">{draft.back}</div>
             </div>
 
@@ -79,7 +79,7 @@ export function DraftItem({
                   disabled={isSubmitting}
                   variant="default"
                   size="sm"
-                  className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                  className="flex-1 bg-green-600 text-white hover:bg-green-700"
                 >
                   <Check className="mr-1 h-4 w-4" />
                   Akceptuj

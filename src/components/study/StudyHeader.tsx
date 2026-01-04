@@ -14,7 +14,7 @@ export function StudyHeader({ currentIndex, totalCards, onClose }: StudyHeaderPr
   const displayedCurrent = currentIndex + 1;
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b">
+    <header className="bg-background/95 supports-[backdrop-filter]:bg-background/80 fixed top-0 right-0 left-0 z-10 border-b backdrop-blur">
       <div className="container mx-auto px-4 py-3">
         <div className="flex items-center justify-between gap-4">
           {/* Przycisk zamknięcia */}
@@ -23,7 +23,7 @@ export function StudyHeader({ currentIndex, totalCards, onClose }: StudyHeaderPr
           </Button>
 
           {/* Pasek postępu */}
-          <div className="flex-1 max-w-md">
+          <div className="max-w-md flex-1">
             <ProgressBar current={displayedCurrent} total={totalCards} />
           </div>
 

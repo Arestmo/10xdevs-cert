@@ -14,20 +14,20 @@ export function CreateDeckTile({ onClick }: CreateDeckTileProps) {
   return (
     <button
       onClick={onClick}
-      className="w-full text-left transition-all hover:scale-[1.02] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+      className="focus-visible:outline-primary w-full text-left transition-all hover:scale-[1.02] focus-visible:outline-2 focus-visible:outline-offset-2"
       aria-label="Utwórz nową talię lub wygeneruj fiszki AI"
     >
-      <Card className="h-full border-2 border-dashed border-muted-foreground/25 bg-muted/30 hover:border-primary/50 hover:bg-muted/50 cursor-pointer">
+      <Card className="border-muted-foreground/25 bg-muted/30 hover:border-primary/50 hover:bg-muted/50 h-full cursor-pointer border-2 border-dashed">
         <CardContent className="flex flex-col items-center justify-center gap-4 py-8">
           {/* Icon */}
-          <div className="rounded-full bg-primary/10 p-4">
-            <Plus className="size-8 text-primary" />
+          <div className="bg-primary/10 rounded-full p-4">
+            <Plus className="text-primary size-8" />
           </div>
 
           {/* Title */}
           <div className="text-center">
             <h3 className="text-lg font-semibold">Nowa talia</h3>
-            <p className="mt-1 text-sm text-muted-foreground">lub generuj fiszki AI</p>
+            <p className="text-muted-foreground mt-1 text-sm">lub generuj fiszki AI</p>
           </div>
         </CardContent>
       </Card>

@@ -68,7 +68,7 @@ export function DeckSelector({
     <div className="space-y-2">
       <Label htmlFor="deck-selector">
         Talia docelowa
-        <span className="ml-1 text-xs text-muted-foreground">(wybierz, gdzie zapisać wygenerowane fiszki)</span>
+        <span className="text-muted-foreground ml-1 text-xs">(wybierz, gdzie zapisać wygenerowane fiszki)</span>
       </Label>
 
       {isCreatingNew ? (
@@ -93,12 +93,12 @@ export function DeckSelector({
               aria-describedby={createDeckError ? "deck-error" : undefined}
             />
 
-            <div className="text-xs text-muted-foreground">
+            <div className="text-muted-foreground text-xs">
               {newDeckName.length} / {MAX_DECK_NAME_LENGTH} znaków
             </div>
 
             {createDeckError && (
-              <p id="deck-error" className="text-xs text-destructive" role="alert">
+              <p id="deck-error" className="text-destructive text-xs" role="alert">
                 {createDeckError}
               </p>
             )}
@@ -136,7 +136,7 @@ export function DeckSelector({
 
             {decks.length > 0 && (
               <>
-                <div className="my-1 h-px bg-border" />
+                <div className="bg-border my-1 h-px" />
                 {decks.map((deck) => (
                   <SelectItem key={deck.id} value={deck.id}>
                     {deck.name}

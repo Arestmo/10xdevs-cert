@@ -15,10 +15,10 @@ export function FlashcardList({ flashcards, expandedId, onExpand, onEdit, onDele
   // Empty state - no flashcards
   if (flashcards.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-muted-foreground/25 bg-muted/10 py-12">
-        <FileStack className="mb-4 h-12 w-12 text-muted-foreground/50" />
+      <div className="border-muted-foreground/25 bg-muted/10 flex flex-col items-center justify-center rounded-lg border border-dashed py-12">
+        <FileStack className="text-muted-foreground/50 mb-4 h-12 w-12" />
         <h3 className="mb-2 text-lg font-semibold">Brak fiszek</h3>
-        <p className="text-sm text-muted-foreground">Dodaj pierwszą fiszkę, aby zacząć naukę</p>
+        <p className="text-muted-foreground text-sm">Dodaj pierwszą fiszkę, aby zacząć naukę</p>
       </div>
     );
   }

@@ -35,7 +35,7 @@ export function DeckActions({
     <div className="flex flex-wrap items-center gap-2">
       {/* Study button */}
       <Button asChild disabled={!hasAnyCards} className="gap-2">
-        <a href={hasAnyCards ? `/study?deck=${deckId}` : undefined}>
+        <a href={hasAnyCards ? `/study/${deckId}` : undefined}>
           <Play className="h-4 w-4" />
           {buttonText}
         </a>
@@ -57,7 +57,7 @@ export function DeckActions({
       <Button
         variant="outline"
         onClick={onDeleteDeck}
-        className="gap-2 text-destructive hover:bg-destructive/10 hover:text-destructive"
+        className="text-destructive hover:bg-destructive/10 hover:text-destructive gap-2"
       >
         <Trash2 className="h-4 w-4" />
         Usuń talię

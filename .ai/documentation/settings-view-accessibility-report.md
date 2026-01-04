@@ -16,12 +16,14 @@
 #### ✅ DeleteAccountDialog (Dialog usuwania konta)
 
 **Komponenty z Radix UI (AlertDialog):**
+
 - `role="alertdialog"` - automatycznie zapewnione przez Radix UI
 - `aria-modal="true"` - automatycznie zapewnione przez Radix UI
 - `aria-labelledby` - powiązanie z AlertDialogTitle
 - `aria-describedby` - powiązanie z AlertDialogDescription
 
 **Pole input (krok 2):**
+
 - `aria-label="Pole potwierdzenia usunięcia konta"` - czytelna etykieta dla screen readers
 - `aria-invalid={confirmationText ? !isConfirmationValid : undefined}` - status walidacji
 - `aria-describedby` - dynamiczne powiązanie z komunikatami błędów:
@@ -29,6 +31,7 @@
   - `"delete-error"` - błąd API
 
 **Komunikaty błędów:**
+
 - `role="alert"` na komunikacie walidacji (`<p id="confirmation-error">`)
 - `role="alert"` na komunikacie błędu API (`<Alert id="delete-error">`)
 - Komunikaty są ogłaszane przez screen readers natychmiast po pojawieniu się
@@ -38,6 +41,7 @@
 #### ✅ AILimitStatus (Status limitu AI)
 
 **Pasek postępu:**
+
 - `aria-label="Wykorzystano X% limitu"` - informacja o procentowym wykorzystaniu
 - Komponent Progress z Radix UI ma odpowiednie role (`role="progressbar"`)
 
@@ -46,6 +50,7 @@
 #### ✅ SettingsContent (Przycisk powrotu)
 
 **Przycisk "Wróć do dashboardu":**
+
 - `aria-label="Wróć do dashboardu"` - czytelna etykieta (przycisk zawiera tylko ikonę)
 - Link semantyczny (`<a href="/dashboard">`)
 
@@ -56,6 +61,7 @@
 #### ✅ Focus Trap w dialogu
 
 **Radix UI AlertDialog** zapewnia:
+
 - **Focus trap:** Focus jest "uwięziony" w dialogu i nie może wyjść poza jego granice
 - **Initial focus:** Przy otwarciu dialogu focus jest ustawiony na pierwszy interaktywny element
 - **Focus restoration:** Po zamknięciu dialogu focus wraca do elementu, który otworzył dialog
@@ -65,6 +71,7 @@
 #### ✅ Focus outline
 
 Wszystkie interaktywne elementy mają widoczny focus outline (zapewnione przez Tailwind):
+
 - Przyciski (Button component)
 - Linki
 - Input fields
@@ -77,16 +84,19 @@ Wszystkie interaktywne elementy mają widoczny focus outline (zapewnione przez T
 #### ✅ Obsługa klawiatury
 
 **Strona główna (`/settings`):**
+
 - Tab: Nawigacja przez przyciski i linki
 - Enter/Space: Aktywacja przycisków
 - Kolejność focus: logiczna (przycisk wstecz → przycisk "Usuń konto")
 
 **Dialog usuwania konta (Krok 1):**
+
 - Tab: Nawigacja między "Anuluj" i "Kontynuuj"
 - Enter/Space: Aktywacja przycisków
 - ESC: Zamknięcie dialogu
 
 **Dialog usuwania konta (Krok 2):**
+
 - Tab: Nawigacja przez Input → "Anuluj" → "Potwierdź usunięcie"
 - Enter/Space: Aktywacja przycisków
 - ESC: Zamknięcie dialogu
@@ -99,9 +109,11 @@ Wszystkie interaktywne elementy mają widoczny focus outline (zapewnione przez T
 #### ✅ Struktura nagłówków
 
 **Strona główna:**
+
 - `<h1>` - "Ustawienia" (główny nagłówek strony)
 
 **Sekcje (Card components):**
+
 - CardTitle używa `<div>` (ograniczenie shadcn/ui)
 - **Uwaga:** W idealnym przypadku CardTitle powinno używać `<h2>`, ale shadcn/ui używa `<div>`
 - **Kompromis:** Akceptowalne, ponieważ shadcn/ui jest standardową biblioteką
@@ -118,27 +130,30 @@ Wszystkie interaktywne elementy mają widoczny focus outline (zapewnione przez T
 #### ✅ Weryfikacja kontrastu
 
 **Testy wymagane (zgodnie z WCAG 2.1 AA):**
+
 - Tekst normalny: minimum 4.5:1
 - Tekst duży (≥18pt lub ≥14pt bold): minimum 3:1
 
 **Komponenty do weryfikacji:**
 
-| Element | Kolor tekstu | Kolor tła | Wymagany kontrast | Status |
-|---------|--------------|-----------|-------------------|--------|
-| Tekst normalny (body) | `text-foreground` | `bg-background` | 4.5:1 | ✅ Tailwind default |
-| Tytuł "Strefa niebezpieczna" | `text-destructive` | `bg-destructive/5` | 4.5:1 | ⚠️ Wymaga testu* |
-| Przycisk "Usuń konto" | white | `bg-destructive` | 4.5:1 | ✅ shadcn/ui default |
-| Komunikat błędu (Alert) | `text-destructive-foreground` | `bg-destructive` | 4.5:1 | ✅ shadcn/ui default |
-| Pasek postępu | `bg-primary` | `bg-primary/20` | 3:1 | ✅ Tailwind default |
-| Tekst muted | `text-muted-foreground` | `bg-background` | 4.5:1 | ✅ Tailwind default |
+| Element                      | Kolor tekstu                  | Kolor tła          | Wymagany kontrast | Status               |
+| ---------------------------- | ----------------------------- | ------------------ | ----------------- | -------------------- |
+| Tekst normalny (body)        | `text-foreground`             | `bg-background`    | 4.5:1             | ✅ Tailwind default  |
+| Tytuł "Strefa niebezpieczna" | `text-destructive`            | `bg-destructive/5` | 4.5:1             | ⚠️ Wymaga testu\*    |
+| Przycisk "Usuń konto"        | white                         | `bg-destructive`   | 4.5:1             | ✅ shadcn/ui default |
+| Komunikat błędu (Alert)      | `text-destructive-foreground` | `bg-destructive`   | 4.5:1             | ✅ shadcn/ui default |
+| Pasek postępu                | `bg-primary`                  | `bg-primary/20`    | 3:1               | ✅ Tailwind default  |
+| Tekst muted                  | `text-muted-foreground`       | `bg-background`    | 4.5:1             | ✅ Tailwind default  |
 
 **\*Uwaga:** Tytuł "Strefa niebezpieczna" używa klasy `text-destructive` na tle `bg-destructive/5`.
+
 - Kolor tła jest bardzo jasny (5% opacity), więc kontrast powinien być wystarczający
 - **Rekomendacja:** Przetestować w Lighthouse lub Axe DevTools
 
 #### ⚠️ Akcje wymagane
 
 1. **Test w Lighthouse:**
+
    ```bash
    # W Chrome DevTools
    1. Otwórz /settings
@@ -159,16 +174,19 @@ Wszystkie interaktywne elementy mają widoczny focus outline (zapewnione przez T
 #### ✅ Ogłaszane elementy
 
 **Komunikaty dynamiczne (live regions):**
+
 - Błędy walidacji: `role="alert"` - ogłaszane natychmiast
 - Błędy API: `role="alert"` - ogłaszane natychmiast
 - Stan ładowania: "Ładowanie ustawień..." - ogłaszane przy montowaniu
 
 **Etykiety elementów:**
+
 - Przycisk wstecz: "Wróć do dashboardu" (aria-label)
 - Pole input: "Pole potwierdzenia usunięcia konta" (aria-label)
 - Pasek postępu: "Wykorzystano X% limitu" (aria-label)
 
 **Opisy:**
+
 - Input validation errors powiązane przez `aria-describedby`
 - Dialog descriptions powiązane przez `AlertDialogDescription`
 
@@ -233,15 +251,19 @@ Wszystkie interaktywne elementy mają widoczny focus outline (zapewnione przez T
 ### 1. CardTitle jako `<div>` zamiast `<h2>`
 
 **Problem:**
+
 - Komponenty Card z shadcn/ui używają `<div>` dla CardTitle
 - Screen readers nie rozpoznają ich jako nagłówków sekcji
 
 **Wpływ:**
+
 - Średni - użytkownicy screen readers nie mogą nawigować po nagłówkach (H key)
 - Struktura nagłówków nie jest semantyczna
 
 **Rozwiązanie (opcjonalne):**
+
 1. Nadpisać CardTitle w lokalnym komponencie:
+
    ```tsx
    // W każdym komponencie settings
    <CardHeader>
@@ -258,11 +280,13 @@ Wszystkie interaktywne elementy mają widoczny focus outline (zapewnione przez T
 ### 2. Brak autoFocus w Input (krok 2)
 
 **Decyzja:**
+
 - Usunięto `autoFocus` z Input aby spełnić wymogi ESLint
 - **Wpływ:** Użytkownik musi ręcznie kliknąć w Input lub nacisnąć Tab
 - **Alternatywa:** Dodać custom focus management po przejściu do kroku 2 (przez useEffect)
 
 **Rekomendacja:**
+
 - Obecnie: Akceptowalne (użytkownik może nacisnąć Tab)
 - Opcjonalnie: Dodać programmatic focus w useEffect dla lepszej UX
 
@@ -321,4 +345,3 @@ Wszystkie interaktywne elementy mają widoczny focus outline (zapewnione przez T
 **Status implementacji:** ✅ Kompletne
 **Status testów:** ⏳ Wymagane testy manualne
 **Gotowość do release:** ⚠️ Po wykonaniu testów manualnych
-

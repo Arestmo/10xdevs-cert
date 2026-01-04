@@ -11,15 +11,15 @@ import type { FlashcardDisplayProps } from "./types";
  */
 export function FlashcardDisplay({ card, isRevealed, onReveal, onRate, isSubmitting }: FlashcardDisplayProps) {
   return (
-    <div className="w-full max-w-2xl mx-auto px-4">
+    <div className="mx-auto w-full max-w-2xl px-4">
       <Card className="shadow-lg" role="article" aria-label="Fiszka do nauki">
         {/* Przód fiszki - zawsze widoczny */}
         <CardContent className="pt-6 pb-6">
-          <div className="prose prose-sm sm:prose-base max-w-none dark:prose-invert">
-            <div className="text-sm text-muted-foreground mb-2" aria-label="Pytanie">
+          <div className="prose prose-sm sm:prose-base dark:prose-invert max-w-none">
+            <div className="text-muted-foreground mb-2 text-sm" aria-label="Pytanie">
               Pytanie:
             </div>
-            <div className="text-base sm:text-lg whitespace-pre-wrap break-words" id="flashcard-question">
+            <div className="text-base break-words whitespace-pre-wrap sm:text-lg" id="flashcard-question">
               {card.front}
             </div>
           </div>
@@ -30,11 +30,11 @@ export function FlashcardDisplay({ card, isRevealed, onReveal, onRate, isSubmitt
           <>
             <hr className="border-border" aria-hidden="true" />
             <CardContent className="pt-6 pb-6" aria-live="polite">
-              <div className="prose prose-sm sm:prose-base max-w-none dark:prose-invert">
-                <div className="text-sm text-muted-foreground mb-2" aria-label="Odpowiedź">
+              <div className="prose prose-sm sm:prose-base dark:prose-invert max-w-none">
+                <div className="text-muted-foreground mb-2 text-sm" aria-label="Odpowiedź">
                   Odpowiedź:
                 </div>
-                <div className="text-base sm:text-lg whitespace-pre-wrap break-words" id="flashcard-answer">
+                <div className="text-base break-words whitespace-pre-wrap sm:text-lg" id="flashcard-answer">
                   {card.back}
                 </div>
               </div>

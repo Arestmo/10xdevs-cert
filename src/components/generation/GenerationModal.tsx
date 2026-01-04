@@ -95,7 +95,7 @@ export function GenerationModal({ isOpen, onClose, onSuccess, preselectedDeckId,
   return (
     <>
       <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Generuj fiszki AI</DialogTitle>
             <DialogDescription>Wklej tekst źródłowy, a AI wygeneruje dla Ciebie fiszki do nauki</DialogDescription>

@@ -10,12 +10,12 @@ import type { DeckStatsProps } from "./types";
 
 export function DeckStats({ totalFlashcards, dueFlashcards }: DeckStatsProps) {
   return (
-    <div className="flex items-center gap-6 text-sm text-muted-foreground">
+    <div className="text-muted-foreground flex items-center gap-6 text-sm">
       {/* Total flashcards */}
       <div className="flex items-center gap-2">
         <FileStack className="h-4 w-4" />
         <span>
-          <span className="font-medium text-foreground">{totalFlashcards}</span> fiszek
+          <span className="text-foreground font-medium">{totalFlashcards}</span> fiszek
         </span>
       </div>
 
@@ -23,7 +23,7 @@ export function DeckStats({ totalFlashcards, dueFlashcards }: DeckStatsProps) {
       <div className="flex items-center gap-2">
         <Clock className="h-4 w-4" />
         <span>
-          <span className="font-medium text-foreground">{dueFlashcards}</span> do powtórki
+          <span className="text-foreground font-medium">{dueFlashcards}</span> do powtórki
         </span>
       </div>
     </div>

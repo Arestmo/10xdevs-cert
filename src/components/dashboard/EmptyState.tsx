@@ -11,16 +11,16 @@ import type { EmptyStateProps } from "./types";
 
 export function EmptyState({ onCreateDeck }: EmptyStateProps) {
   return (
-    <div className="flex min-h-[400px] flex-col items-center justify-center gap-6 rounded-lg border-2 border-dashed border-muted-foreground/25 bg-muted/30 px-6 py-12 text-center">
+    <div className="border-muted-foreground/25 bg-muted/30 flex min-h-[400px] flex-col items-center justify-center gap-6 rounded-lg border-2 border-dashed px-6 py-12 text-center">
       {/* Illustration icon */}
-      <div className="rounded-full bg-primary/10 p-6">
-        <FolderPlus className="size-16 text-primary" />
+      <div className="bg-primary/10 rounded-full p-6">
+        <FolderPlus className="text-primary size-16" />
       </div>
 
       {/* Header */}
       <div className="space-y-2">
         <h2 className="text-2xl font-bold tracking-tight">Witaj w Flashcards AI!</h2>
-        <p className="max-w-md text-muted-foreground">
+        <p className="text-muted-foreground max-w-md">
           Utwórz swoją pierwszą talię, aby rozpocząć naukę z fiszkami wspieranymi przez sztuczną inteligencję
         </p>
       </div>

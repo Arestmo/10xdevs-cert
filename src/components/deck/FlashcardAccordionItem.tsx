@@ -39,14 +39,14 @@ export function FlashcardAccordionItem({
         <div className="space-y-4 pt-2">
           {/* Front side */}
           <div className="space-y-1">
-            <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Przód</div>
-            <div className="rounded-md bg-muted/50 p-3 text-sm">{flashcard.front}</div>
+            <div className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">Przód</div>
+            <div className="bg-muted/50 rounded-md p-3 text-sm">{flashcard.front}</div>
           </div>
 
           {/* Back side */}
           <div className="space-y-1">
-            <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Tył</div>
-            <div className="rounded-md bg-muted/50 p-3 text-sm">{flashcard.back}</div>
+            <div className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">Tył</div>
+            <div className="bg-muted/50 rounded-md p-3 text-sm">{flashcard.back}</div>
           </div>
 
           {/* Actions */}
@@ -59,7 +59,7 @@ export function FlashcardAccordionItem({
               variant="outline"
               size="sm"
               onClick={onDelete}
-              className="gap-2 text-destructive hover:bg-destructive/10"
+              className="text-destructive hover:bg-destructive/10 gap-2"
             >
               <Trash2 className="h-4 w-4" />
               Usuń

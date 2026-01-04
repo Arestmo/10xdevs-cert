@@ -140,8 +140,8 @@ export function DeckView({ deckId }: DeckViewProps) {
     return (
       <div className="flex min-h-[400px] items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-sm text-muted-foreground">Ładowanie talii...</p>
+          <Loader2 className="text-primary h-8 w-8 animate-spin" />
+          <p className="text-muted-foreground text-sm">Ładowanie talii...</p>
         </div>
       </div>
     );
@@ -152,14 +152,14 @@ export function DeckView({ deckId }: DeckViewProps) {
     return (
       <div className="flex min-h-[400px] items-center justify-center">
         <div className="flex flex-col items-center gap-4 text-center">
-          <AlertCircle className="h-12 w-12 text-destructive" />
+          <AlertCircle className="text-destructive h-12 w-12" />
           <div className="space-y-2">
             <h2 className="text-xl font-semibold">Nie udało się załadować talii</h2>
-            <p className="text-sm text-muted-foreground">{error || "Talia nie została znaleziona"}</p>
+            <p className="text-muted-foreground text-sm">{error || "Talia nie została znaleziona"}</p>
           </div>
           <a
             href="/dashboard"
-            className="mt-4 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+            className="bg-primary text-primary-foreground hover:bg-primary/90 mt-4 rounded-md px-4 py-2 text-sm font-medium"
           >
             Powrót do dashboard
           </a>

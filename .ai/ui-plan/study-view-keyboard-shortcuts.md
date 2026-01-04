@@ -6,8 +6,8 @@ Ten dokument opisuje wszystkie dostępne skróty klawiszowe w widoku sesji nauki
 
 ### Odsłanianie odpowiedzi
 
-| Klawisz | Akcja |
-|---------|-------|
+| Klawisz | Akcja                   |
+| ------- | ----------------------- |
 | `Space` | Odsłoń odpowiedź fiszki |
 
 **Kiedy działa:** Tylko gdy odpowiedź jest jeszcze niewidoczna
@@ -21,8 +21,9 @@ Ten dokument opisuje wszystkie dostępne skróty klawiszowe w widoku sesji nauki
 Po odsłonięciu odpowiedzi możesz ocenić swoją znajomość materiału. Dla każdej oceny dostępne są **dwa skróty** - cyfra lub litera.
 
 ### Again (Powtórz)
-| Klawisz | Akcja |
-|---------|-------|
+
+| Klawisz     | Akcja                                   |
+| ----------- | --------------------------------------- |
 | `1` lub `A` | Ocena "Again" - materiał niezapamiętany |
 
 **Kolor przycisku:** 🔴 Czerwony
@@ -31,8 +32,9 @@ Po odsłonięciu odpowiedzi możesz ocenić swoją znajomość materiału. Dla k
 ---
 
 ### Hard (Trudne)
-| Klawisz | Akcja |
-|---------|-------|
+
+| Klawisz     | Akcja                                          |
+| ----------- | ---------------------------------------------- |
 | `2` lub `H` | Ocena "Hard" - materiał trudny do zapamiętania |
 
 **Kolor przycisku:** 🟠 Pomarańczowy
@@ -41,8 +43,9 @@ Po odsłonięciu odpowiedzi możesz ocenić swoją znajomość materiału. Dla k
 ---
 
 ### Good (Dobre)
-| Klawisz | Akcja |
-|---------|-------|
+
+| Klawisz     | Akcja                                      |
+| ----------- | ------------------------------------------ |
 | `3` lub `G` | Ocena "Good" - materiał dobrze zapamiętany |
 
 **Kolor przycisku:** 🟢 Zielony
@@ -51,8 +54,9 @@ Po odsłonięciu odpowiedzi możesz ocenić swoją znajomość materiału. Dla k
 ---
 
 ### Easy (Łatwe)
-| Klawisz | Akcja |
-|---------|-------|
+
+| Klawisz     | Akcja                                         |
+| ----------- | --------------------------------------------- |
 | `4` lub `E` | Ocena "Easy" - materiał łatwy do zapamiętania |
 
 **Kolor przycisku:** 🔵 Niebieski
@@ -62,9 +66,9 @@ Po odsłonięciu odpowiedzi możesz ocenić swoją znajomość materiału. Dla k
 
 ## 🚪 Zakończenie sesji
 
-| Klawisz | Akcja |
-|---------|-------|
-| `Esc` | Zakończ sesję nauki i wróć do dashboardu |
+| Klawisz | Akcja                                    |
+| ------- | ---------------------------------------- |
+| `Esc`   | Zakończ sesję nauki i wróć do dashboardu |
 
 **Kiedy działa:** W każdym momencie sesji (przed i po odsłonięciu odpowiedzi)
 
@@ -90,17 +94,22 @@ Po odsłonięciu odpowiedzi możesz ocenić swoją znajomość materiału. Dla k
 ## 💡 Wskazówki
 
 ### Wybór między cyfrą a literą
+
 - **Cyfry (1-4):** Wygodne gdy korzystasz z numerycznej klawiatury
 - **Litery (A/H/G/E):** Mnemonic - pierwszy litera angielskiej nazwy (Again, Hard, Good, Easy)
 
 ### Ignorowanie skrótów
+
 Skróty klawiszowe są automatycznie wyłączane gdy:
+
 - Focus jest w polu tekstowym (input/textarea)
 - Trwa wysyłanie oceny do serwera (pokazuje się spinner)
 - Sesja jest już ukończona
 
 ### Duże vs małe litery
+
 Skróty literowe działają zarówno z małymi jak i dużymi literami:
+
 - `a` = `A` = Again
 - `h` = `H` = Hard
 - `g` = `G` = Good
@@ -111,19 +120,24 @@ Skróty literowe działają zarówno z małymi jak i dużymi literami:
 ## ♿ Dostępność
 
 ### Screen reader support
+
 Wszystkie interaktywne elementy mają rozszerzone `aria-label` które informują o dostępnych skrótach:
+
 - "Pokaż odpowiedź. Naciśnij spację"
 - "Ocena: Again (1). Naciśnij 1 lub A"
 - "Ocena: Hard (2). Naciśnij 2 lub H"
 - Itd.
 
 ### Focus management
+
 - Przycisk "Pokaż odpowiedź" automatycznie otrzymuje focus po załadowaniu fiszki
 - Możesz nawigować między przyciskami używając `Tab` i `Shift+Tab`
 - `Enter` aktywuje przycisk, na którym jest focus
 
 ### Ukryte komunikaty
+
 Screen reader ogłasza dodatkowe informacje:
+
 - "Naciśnij spację aby odsłonić odpowiedź" (gdy odpowiedź niewidoczna)
 - "Oceń swoją znajomość: 1 lub A - Again, 2 lub H - Hard, 3 lub G - Good, 4 lub E - Easy" (gdy odpowiedź widoczna)
 
@@ -132,15 +146,18 @@ Screen reader ogłasza dodatkowe informacje:
 ## 🐛 Troubleshooting
 
 ### Skróty nie działają
+
 1. Sprawdź czy focus nie jest w polu tekstowym
 2. Upewnij się, że nie trwa wysyłanie oceny (nie ma spinnera)
 3. Sprawdź czy sesja nie jest już ukończona
 4. Sprawdź czy odpowiedź jest odsłonięta (dla ocen)
 
 ### Space scrolluje stronę zamiast odsłaniać odpowiedź
+
 To nie powinno się zdarzyć - implementacja używa `event.preventDefault()`. Jeśli jednak się zdarza, kliknij w obszar karty aby focus był na stronie.
 
 ### Wielokrotne naciśnięcie klawisza
+
 System zabezpiecza przed wielokrotnym wysłaniem tej samej oceny. Podczas wysyłania (spinner) wszystkie skróty są wyłączone.
 
 ---
@@ -148,6 +165,7 @@ System zabezpiecza przed wielokrotnym wysłaniem tej samej oceny. Podczas wysył
 ## 📊 Statystyki
 
 **Całkowita liczba skrótów:** 11
+
 - Odsłanianie: 1 (`Space`)
 - Ocenianie: 8 (4 cyfry + 4 litery)
 - Zakończenie: 1 (`Esc`)

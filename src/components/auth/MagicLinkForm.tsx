@@ -34,7 +34,7 @@ export function MagicLinkForm() {
           aria-describedby={error ? "email-error" : undefined}
         />
         {error && (
-          <p id="email-error" className="text-sm text-destructive">
+          <p id="email-error" className="text-destructive text-sm">
             {error}
           </p>
         )}

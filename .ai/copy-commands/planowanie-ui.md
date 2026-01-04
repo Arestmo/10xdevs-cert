@@ -3,14 +3,14 @@ Jako starszy programista frontendu Twoim zadaniem jest stworzenie szczegółoweg
 Najpierw przejrzyj następujące informacje:
 
 0.Product Requirements Document (PRD):
-   <prd>
-   @.ai/prd.md  
-   </prd>
+<prd>
+@.ai/prd.md  
+ </prd>
 
 1.Global UI implementation plan:
-   <global_ui_plan>
-   @.ai/ui-plan.md  
-   </global_ui_plan>
+<global_ui_plan>
+@.ai/ui-plan.md  
+ </global_ui_plan>
 
 2. Opis widoku:
    <view_description>

@@ -27,14 +27,14 @@ export function DraftsList({
         <h3 className="text-lg font-semibold">
           Wygenerowano {totalDrafts} {totalDrafts === 1 ? "fiszkę" : "fiszek"}
         </h3>
-        <div className="text-sm text-muted-foreground">
+        <div className="text-muted-foreground text-sm">
           Zaakceptowano: {acceptedCount} | Odrzucono: {rejectedCount}
         </div>
       </div>
 
       {/* Scrollable List */}
       <div
-        className="space-y-3 max-h-[400px] overflow-y-auto pr-2"
+        className="max-h-[400px] space-y-3 overflow-y-auto pr-2"
         aria-live="polite"
         aria-relevant="additions removals"
       >
@@ -55,7 +55,7 @@ export function DraftsList({
       </div>
 
       {/* Help Text */}
-      <p className="text-xs text-muted-foreground text-center">
+      <p className="text-muted-foreground text-center text-xs">
         Możesz edytować fiszki przed zaakceptowaniem. Odrzucone fiszki nie zostaną zapisane.
       </p>
     </div>

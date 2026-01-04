@@ -1,22 +1,17 @@
-US-005
-Tytuł: Usuwanie konta
-Opis: Jako użytkownik chcę móc usunąć swoje konto i wszystkie dane, aby skorzystać z prawa do bycia zapomnianym zgodnie z RODO.
+US-044
+Tytuł: Przeglądanie polityki prywatności
+Opis: Jako użytkownik chcę przeczytać politykę prywatności, aby wiedzieć jak przetwarzane są moje dane.
 Kryteria akceptacji:
 
-- W ustawieniach konta dostępna jest opcja "Usuń konto"
-- Przed usunięciem wyświetlane jest ostrzeżenie o nieodwracalności operacji
-- Wymagane jest potwierdzenie zamiaru usunięcia (np. wpisanie słowa "USUŃ")
-- Po potwierdzeniu wszystkie dane użytkownika są trwale usuwane (cascade delete)
-- Usuwane są: konto, talie, fiszki, logi, parametry FSRS
-- Użytkownik jest wylogowany i przekierowany do strony logowania
-- Wyświetlany jest komunikat potwierdzający usunięcie konta
+- W stopce lub menu dostępny jest link do polityki prywatności
+- Strona zawiera pełną treść polityki prywatności w języku polskim
+- Polityka opisuje: zbierane dane, cel przetwarzania, prawa użytkownika, kontakt
 
-US-043
-Tytuł: Dostęp do ustawień konta
-Opis: Jako użytkownik chcę mieć dostęp do ustawień konta, aby zarządzać swoim profilem.
+US-045
+Tytuł: Przeglądanie regulaminu
+Opis: Jako użytkownik chcę przeczytać regulamin usługi, aby znać zasady korzystania z aplikacji.
 Kryteria akceptacji:
 
-- W menu użytkownika dostępna jest opcja "Ustawienia"
-- Strona ustawień zawiera informacje o koncie (email)
-- Dostępna jest opcja usunięcia konta
-- Widoczny jest aktualny limit fiszek AI (wykorzystane/dostępne)
+- W stopce lub menu dostępny jest link do regulaminu
+- Strona zawiera pełną treść regulaminu w języku polskim
+- Regulamin opisuje: zasady korzystania, ograniczenia, odpowiedzialność

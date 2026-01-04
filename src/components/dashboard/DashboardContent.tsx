@@ -90,8 +90,8 @@ export function DashboardContent() {
   if (isLoading) {
     return (
       <div className="flex min-h-[400px] items-center justify-center">
-        <div className="flex flex-col items-center gap-4 text-muted-foreground">
-          <Loader2 className="size-12 animate-spin text-primary" />
+        <div className="text-muted-foreground flex flex-col items-center gap-4">
+          <Loader2 className="text-primary size-12 animate-spin" />
           <p className="text-sm">Ładowanie dashboardu...</p>
         </div>
       </div>

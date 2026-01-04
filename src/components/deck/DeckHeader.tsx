@@ -27,7 +27,7 @@ export function DeckHeader({
     <div className="space-y-4">
       {/* Back button */}
       <div>
-        <Button variant="ghost" size="sm" asChild className="gap-2 text-muted-foreground hover:text-foreground">
+        <Button variant="ghost" size="sm" asChild className="text-muted-foreground hover:text-foreground gap-2">
           <a href="/dashboard">
             <ArrowLeft className="h-4 w-4" />
             Powrót do dashboard

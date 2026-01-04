@@ -17,9 +17,9 @@ export function AccountInfo({ email }: AccountInfoProps) {
       </CardHeader>
       <CardContent>
         <div className="space-y-2">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-            <span className="text-sm font-medium text-muted-foreground">Email</span>
-            <span className="text-sm font-mono">{email}</span>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <span className="text-muted-foreground text-sm font-medium">Email</span>
+            <span className="font-mono text-sm">{email}</span>
           </div>
         </div>
       </CardContent>

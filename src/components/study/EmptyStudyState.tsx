@@ -22,11 +22,11 @@ export function EmptyStudyState({ nextReviewDate, returnUrl = "/dashboard" }: Em
     : null;
 
   return (
-    <div className="flex items-center justify-center min-h-screen px-4">
+    <div className="flex min-h-screen items-center justify-center px-4">
       <Card className="w-full max-w-md text-center">
         <CardHeader>
-          <div className="flex justify-center mb-4">
-            <BookOpen className="h-16 w-16 text-muted-foreground" />
+          <div className="mb-4 flex justify-center">
+            <BookOpen className="text-muted-foreground h-16 w-16" />
           </div>
           <CardTitle className="text-2xl">Brak fiszek do powtórki</CardTitle>
         </CardHeader>
@@ -36,8 +36,8 @@ export function EmptyStudyState({ nextReviewDate, returnUrl = "/dashboard" }: Em
           </p>
 
           {formattedNextReview && (
-            <p className="text-sm text-muted-foreground">
-              Najbliższa powtórka: <span className="font-medium text-foreground">{formattedNextReview}</span>
+            <p className="text-muted-foreground text-sm">
+              Najbliższa powtórka: <span className="text-foreground font-medium">{formattedNextReview}</span>
             </p>
           )}
 

@@ -38,9 +38,9 @@ export function StudyView({ deckId }: StudyViewProps) {
   // Stan ładowania
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen" role="status" aria-live="polite">
-        <div className="text-center space-y-4">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" aria-hidden="true" />
+      <div className="flex min-h-screen items-center justify-center" role="status" aria-live="polite">
+        <div className="space-y-4 text-center">
+          <Loader2 className="text-primary mx-auto h-8 w-8 animate-spin" aria-hidden="true" />
           <p className="text-muted-foreground">Ładowanie fiszek...</p>
         </div>
       </div>
@@ -50,8 +50,8 @@ export function StudyView({ deckId }: StudyViewProps) {
   // Stan błędu
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-screen px-4" role="alert" aria-live="assertive">
-        <div className="text-center space-y-4 max-w-md">
+      <div className="flex min-h-screen items-center justify-center px-4" role="alert" aria-live="assertive">
+        <div className="max-w-md space-y-4 text-center">
           <p className="text-destructive font-medium">{error}</p>
           <Button onClick={retryFetch} variant="outline" aria-label="Spróbuj ponownie załadować fiszki">
             Spróbuj ponownie
@@ -80,7 +80,7 @@ export function StudyView({ deckId }: StudyViewProps) {
       <StudyHeader currentIndex={currentIndex} totalCards={cards.length} onClose={endSession} />
 
       {/* Główna zawartość - fiszka */}
-      <main className="pt-20 pb-8 px-4" aria-label="Fiszka do nauki">
+      <main className="px-4 pt-20 pb-8" aria-label="Fiszka do nauki">
         {currentCard && (
           <FlashcardDisplay
             card={currentCard}

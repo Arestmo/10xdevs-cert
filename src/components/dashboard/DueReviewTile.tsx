@@ -14,14 +14,14 @@ export function DueReviewTile({ dueCount }: DueReviewTileProps) {
   return (
     <a
       href="/study"
-      className="block transition-all hover:scale-[1.02] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+      className="focus-visible:outline-primary block transition-all hover:scale-[1.02] focus-visible:outline-2 focus-visible:outline-offset-2"
       aria-label={`Rozpocznij sesję nauki - ${dueCount} fiszek czeka na powtórkę`}
     >
-      <Card className="h-full border-primary/50 bg-primary/5 hover:border-primary hover:bg-primary/10 cursor-pointer">
+      <Card className="border-primary/50 bg-primary/5 hover:border-primary hover:bg-primary/10 h-full cursor-pointer">
         <CardContent className="flex flex-col items-center justify-center gap-4 py-8">
           {/* Icon */}
-          <div className="rounded-full bg-primary/10 p-4">
-            <BookOpen className="size-8 text-primary" />
+          <div className="bg-primary/10 rounded-full p-4">
+            <BookOpen className="text-primary size-8" />
           </div>
 
           {/* Title */}
@@ -31,10 +31,10 @@ export function DueReviewTile({ dueCount }: DueReviewTileProps) {
 
           {/* Count - large and prominent */}
           <div className="text-center">
-            <p className="text-5xl font-bold text-primary" aria-label={`${dueCount} fiszek`}>
+            <p className="text-primary text-5xl font-bold" aria-label={`${dueCount} fiszek`}>
               {dueCount}
             </p>
-            <p className="mt-2 text-sm text-muted-foreground">
+            <p className="text-muted-foreground mt-2 text-sm">
               {dueCount === 1 ? "fiszka czeka" : "fiszek czeka"} na powtórkę
             </p>
           </div>

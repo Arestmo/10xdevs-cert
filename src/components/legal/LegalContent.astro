@@ -1,0 +1,94 @@
+---
+/**
+ * Legal Content Component
+ * 
+ * Główny komponent do wyświetlania treści prawnych.
+ * Odpowiada za prawidłową strukturę semantyczną, typografię i responsywność długiego tekstu.
+ */
+
+import type { LegalContentProps, LegalSection, LegalSubsection } from "@/types/legal";
+
+type Props = LegalContentProps;
+
+const { title, lastUpdated, sections, showTableOfContents = false } = Astro.props;
+
+/**
+ * Sprawdza czy zawartość sekcji to tablica podsekcji
+ */
+function isSubsections(content: string | LegalSubsection[]): content is LegalSubsection[] {
+  return Array.isArray(content);
+}
+---
+
+<article class="max-w-none text-base leading-relaxed">
+  <!-- Główny tytuł dokumentu -->
+  <h1 class="mb-2 text-4xl font-bold tracking-tight">{title}</h1>
+
+  <!-- Data ostatniej aktualizacji -->
+  <p class="mb-8 text-sm text-muted-foreground">
+    Ostatnia aktualizacja: {lastUpdated}
+  </p>
+
+  <!-- Opcjonalny spis treści -->
+  {
+    showTableOfContents && sections.length > 0 && (
+      <nav class="mb-12 rounded-lg border bg-muted/50 p-6" aria-label="Spis treści">
+        <h2 class="mb-4 text-lg font-semibold">Spis treści</h2>
+        <ol class="space-y-2">
+          {sections.map((section) => (
+            <li>
+              <a
+                href={`#${section.id}`}
+                class="text-foreground/80 hover:text-foreground underline-offset-4 hover:underline"
+              >
+                {section.title}
+              </a>
+            </li>
+          ))}
+        </ol>
+      </nav>
+    )
+  }
+
+  <!-- Główne sekcje dokumentu -->
+  {
+    sections.map((section: LegalSection) => (
+      <section id={section.id} class="mb-12 scroll-mt-8">
+        <!-- Nagłówek sekcji -->
+        <h2 class="mb-4 text-2xl font-semibold tracking-tight">{section.title}</h2>
+
+        {/* Renderowanie zawartości sekcji */}
+        {isSubsections(section.content) ? (
+          // Zawartość jako tablica podsekcji
+          <div class="space-y-6">
+            {section.content.map((subsection: LegalSubsection) => (
+              <div>
+                {/* Opcjonalny tytuł podsekcji (h3) */}
+                {subsection.title && (
+                  <h3 class="mb-3 text-xl font-medium">{subsection.title}</h3>
+                )}
+
+                {/* Akapity */}
+                {subsection.paragraphs.map((paragraph: string) => (
+                  <p class="mb-4 leading-relaxed text-foreground/90">{paragraph}</p>
+                ))}
+
+                {/* Opcjonalna lista */}
+                {subsection.list && subsection.list.length > 0 && (
+                  <ul class="mb-4 ml-6 list-disc space-y-2">
+                    {subsection.list.map((item: string) => (
+                      <li class="leading-relaxed text-foreground/90">{item}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            ))}
+          </div>
+        ) : (
+          // Zawartość jako prosty string
+          <p class="leading-relaxed text-foreground/90">{section.content}</p>
+        )}
+      </section>
+    ))
+  }
+</article>

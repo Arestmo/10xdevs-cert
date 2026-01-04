@@ -5,6 +5,7 @@
 Widok Sesji Nauki (`/study` i `/study/{deckId}`) to interaktywny ekran do nauki fiszek z wykorzystaniem algorytmu FSRS (Free Spaced Repetition Scheduler). Widok umożliwia przeglądanie fiszek zaplanowanych do powtórki, odsłanianie odpowiedzi i ocenianie znajomości materiału. Na podstawie oceny użytkownika, algorytm FSRS oblicza optymalny termin kolejnej powtórki.
 
 Kluczowe funkcjonalności:
+
 - Wyświetlanie fiszek do powtórki (przód/tył)
 - Śledzenie postępu sesji (pasek postępu X/Y)
 - Ocenianie fiszek (Again/Hard/Good/Easy)
@@ -15,6 +16,7 @@ Kluczowe funkcjonalności:
 ## 2. Routing widoku
 
 Widok dostępny pod dwoma ścieżkami:
+
 - `/study` - sesja nauki ze wszystkich talii użytkownika
 - `/study/{deckId}` - sesja nauki z konkretnej talii (UUID)
 
@@ -47,6 +49,7 @@ src/components/hooks/
 ```
 
 Hierarchia komponentów:
+
 ```
 StudyLayout (Astro)
 └── StudyView (React - client:load)
@@ -484,6 +487,7 @@ export function transformStudyCardDTOs(dtos: StudyCardDTO[]): StudyCardViewModel
 ### Hook `useStudySession`
 
 Hook zarządzający całą logiką sesji nauki. Odpowiada za:
+
 - Pobieranie fiszek do powtórki z API
 - Zarządzanie stanem sesji (aktualna karta, odsłonięcie odpowiedzi)
 - Wysyłanie ocen i przechodzenie do następnej karty
@@ -495,11 +499,7 @@ Hook zarządzający całą logiką sesji nauki. Odpowiada za:
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import type { StudyCardsResponseDTO, SubmitReviewRequestDTO } from "@/types";
-import type {
-  StudyCardViewModel,
-  Rating,
-  UseStudySessionReturn
-} from "@/components/study/types";
+import type { StudyCardViewModel, Rating, UseStudySessionReturn } from "@/components/study/types";
 import { transformStudyCardDTOs } from "@/components/study/transformers";
 
 const STUDY_CARDS_LIMIT = 50;
@@ -540,7 +540,7 @@ export function useStudySession(deckId?: string): UseStudySessionReturn {
       const response = await fetch(url);
 
       if (response.status === 401) {
-        const redirectUrl = deckId ? `/decks/${deckId}` : '/dashboard';
+        const redirectUrl = deckId ? `/decks/${deckId}` : "/dashboard";
         window.location.href = `/login?redirect=${redirectUrl}`;
         return;
       }
@@ -579,49 +579,52 @@ export function useStudySession(deckId?: string): UseStudySessionReturn {
   }, []);
 
   // Wysłanie oceny
-  const submitRating = useCallback(async (rating: Rating) => {
-    if (!currentCard || isSubmitting) return;
+  const submitRating = useCallback(
+    async (rating: Rating) => {
+      if (!currentCard || isSubmitting) return;
 
-    setIsSubmitting(true);
+      setIsSubmitting(true);
 
-    try {
-      const requestBody: SubmitReviewRequestDTO = {
-        flashcard_id: currentCard.id,
-        rating,
-      };
+      try {
+        const requestBody: SubmitReviewRequestDTO = {
+          flashcard_id: currentCard.id,
+          rating,
+        };
 
-      const response = await fetch("/api/study/review", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(requestBody),
-      });
+        const response = await fetch("/api/study/review", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(requestBody),
+        });
 
-      if (response.status === 401) {
-        const redirectUrl = deckId ? `/decks/${deckId}` : '/dashboard';
-        window.location.href = `/login?redirect=${redirectUrl}`;
-        return;
+        if (response.status === 401) {
+          const redirectUrl = deckId ? `/decks/${deckId}` : "/dashboard";
+          window.location.href = `/login?redirect=${redirectUrl}`;
+          return;
+        }
+
+        if (!response.ok) {
+          // Automatyczne retry lub pokazanie błędu
+          console.error("Failed to submit review");
+          // Kontynuuj do następnej karty mimo błędu
+        }
+
+        // Przejdź do następnej karty
+        setReviewedCount((prev) => prev + 1);
+        setCurrentIndex((prev) => prev + 1);
+        setIsAnswerRevealed(false);
+      } catch (err) {
+        console.error("Error submitting review:", err);
+      } finally {
+        setIsSubmitting(false);
       }
-
-      if (!response.ok) {
-        // Automatyczne retry lub pokazanie błędu
-        console.error("Failed to submit review");
-        // Kontynuuj do następnej karty mimo błędu
-      }
-
-      // Przejdź do następnej karty
-      setReviewedCount((prev) => prev + 1);
-      setCurrentIndex((prev) => prev + 1);
-      setIsAnswerRevealed(false);
-    } catch (err) {
-      console.error("Error submitting review:", err);
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [currentCard, isSubmitting, deckId]);
+    },
+    [currentCard, isSubmitting, deckId]
+  );
 
   // Zakończenie sesji
   const endSession = useCallback(() => {
-    const returnUrl = deckId ? `/decks/${deckId}` : '/dashboard';
+    const returnUrl = deckId ? `/decks/${deckId}` : "/dashboard";
     window.location.href = returnUrl;
   }, [deckId]);
 
@@ -634,8 +637,7 @@ export function useStudySession(deckId?: string): UseStudySessionReturn {
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       // Ignoruj jeśli focus w input/textarea
-      if (event.target instanceof HTMLInputElement ||
-          event.target instanceof HTMLTextAreaElement) {
+      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
         return;
       }
 
@@ -658,10 +660,18 @@ export function useStudySession(deckId?: string): UseStudySessionReturn {
       // Oceny (tylko gdy odpowiedź odsłonięta)
       if (isAnswerRevealed && !isSubmitting) {
         const ratingMap: Record<string, Rating> = {
-          "1": 1, "a": 1, "A": 1,
-          "2": 2, "h": 2, "H": 2,
-          "3": 3, "g": 3, "G": 3,
-          "4": 4, "e": 4, "E": 4,
+          "1": 1,
+          a: 1,
+          A: 1,
+          "2": 2,
+          h: 2,
+          H: 2,
+          "3": 3,
+          g: 3,
+          G: 3,
+          "4": 4,
+          e: 4,
+          E: 4,
         };
 
         const rating = ratingMap[event.key];
@@ -682,7 +692,7 @@ export function useStudySession(deckId?: string): UseStudySessionReturn {
     isSubmitting,
     revealAnswer,
     submitRating,
-    endSession
+    endSession,
   ]);
 
   return {
@@ -711,10 +721,12 @@ export function useStudySession(deckId?: string): UseStudySessionReturn {
 **Endpoint:** `GET /api/study/cards`
 
 **Query Parameters:**
+
 - `deck_id` (optional): UUID talii do filtrowania
 - `limit` (optional): Maksymalna liczba kart (1-200, domyślnie 50)
 
 **Response (200):**
+
 ```typescript
 {
   data: StudyCardDTO[];
@@ -724,6 +736,7 @@ export function useStudySession(deckId?: string): UseStudySessionReturn {
 ```
 
 **Błędy:**
+
 - `401 Unauthorized` - przekierowanie do `/login`
 - `400 Bad Request` - nieprawidłowe parametry
 - `404 Not Found` - talia nie znaleziona
@@ -733,6 +746,7 @@ export function useStudySession(deckId?: string): UseStudySessionReturn {
 **Endpoint:** `POST /api/study/review`
 
 **Request Body:**
+
 ```typescript
 {
   flashcard_id: string; // UUID fiszki
@@ -741,6 +755,7 @@ export function useStudySession(deckId?: string): UseStudySessionReturn {
 ```
 
 **Response (200):**
+
 ```typescript
 {
   flashcard: FlashcardDTO; // Zaktualizowana fiszka
@@ -749,76 +764,77 @@ export function useStudySession(deckId?: string): UseStudySessionReturn {
     hard: string;
     good: string;
     easy: string;
-  };
+  }
 }
 ```
 
 **Błędy:**
+
 - `401 Unauthorized` - przekierowanie do `/login`
 - `400 Bad Request` - nieprawidłowe dane
 - `404 Not Found` - fiszka nie znaleziona
 
 ## 8. Interakcje użytkownika
 
-| Interakcja | Element | Rezultat |
-|------------|---------|----------|
-| Kliknięcie X | StudyHeader | Powrót do dashboardu (lub widoku talii) |
-| Kliknięcie "Pokaż odpowiedź" | RevealButton | Odsłonięcie tyłu fiszki, ukrycie przycisku, pokazanie RatingButtons |
-| Kliknięcie Again | RatingButtons | Wysłanie oceny 1, przejście do następnej karty |
-| Kliknięcie Hard | RatingButtons | Wysłanie oceny 2, przejście do następnej karty |
-| Kliknięcie Good | RatingButtons | Wysłanie oceny 3, przejście do następnej karty |
-| Kliknięcie Easy | RatingButtons | Wysłanie oceny 4, przejście do następnej karty |
-| Kliknięcie "Wróć do dashboardu" | SessionComplete | Nawigacja do dashboardu |
-| Naciśnięcie Space | Klawisz | Odsłonięcie odpowiedzi (gdy niewidoczna) |
-| Naciśnięcie 1/A | Klawisz | Ocena Again (gdy odpowiedź widoczna) |
-| Naciśnięcie 2/H | Klawisz | Ocena Hard (gdy odpowiedź widoczna) |
-| Naciśnięcie 3/G | Klawisz | Ocena Good (gdy odpowiedź widoczna) |
-| Naciśnięcie 4/E | Klawisz | Ocena Easy (gdy odpowiedź widoczna) |
-| Naciśnięcie Escape | Klawisz | Zakończenie sesji, powrót do dashboardu |
+| Interakcja                      | Element         | Rezultat                                                            |
+| ------------------------------- | --------------- | ------------------------------------------------------------------- |
+| Kliknięcie X                    | StudyHeader     | Powrót do dashboardu (lub widoku talii)                             |
+| Kliknięcie "Pokaż odpowiedź"    | RevealButton    | Odsłonięcie tyłu fiszki, ukrycie przycisku, pokazanie RatingButtons |
+| Kliknięcie Again                | RatingButtons   | Wysłanie oceny 1, przejście do następnej karty                      |
+| Kliknięcie Hard                 | RatingButtons   | Wysłanie oceny 2, przejście do następnej karty                      |
+| Kliknięcie Good                 | RatingButtons   | Wysłanie oceny 3, przejście do następnej karty                      |
+| Kliknięcie Easy                 | RatingButtons   | Wysłanie oceny 4, przejście do następnej karty                      |
+| Kliknięcie "Wróć do dashboardu" | SessionComplete | Nawigacja do dashboardu                                             |
+| Naciśnięcie Space               | Klawisz         | Odsłonięcie odpowiedzi (gdy niewidoczna)                            |
+| Naciśnięcie 1/A                 | Klawisz         | Ocena Again (gdy odpowiedź widoczna)                                |
+| Naciśnięcie 2/H                 | Klawisz         | Ocena Hard (gdy odpowiedź widoczna)                                 |
+| Naciśnięcie 3/G                 | Klawisz         | Ocena Good (gdy odpowiedź widoczna)                                 |
+| Naciśnięcie 4/E                 | Klawisz         | Ocena Easy (gdy odpowiedź widoczna)                                 |
+| Naciśnięcie Escape              | Klawisz         | Zakończenie sesji, powrót do dashboardu                             |
 
 ## 9. Warunki i walidacja
 
 ### Walidacja po stronie klienta
 
-| Warunek | Komponent | Efekt UI |
-|---------|-----------|----------|
-| `cards.length === 0 && !isLoading` | StudyView | Renderowanie EmptyStudyState |
-| `isLoading === true` | StudyView | Renderowanie spinnera ładowania |
-| `error !== null` | StudyView | Renderowanie komunikatu błędu z przyciskiem retry |
-| `isSessionComplete === true` | StudyView | Renderowanie SessionComplete |
-| `isAnswerRevealed === false` | FlashcardDisplay | Pokazanie tylko frontu i RevealButton |
-| `isAnswerRevealed === true` | FlashcardDisplay | Pokazanie frontu, tyłu i RatingButtons |
-| `isSubmitting === true` | RatingButtons | Disabled wszystkich przycisków, spinner na aktywnym |
+| Warunek                            | Komponent        | Efekt UI                                            |
+| ---------------------------------- | ---------------- | --------------------------------------------------- |
+| `cards.length === 0 && !isLoading` | StudyView        | Renderowanie EmptyStudyState                        |
+| `isLoading === true`               | StudyView        | Renderowanie spinnera ładowania                     |
+| `error !== null`                   | StudyView        | Renderowanie komunikatu błędu z przyciskiem retry   |
+| `isSessionComplete === true`       | StudyView        | Renderowanie SessionComplete                        |
+| `isAnswerRevealed === false`       | FlashcardDisplay | Pokazanie tylko frontu i RevealButton               |
+| `isAnswerRevealed === true`        | FlashcardDisplay | Pokazanie frontu, tyłu i RatingButtons              |
+| `isSubmitting === true`            | RatingButtons    | Disabled wszystkich przycisków, spinner na aktywnym |
 
 ### Walidacja API
 
-| Pole | Warunek | Komunikat błędu |
-|------|---------|-----------------|
-| `flashcard_id` | Musi być prawidłowy UUID | "flashcard_id must be a valid UUID" |
-| `rating` | Musi być 1, 2, 3 lub 4 | "rating must be 1 (Again), 2 (Hard), 3 (Good), or 4 (Easy)" |
-| `deck_id` (query) | Jeśli podany, musi być prawidłowy UUID | "deck_id must be a valid UUID" |
-| `limit` (query) | Musi być 1-200 | Automatyczna korekcja do 50 |
+| Pole              | Warunek                                | Komunikat błędu                                             |
+| ----------------- | -------------------------------------- | ----------------------------------------------------------- |
+| `flashcard_id`    | Musi być prawidłowy UUID               | "flashcard_id must be a valid UUID"                         |
+| `rating`          | Musi być 1, 2, 3 lub 4                 | "rating must be 1 (Again), 2 (Hard), 3 (Good), or 4 (Easy)" |
+| `deck_id` (query) | Jeśli podany, musi być prawidłowy UUID | "deck_id must be a valid UUID"                              |
+| `limit` (query)   | Musi być 1-200                         | Automatyczna korekcja do 50                                 |
 
 ## 10. Obsługa błędów
 
 ### Błędy ładowania danych
 
-| Błąd | Kod HTTP | Obsługa |
-|------|----------|---------|
-| Brak autentykacji | 401 | Przekierowanie do `/login?redirect=...` |
-| Talia nie znaleziona | 404 | Wyświetlenie komunikatu błędu z przyciskiem powrotu |
-| Błąd serwera | 500 | Wyświetlenie komunikatu błędu z przyciskiem retry |
-| Błąd sieci | - | Wyświetlenie komunikatu błędu z przyciskiem retry |
+| Błąd                 | Kod HTTP | Obsługa                                             |
+| -------------------- | -------- | --------------------------------------------------- |
+| Brak autentykacji    | 401      | Przekierowanie do `/login?redirect=...`             |
+| Talia nie znaleziona | 404      | Wyświetlenie komunikatu błędu z przyciskiem powrotu |
+| Błąd serwera         | 500      | Wyświetlenie komunikatu błędu z przyciskiem retry   |
+| Błąd sieci           | -        | Wyświetlenie komunikatu błędu z przyciskiem retry   |
 
 ### Błędy wysyłania oceny
 
-| Błąd | Kod HTTP | Obsługa |
-|------|----------|---------|
-| Brak autentykacji | 401 | Przekierowanie do `/login?redirect=...` |
-| Fiszka nie znaleziona | 404 | Logowanie błędu, kontynuacja do następnej karty |
-| Nieprawidłowe dane | 400 | Logowanie błędu, kontynuacja do następnej karty |
-| Błąd serwera | 500 | Logowanie błędu, automatyczne retry (max 2x), kontynuacja |
-| Błąd sieci | - | Automatyczne retry (max 3x), kontynuacja do następnej karty |
+| Błąd                  | Kod HTTP | Obsługa                                                     |
+| --------------------- | -------- | ----------------------------------------------------------- |
+| Brak autentykacji     | 401      | Przekierowanie do `/login?redirect=...`                     |
+| Fiszka nie znaleziona | 404      | Logowanie błędu, kontynuacja do następnej karty             |
+| Nieprawidłowe dane    | 400      | Logowanie błędu, kontynuacja do następnej karty             |
+| Błąd serwera          | 500      | Logowanie błędu, automatyczne retry (max 2x), kontynuacja   |
+| Błąd sieci            | -        | Automatyczne retry (max 3x), kontynuacja do następnej karty |
 
 ### Strategia resilience
 
@@ -832,11 +848,13 @@ export function useStudySession(deckId?: string): UseStudySessionReturn {
 ### Faza 1: Przygotowanie struktury
 
 1. **Instalacja brakujących komponentów Shadcn/ui**
+
    ```bash
    npx shadcn@latest add progress
    ```
 
 2. **Utworzenie struktury katalogów**
+
    ```
    src/components/study/
    src/pages/study/

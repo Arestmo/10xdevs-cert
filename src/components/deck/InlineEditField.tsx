@@ -64,7 +64,7 @@ export function InlineEditField({
           size="icon"
           onClick={onEditStart}
           aria-label={`Edytuj ${ariaLabel}`}
-          className="h-8 w-8 text-muted-foreground hover:text-foreground"
+          className="text-muted-foreground hover:text-foreground h-8 w-8"
         >
           <Pencil className="h-4 w-4" />
         </Button>
@@ -118,7 +118,7 @@ export function InlineEditField({
       </div>
 
       {/* Error message */}
-      {error && <p className="text-sm text-destructive">{error}</p>}
+      {error && <p className="text-destructive text-sm">{error}</p>}
     </div>
   );
 }

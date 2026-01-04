@@ -15,11 +15,11 @@ export function DeckTile({ deck }: DeckTileProps) {
   return (
     <a
       href={`/decks/${deck.id}`}
-      className="block transition-all hover:scale-[1.02] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+      className="focus-visible:outline-primary block transition-all hover:scale-[1.02] focus-visible:outline-2 focus-visible:outline-offset-2"
       aria-label={`Otwórz talię ${deck.name}${hasDueCards ? ` - ${deck.dueFlashcards} fiszek do powtórki` : ""}`}
     >
       <Card
-        className={`h-full cursor-pointer hover:border-primary/50 ${
+        className={`hover:border-primary/50 h-full cursor-pointer ${
           hasDueCards ? "border-orange-500/30 bg-orange-50/50 dark:bg-orange-950/10" : ""
         }`}
       >
@@ -44,12 +44,12 @@ export function DeckTile({ deck }: DeckTileProps) {
 
             {/* No cards due message */}
             {!hasDueCards && deck.totalFlashcards > 0 && (
-              <div className="text-xs text-muted-foreground italic">Brak fiszek do powtórki</div>
+              <div className="text-muted-foreground text-xs italic">Brak fiszek do powtórki</div>
             )}
 
             {/* Empty deck message */}
             {deck.totalFlashcards === 0 && (
-              <div className="text-xs text-muted-foreground italic">Pusta talia - dodaj fiszki</div>
+              <div className="text-muted-foreground text-xs italic">Pusta talia - dodaj fiszki</div>
             )}
           </div>
         </CardContent>

@@ -17,20 +17,20 @@ export function GenerateAITile({ onClick }: GenerateAITileProps) {
   return (
     <button
       onClick={onClick}
-      className="w-full text-left transition-all hover:scale-[1.02] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+      className="focus-visible:outline-primary w-full text-left transition-all hover:scale-[1.02] focus-visible:outline-2 focus-visible:outline-offset-2"
       aria-label="Generuj fiszki za pomocą AI"
     >
-      <Card className="h-full border-2 border-dashed border-primary/25 bg-primary/5 hover:border-primary/50 hover:bg-primary/10 cursor-pointer">
+      <Card className="border-primary/25 bg-primary/5 hover:border-primary/50 hover:bg-primary/10 h-full cursor-pointer border-2 border-dashed">
         <CardContent className="flex flex-col items-center justify-center gap-4 py-8">
           {/* Icon */}
-          <div className="rounded-full bg-primary/10 p-4">
-            <Sparkles className="size-8 text-primary" />
+          <div className="bg-primary/10 rounded-full p-4">
+            <Sparkles className="text-primary size-8" />
           </div>
 
           {/* Title */}
           <div className="text-center">
             <h3 className="text-lg font-semibold">Generuj fiszki AI</h3>
-            <p className="mt-1 text-sm text-muted-foreground">Automatycznie z tekstu</p>
+            <p className="text-muted-foreground mt-1 text-sm">Automatycznie z tekstu</p>
           </div>
         </CardContent>
       </Card>

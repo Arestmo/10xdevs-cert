@@ -134,14 +134,14 @@ export function DeleteAccountDialog({ isOpen, onOpenChange, onSuccess }: DeleteA
               <AlertDialogDescription asChild>
                 <div className="space-y-2 text-left">
                   <p>Ta operacja jest nieodwracalna. Zostaną trwale usunięte:</p>
-                  <ul className="list-disc list-inside space-y-1 text-sm">
+                  <ul className="list-inside list-disc space-y-1 text-sm">
                     <li>Wszystkie Twoje talie</li>
                     <li>Wszystkie fiszki</li>
                     <li>Historia nauki i logi powtórek</li>
                     <li>Parametry algorytmu FSRS</li>
                     <li>Konto użytkownika</li>
                   </ul>
-                  <p className="text-sm font-medium pt-2">Czy chcesz kontynuować?</p>
+                  <p className="pt-2 text-sm font-medium">Czy chcesz kontynuować?</p>
                 </div>
               </AlertDialogDescription>
             </AlertDialogHeader>
@@ -187,7 +187,7 @@ export function DeleteAccountDialog({ isOpen, onOpenChange, onSuccess }: DeleteA
 
                     {/* Validation error */}
                     {confirmationText && !isConfirmationValid && (
-                      <p id="confirmation-error" className="text-sm text-destructive" role="alert">
+                      <p id="confirmation-error" className="text-destructive text-sm" role="alert">
                         Tekst musi być dokładnie: {CONFIRMATION_TEXT}
                       </p>
                     )}
