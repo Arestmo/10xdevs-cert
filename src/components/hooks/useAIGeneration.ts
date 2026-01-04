@@ -169,73 +169,6 @@ export function useAIGeneration(options: UseAIGenerationOptions = {}): UseAIGene
     setIsGenerating(true);
 
     try {
-      // MOCK DATA - Remove this block and uncomment real API call below when API is ready
-      await new Promise((resolve) => setTimeout(resolve, 2000)); // Simulate API delay
-
-      const mockData: GenerationResponseDTO = {
-        generation_id: crypto.randomUUID(),
-        generated_count: 9,
-        remaining_ai_limit: state.remainingLimit - 9,
-        drafts: [
-          {
-            index: 0,
-            front: "Co to jest React?",
-            back: "React to biblioteka JavaScript do budowania interfejsów użytkownika, stworzona przez Facebook. Pozwala na tworzenie interaktywnych komponentów UI.",
-          },
-          {
-            index: 1,
-            front: "Czym są React Hooks?",
-            back: "Hooks to funkcje pozwalające używać stanu i innych funkcji React w komponentach funkcyjnych. Najpopularniejsze to useState i useEffect.",
-          },
-          {
-            index: 2,
-            front: "Co to jest Virtual DOM?",
-            back: "Virtual DOM to lekka kopia prawdziwego DOM przechowywana w pamięci. React używa go do optymalizacji renderowania poprzez porównywanie zmian.",
-          },
-          {
-            index: 3,
-            front: "Jak działa useState?",
-            back: "useState to hook zwracający parę: wartość stanu i funkcję do jej aktualizacji. Przykład: const [count, setCount] = useState(0);",
-          },
-          {
-            index: 4,
-            front: "Do czego służy useEffect?",
-            back: "useEffect służy do wykonywania efektów ubocznych w komponentach (np. pobieranie danych, subskrypcje). Wykonuje się po renderowaniu komponentu.",
-          },
-          {
-            index: 5,
-            front: "Co to są props w React?",
-            back: "Props to skrót od 'properties' - dane przekazywane z komponentu rodzica do dziecka. Są tylko do odczytu i nie mogą być modyfikowane przez komponent potomny.",
-          },
-          {
-            index: 6,
-            front: "Czym różni się state od props?",
-            back: "State jest zarządzany wewnątrz komponentu i może być zmieniany, podczas gdy props są przekazywane z zewnątrz i są immutable.",
-          },
-          {
-            index: 7,
-            front: "Co to jest JSX?",
-            back: "JSX to rozszerzenie składni JavaScript pozwalające pisać kod podobny do HTML w plikach JavaScript. Jest transpilowane do wywołań React.createElement().",
-          },
-          {
-            index: 8,
-            front: "Co to jest component lifecycle?",
-            back: "Lifecycle to cykl życia komponentu: montowanie (mounting), aktualizacja (updating) i odmontowywanie (unmounting). W komponentach funkcyjnych zarządzamy tym przez useEffect.",
-          },
-        ],
-      };
-
-      const drafts = transformDrafts(mockData.drafts);
-
-      setState((prev) => ({
-        ...prev,
-        stage: "reviewing",
-        generationId: mockData.generation_id,
-        drafts,
-        remainingLimit: mockData.remaining_ai_limit,
-      }));
-
-      /* REAL API CALL - Uncomment when API is ready
       const requestBody: CreateGenerationRequestDTO = {
         source_text: state.sourceText,
         deck_id: state.selectedDeckId!,
@@ -290,7 +223,6 @@ export function useAIGeneration(options: UseAIGenerationOptions = {}): UseAIGene
         drafts,
         remainingLimit: data.remaining_ai_limit,
       }));
-      */
     } catch (error) {
       console.error("Error generating flashcards:", error);
       setState((prev) => ({

@@ -333,6 +333,243 @@ export interface DeleteAccountResponseDTO {
 }
 
 // ============================================================================
+// OpenRouter API Types (AI Service Integration)
+// ============================================================================
+
+/**
+ * Configuration for OpenRouter service
+ */
+export interface OpenRouterConfig {
+  apiKey: string;
+  defaultModel?: string;
+  defaultTimeout?: number;
+  baseUrl?: string;
+}
+
+/**
+ * Chat message for OpenRouter API
+ */
+export interface ChatMessage {
+  role: "system" | "user" | "assistant";
+  content: string;
+}
+
+/**
+ * JSON Schema property definition
+ */
+export interface JsonSchemaProperty {
+  type: string;
+  description?: string;
+  items?: JsonSchema;
+}
+
+/**
+ * JSON Schema for structured outputs
+ */
+export interface JsonSchema {
+  type: string;
+  properties?: Record<string, JsonSchemaProperty>;
+  required?: string[];
+  items?: JsonSchema;
+  additionalProperties?: boolean;
+  description?: string;
+}
+
+/**
+ * Response format configuration for structured JSON outputs
+ */
+export interface ResponseFormat<T> {
+  type: "json_schema";
+  json_schema: {
+    name: string;
+    strict: true;
+    schema: JsonSchema;
+  };
+  parser: (content: string) => T;
+}
+
+/**
+ * Model parameters for OpenRouter API
+ */
+export interface ModelParameters {
+  temperature?: number; // 0.0 - 2.0, default: 0.7
+  maxTokens?: number; // Max tokens to generate
+  topP?: number; // 0.0 - 1.0, nucleus sampling
+  frequencyPenalty?: number; // -2.0 - 2.0
+  presencePenalty?: number; // -2.0 - 2.0
+  stop?: string[]; // Stop sequences
+}
+
+/**
+ * Options for chat completion request
+ */
+export interface ChatCompletionOptions<T = string> {
+  messages: ChatMessage[];
+  model?: string;
+  responseFormat?: ResponseFormat<T>;
+  parameters?: ModelParameters;
+  timeout?: number;
+}
+
+/**
+ * Result from chat completion
+ */
+export interface ChatCompletionResult<T> {
+  content: T;
+  usage: {
+    promptTokens: number;
+    completionTokens: number;
+    totalTokens: number;
+  };
+  model: string;
+  finishReason: string;
+}
+
+/**
+ * Options for flashcard generation via OpenRouter
+ * Uses gpt-4o-mini model (fast and cost-effective)
+ */
+export interface GenerateFlashcardsOptions {
+  sourceText: string;
+  maxCards: number;
+}
+
+/**
+ * OpenRouter API request body (internal)
+ */
+export interface OpenRouterRequestBody {
+  model: string;
+  messages: {
+    role: "system" | "user" | "assistant";
+    content: string;
+  }[];
+  temperature?: number;
+  max_tokens?: number;
+  top_p?: number;
+  frequency_penalty?: number;
+  presence_penalty?: number;
+  stop?: string[];
+  response_format?: {
+    type: "json_schema";
+    json_schema: {
+      name: string;
+      strict: true;
+      schema: JsonSchema;
+    };
+  };
+}
+
+/**
+ * OpenRouter API response structure (internal)
+ */
+export interface OpenRouterApiResponse {
+  id?: string;
+  model?: string;
+  choices?: {
+    message?: {
+      role: string;
+      content: string;
+    };
+    finish_reason?: string;
+  }[];
+  usage?: {
+    prompt_tokens?: number;
+    completion_tokens?: number;
+    total_tokens?: number;
+  };
+}
+
+/**
+ * OpenRouter API error response structure (internal)
+ */
+export interface OpenRouterErrorResponse {
+  error?: {
+    message: string;
+    type?: string;
+    code?: string;
+  };
+}
+
+/**
+ * Error codes for OpenRouter operations
+ */
+export type OpenRouterErrorCode =
+  | "INVALID_CONFIG"
+  | "INVALID_REQUEST"
+  | "UNAUTHORIZED"
+  | "FORBIDDEN"
+  | "NOT_FOUND"
+  | "RATE_LIMITED"
+  | "SERVER_ERROR"
+  | "TIMEOUT"
+  | "NETWORK_ERROR"
+  | "PARSE_ERROR"
+  | "EMPTY_RESPONSE"
+  | "UNKNOWN_ERROR";
+
+/**
+ * Custom error class for OpenRouter API operations
+ * Provides structured error handling with error codes and user-friendly messages
+ */
+export class OpenRouterError extends Error {
+  constructor(
+    message: string,
+    public readonly code: OpenRouterErrorCode,
+    public readonly statusCode?: number,
+    public readonly response?: OpenRouterErrorResponse | null
+  ) {
+    super(message);
+    this.name = "OpenRouterError";
+
+    // Maintains proper stack trace for where our error was thrown (only available on V8)
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, OpenRouterError);
+    }
+  }
+
+  /**
+   * Check if error is retryable
+   * Returns true for transient errors (rate limits, server errors, timeouts, network issues)
+   */
+  isRetryable(): boolean {
+    return ["RATE_LIMITED", "SERVER_ERROR", "TIMEOUT", "NETWORK_ERROR"].includes(this.code);
+  }
+
+  /**
+   * Get user-friendly error message
+   * Provides clear, actionable messages for end users
+   */
+  getUserMessage(): string {
+    switch (this.code) {
+      case "INVALID_CONFIG":
+        return "Service configuration error. Please contact support.";
+      case "INVALID_REQUEST":
+        return "Invalid request. Please check your input and try again.";
+      case "UNAUTHORIZED":
+        return "Authentication failed. Please check your API configuration.";
+      case "FORBIDDEN":
+        return "Access denied. You don't have permission to perform this action.";
+      case "NOT_FOUND":
+        return "The requested resource was not found.";
+      case "RATE_LIMITED":
+        return "Service is temporarily busy. Please try again in a moment.";
+      case "SERVER_ERROR":
+        return "AI service is temporarily unavailable. Please try again later.";
+      case "TIMEOUT":
+        return "Request timed out. Please try with shorter content.";
+      case "NETWORK_ERROR":
+        return "Network error occurred. Please check your connection and try again.";
+      case "PARSE_ERROR":
+        return "Failed to process AI response. Please try again.";
+      case "EMPTY_RESPONSE":
+        return "No response received from AI service. Please try again.";
+      default:
+        return "An unexpected error occurred. Please try again.";
+    }
+  }
+}
+
+// ============================================================================
 // Command Models for FSRS Algorithm
 // ============================================================================
 
