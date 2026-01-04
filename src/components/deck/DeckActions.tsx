@@ -3,7 +3,10 @@
  *
  * Action bar with main deck operation buttons.
  * Buttons:
- * - Study (X) - navigate to study session (disabled if X = 0)
+ * - Study - navigate to study session
+ *   - Shows "Ucz się (X)" when X cards are due
+ *   - Shows "Ćwicz losowe" when no cards due but flashcards exist (practice mode)
+ *   - Disabled only when deck has no flashcards
  * - Generate flashcards - open AI generation modal
  * - Add flashcard - open flashcard form modal
  * - Delete deck - open delete confirmation dialog
@@ -16,19 +19,25 @@ import type { DeckActionsProps } from "./types";
 export function DeckActions({
   deckId,
   dueCount,
+  totalFlashcards,
   onAddFlashcard,
   onGenerateFlashcards,
   onDeleteDeck,
 }: DeckActionsProps) {
-  const hasCardsToStudy = dueCount > 0;
+  const hasDueCards = dueCount > 0;
+  const hasAnyCards = totalFlashcards > 0;
+  const isPracticeMode = !hasDueCards && hasAnyCards;
+
+  // Button text logic
+  const buttonText = hasDueCards ? `Ucz się (${dueCount})` : isPracticeMode ? "Ćwicz losowe" : "Ucz się";
 
   return (
     <div className="flex flex-wrap items-center gap-2">
       {/* Study button */}
-      <Button asChild disabled={!hasCardsToStudy} className="gap-2">
-        <a href={hasCardsToStudy ? `/study?deck=${deckId}` : undefined}>
+      <Button asChild disabled={!hasAnyCards} className="gap-2">
+        <a href={hasAnyCards ? `/study?deck=${deckId}` : undefined}>
           <Play className="h-4 w-4" />
-          Ucz się {hasCardsToStudy && `(${dueCount})`}
+          {buttonText}
         </a>
       </Button>
 

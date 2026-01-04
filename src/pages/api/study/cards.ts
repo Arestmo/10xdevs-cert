@@ -13,7 +13,7 @@ export const prerender = false;
  * - limit: Number of cards to return (1-200, default 50)
  */
 const getStudyCardsQuerySchema = z.object({
-  deck_id: z.string().uuid({ message: "deck_id must be a valid UUID" }).optional(),
+  deck_id: z.string().uuid({ message: "deck_id must be a valid UUID" }).nullish(),
   limit: z.coerce.number().int().min(1).max(200).default(50),
 });
 
@@ -104,7 +104,7 @@ export const GET: APIRoute = async (context) => {
     const response: StudyCardsResponseDTO = await getStudyCards(
       context.locals.supabase,
       user.id,
-      validatedParams.deck_id,
+      validatedParams.deck_id ?? undefined,
       validatedParams.limit
     );
 

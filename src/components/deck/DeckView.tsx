@@ -188,6 +188,7 @@ export function DeckView({ deckId }: DeckViewProps) {
       <DeckActions
         deckId={deckId}
         dueCount={deck.dueFlashcards}
+        totalFlashcards={deck.totalFlashcards}
         onAddFlashcard={handleAddFlashcard}
         onGenerateFlashcards={handleOpenGenerationModal}
         onDeleteDeck={() => setIsDeleteDeckDialogOpen(true)}

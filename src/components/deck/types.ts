@@ -106,6 +106,7 @@ export interface DeckStatsProps {
 export interface DeckActionsProps {
   deckId: string;
   dueCount: number;
+  totalFlashcards: number;
   onAddFlashcard: () => void;
   onGenerateFlashcards: () => void;
   onDeleteDeck: () => void;

@@ -145,9 +145,55 @@ export async function getStudyCards(
     throw new Error(`Failed to count due cards: ${countError.message}`);
   }
 
-  // Step 6: Transform to StudyCardDTO format
+  // Step 6: If no due cards, fetch random cards for practice mode (limit 20)
+  let finalFlashcards = flashcards;
+
+  if (!flashcards || flashcards.length === 0) {
+    const practiceLimit = Math.min(limit, 20); // Max 20 cards for practice
+
+    // Build query for random cards (no next_review filter)
+    let practiceQuery = supabase
+      .from("flashcards")
+      .select(
+        `
+        id,
+        deck_id,
+        decks!inner(name),
+        front,
+        back,
+        source,
+        stability,
+        difficulty,
+        elapsed_days,
+        scheduled_days,
+        reps,
+        lapses,
+        state,
+        last_review,
+        next_review
+      `
+      )
+      .eq("decks.user_id", userId)
+      .limit(practiceLimit);
+
+    // Apply deck_id filter if provided
+    if (deckId) {
+      practiceQuery = practiceQuery.eq("deck_id", deckId);
+    }
+
+    const { data: practiceCards, error: practiceError } = await practiceQuery;
+
+    // Guard clause: database error
+    if (practiceError) {
+      throw new Error(`Failed to fetch practice cards: ${practiceError.message}`);
+    }
+
+    finalFlashcards = practiceCards;
+  }
+
+  // Step 7: Transform to StudyCardDTO format
   // Extract deck name from nested decks object and flatten structure
-  const studyCards: StudyCardDTO[] = (flashcards ?? []).map((card) => ({
+  const studyCards: StudyCardDTO[] = (finalFlashcards ?? []).map((card) => ({
     id: card.id,
     deck_id: card.deck_id,
     deck_name: (card.decks as { name: string }).name,
@@ -165,7 +211,7 @@ export async function getStudyCards(
     next_review: card.next_review,
   }));
 
-  // Step 7: Return response with metadata (happy path)
+  // Step 8: Return response with metadata (happy path)
   return {
     data: studyCards,
     total_due: count ?? 0,
