@@ -1,0 +1,31 @@
+---
+/**
+ * Privacy Policy Page
+ *
+ * Strona Astro wyświetlająca politykę prywatności.
+ * Zawiera pełną treść dokumentu zgodną z wymaganiami RODO.
+ */
+
+import LegalLayout from "@/layouts/LegalLayout.astro";
+import LegalHeader from "@/components/legal/LegalHeader.astro";
+import LegalContent from "@/components/legal/LegalContent.astro";
+import LegalFooter from "@/components/legal/LegalFooter.astro";
+import { PRIVACY_POLICY_SECTIONS, PRIVACY_POLICY_LAST_UPDATED } from "@/content/legal/privacy-policy";
+
+// Enable prerendering for this static page
+export const prerender = true;
+---
+
+<LegalLayout
+  title="Polityka Prywatności - Flashcards AI"
+  description="Polityka prywatności aplikacji Flashcards AI. Informacje o przetwarzaniu danych osobowych zgodnie z RODO."
+>
+  <LegalHeader />
+  <LegalContent
+    title="Polityka Prywatności"
+    lastUpdated={PRIVACY_POLICY_LAST_UPDATED}
+    sections={PRIVACY_POLICY_SECTIONS}
+    showTableOfContents={true}
+  />
+  <LegalFooter />
+</LegalLayout>

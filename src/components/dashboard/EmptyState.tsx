@@ -1,0 +1,35 @@
+/**
+ * EmptyState Component
+ *
+ * Displayed for new users without any decks.
+ * Shows a welcome message and CTA button to create the first deck.
+ */
+
+import { FolderPlus } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import type { EmptyStateProps } from "./types";
+
+export function EmptyState({ onCreateDeck }: EmptyStateProps) {
+  return (
+    <div className="border-muted-foreground/25 bg-muted/30 flex min-h-[400px] flex-col items-center justify-center gap-6 rounded-lg border-2 border-dashed px-6 py-12 text-center">
+      {/* Illustration icon */}
+      <div className="bg-primary/10 rounded-full p-6">
+        <FolderPlus className="text-primary size-16" />
+      </div>
+
+      {/* Header */}
+      <div className="space-y-2">
+        <h2 className="text-2xl font-bold tracking-tight">Witaj w Flashcards AI!</h2>
+        <p className="text-muted-foreground max-w-md">
+          Utwórz swoją pierwszą talię, aby rozpocząć naukę z fiszkami wspieranymi przez sztuczną inteligencję
+        </p>
+      </div>
+
+      {/* CTA Button */}
+      <Button size="lg" onClick={onCreateDeck} className="mt-4" aria-label="Utwórz pierwszą talię">
+        <FolderPlus className="mr-2 size-5" />
+        Utwórz pierwszą talię
+      </Button>
+    </div>
+  );
+}

@@ -4,7 +4,12 @@
   "tabWidth": 2,
   "printWidth": 120,
   "trailingComma": "es5",
-  "plugins": ["prettier-plugin-astro"],
+  "jsxSingleQuote": false,
+  "bracketSpacing": true,
+  "bracketSameLine": false,
+  "arrowParens": "always",
+  "endOfLine": "lf",
+  "plugins": ["prettier-plugin-astro", "prettier-plugin-tailwindcss"],
   "overrides": [
     {
       "files": "*.astro",

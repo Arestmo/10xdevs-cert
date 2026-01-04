@@ -1,0 +1,28 @@
+---
+/**
+ * Study Session Page - All Decks
+ *
+ * Starts a study session with flashcards from all user's decks.
+ * Shows flashcards that are due for review across all decks.
+ *
+ * Protected route - redirects to /login if user is not authenticated.
+ */
+
+import StudyLayout from "@/layouts/StudyLayout.astro";
+import { StudyView } from "@/components/study/StudyView";
+
+// Step 1: Check authentication
+const {
+  data: { user },
+  error: authError,
+} = await Astro.locals.supabase.auth.getUser();
+
+// Step 2: Redirect to login if not authenticated
+if (authError || !user) {
+  return Astro.redirect(`/login?redirect=/study`);
+}
+---
+
+<StudyLayout title="Sesja nauki - Flashcards AI">
+  <StudyView client:load />
+</StudyLayout>

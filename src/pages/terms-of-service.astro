@@ -1,0 +1,31 @@
+---
+/**
+ * Terms of Service Page
+ *
+ * Strona Astro wyświetlająca regulamin usługi.
+ * Zawiera warunki korzystania z aplikacji Flashcards AI.
+ */
+
+import LegalLayout from "@/layouts/LegalLayout.astro";
+import LegalHeader from "@/components/legal/LegalHeader.astro";
+import LegalContent from "@/components/legal/LegalContent.astro";
+import LegalFooter from "@/components/legal/LegalFooter.astro";
+import { TERMS_OF_SERVICE_SECTIONS, TERMS_OF_SERVICE_LAST_UPDATED } from "@/content/legal/terms-of-service";
+
+// Enable prerendering for this static page
+export const prerender = true;
+---
+
+<LegalLayout
+  title="Regulamin - Flashcards AI"
+  description="Regulamin korzystania z aplikacji Flashcards AI. Zasady użytkowania, prawa i obowiązki użytkowników."
+>
+  <LegalHeader />
+  <LegalContent
+    title="Regulamin"
+    lastUpdated={TERMS_OF_SERVICE_LAST_UPDATED}
+    sections={TERMS_OF_SERVICE_SECTIONS}
+    showTableOfContents={true}
+  />
+  <LegalFooter />
+</LegalLayout>

@@ -1,0 +1,45 @@
+---
+/**
+ * Deck View Page
+ *
+ * Individual deck management view for authenticated users.
+ * Displays:
+ * - Deck name (editable inline)
+ * - Deck statistics (total flashcards, due flashcards)
+ * - Action buttons (Study, Generate, Add, Delete)
+ * - List of flashcards in accordion format
+ *
+ * Protected route - redirects to /login if user is not authenticated.
+ * Dynamic route - deckId parameter required (UUID format).
+ */
+
+import DashboardLayout from "@/layouts/DashboardLayout.astro";
+import { DeckView } from "@/components/deck/DeckView";
+
+// Step 1: Check authentication
+const {
+  data: { user },
+  error: authError,
+} = await Astro.locals.supabase.auth.getUser();
+
+// Step 2: Get deckId from route params
+const { deckId } = Astro.params;
+
+// Step 3: Redirect to login if not authenticated
+if (authError || !user) {
+  return Astro.redirect(`/login?redirect=/decks/${deckId}`);
+}
+
+// Step 4: Validate deckId format (UUID)
+const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+if (!deckId || !uuidRegex.test(deckId)) {
+  return Astro.redirect("/dashboard");
+}
+
+// Step 5: Get user email for header
+const userEmail = user.email;
+---
+
+<DashboardLayout userEmail={userEmail}>
+  <DeckView deckId={deckId} client:load />
+</DashboardLayout>

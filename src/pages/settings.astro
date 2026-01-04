@@ -1,0 +1,34 @@
+---
+/**
+ * Settings Page
+ *
+ * User settings and account management page for authenticated users.
+ * Displays:
+ * - Account information (email)
+ * - AI flashcard generation limit status
+ * - Account deletion option (GDPR compliance)
+ *
+ * Protected route - redirects to /login if user is not authenticated.
+ */
+
+import DashboardLayout from "@/layouts/DashboardLayout.astro";
+import { SettingsContent } from "@/components/settings/SettingsContent";
+
+// Step 1: Check authentication
+const {
+  data: { user },
+  error: authError,
+} = await Astro.locals.supabase.auth.getUser();
+
+// Step 2: Redirect to login if not authenticated
+if (authError || !user) {
+  return Astro.redirect(`/login?redirect=/settings`);
+}
+
+// Step 3: Get user email for header
+const userEmail = user.email;
+---
+
+<DashboardLayout userEmail={userEmail}>
+  <SettingsContent client:load />
+</DashboardLayout>

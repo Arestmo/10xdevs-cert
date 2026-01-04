@@ -22,3 +22,11 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+# sesje planistyczne
+sesje_planistyczne/
+.ai/temp/
+
+# local test scripts
+test-*.mjs
+test-*.js
