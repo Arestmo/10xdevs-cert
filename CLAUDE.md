@@ -90,6 +90,110 @@ chore: update .gitignore
 - Use the body to explain what and why vs. how (if needed)
 - Reference issues and pull requests in the footer when applicable
 
+## Git Workflow
+
+This project uses a **Feature Branch Workflow** with the following branch strategy:
+
+### Branch Structure
+
+- **`master`** - Main production branch (protected)
+- **`develop`** - Development integration branch (default branch)
+- **`feature/*`** - Feature branches for new features
+- **`fix/*`** - Bug fix branches
+- **`test/*`** - Testing-related branches
+- **`refactor/*`** - Refactoring branches
+- **`docs/*`** - Documentation branches
+
+### Feature Branch Naming Convention
+
+Format: `<type>/<short-description>`
+
+```bash
+# Features
+feature/user-authentication
+feature/dark-mode-toggle
+feature/flashcard-export
+
+# Bug fixes
+fix/navigation-menu-overlap
+fix/form-validation-error
+
+# Tests
+test/unit-tests-setup
+test/e2e-accessibility
+
+# Refactoring
+refactor/api-service-layer
+refactor/component-structure
+
+# Documentation
+docs/api-documentation
+docs/testing-guide
+```
+
+### Workflow Steps
+
+1. **Create a feature branch from `develop`**:
+
+   ```bash
+   git checkout develop
+   git pull origin develop
+   git checkout -b feature/your-feature-name
+   ```
+
+2. **Work on your feature**:
+
+   - Make commits following Conventional Commits specification
+   - Push your branch regularly to backup your work
+
+   ```bash
+   git add .
+   git commit -m "feat: add user authentication"
+   git push -u origin feature/your-feature-name
+   ```
+
+3. **Keep your branch up to date**:
+
+   ```bash
+   git checkout develop
+   git pull origin develop
+   git checkout feature/your-feature-name
+   git merge develop
+   # or use rebase for cleaner history
+   git rebase develop
+   ```
+
+4. **Create a Pull Request**:
+
+   - When your feature is complete, create a PR from your feature branch to `develop`
+   - Use descriptive PR title following the same convention as commits
+   - Add a detailed description of changes
+   - Request code review if needed
+
+5. **After PR is merged**:
+   ```bash
+   git checkout develop
+   git pull origin develop
+   git branch -d feature/your-feature-name  # Delete local branch
+   git push origin --delete feature/your-feature-name  # Delete remote branch (optional)
+   ```
+
+### Branch Protection Rules
+
+- `master` - Protected, requires PR and approval
+- `develop` - Protected, requires PR review
+- Feature branches - Can be pushed directly by the creator
+
+### Best Practices
+
+- Keep feature branches short-lived (ideally < 3 days)
+- Regularly merge/rebase with `develop` to avoid conflicts
+- Delete feature branches after they are merged
+- Use meaningful branch names that describe the work
+- One feature/fix per branch - don't mix unrelated changes
+- Run tests before creating a PR
+- Keep commits atomic and well-described
+
 ## Project Structure
 
 ```
@@ -412,3 +516,37 @@ interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
 ```
+
+## TESTING
+
+### Guidelines for UNIT
+
+#### VITEST
+
+- Leverage the `vi` object for test doubles - Use `vi.fn()` for function mocks, `vi.spyOn()` to monitor existing functions, and `vi.stubGlobal()` for global mocks. Prefer spies over mocks when you only need to verify interactions without changing behavior.
+- Master `vi.mock()` factory patterns - Place mock factory functions at the top level of your test file, return typed mock implementations, and use `mockImplementation()` or `mockReturnValue()` for dynamic control during tests. Remember the factory runs before imports are processed.
+- Create setup files for reusable configuration - Define global mocks, custom matchers, and environment setup in dedicated files referenced in your `vitest.config.ts`. This keeps your test files clean while ensuring consistent test environments.
+- Use inline snapshots for readable assertions - Replace complex equality checks with `expect(value).toMatchInlineSnapshot()` to capture expected output directly in your test file, making changes more visible in code reviews.
+- Monitor coverage with purpose and only when asked - Configure coverage thresholds in `vitest.config.ts` to ensure critical code paths are tested, but focus on meaningful tests rather than arbitrary coverage percentages.
+- Make watch mode part of your workflow - Run `vitest --watch` during development for instant feedback as you modify code, filtering tests with `-t` to focus on specific areas under development.
+- Explore UI mode for complex test suites - Use `vitest --ui` to visually navigate large test suites, inspect test results, and debug failures more efficiently during development.
+- Handle optional dependencies with smart mocking - Use conditional mocking to test code with optional dependencies by implementing `vi.mock()` with the factory pattern for modules that might not be available in all environments.
+- Configure jsdom for DOM testing - Set `environment: 'jsdom'` in your configuration for frontend component tests and combine with testing-library utilities for realistic user interaction simulation.
+- Structure tests for maintainability - Group related tests with descriptive `describe` blocks, use explicit assertion messages, and follow the Arrange-Act-Assert pattern to make tests self-documenting.
+- Leverage TypeScript type checking in tests - Enable strict typing in your tests to catch type errors early, use `expectTypeOf()` for type-level assertions, and ensure mocks preserve the original type signatures.
+
+### Guidelines for E2E
+
+#### PLAYWRIGHT
+
+- Initialize configuration only with Chromium/Desktop Chrome browser
+- Use browser contexts for isolating test environments
+- Implement the Page Object Model for maintainable tests
+- Use locators for resilient element selection
+- Leverage API testing for backend validation
+- Implement visual comparison with expect(page).toHaveScreenshot()
+- Use the codegen tool for test recording
+- Leverage trace viewer for debugging test failures
+- Implement test hooks for setup and teardown
+- Use expect assertions with specific matchers
+- Leverage parallel execution for faster test runs

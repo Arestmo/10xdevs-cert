@@ -30,3 +30,12 @@ sesje_planistyczne/
 # local test scripts
 test-*.mjs
 test-*.js
+
+# test coverage
+coverage/
+.nyc_output/
+
+# playwright
+playwright-report/
+test-results/
+/playwright/.cache/
