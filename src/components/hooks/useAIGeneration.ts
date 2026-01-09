@@ -10,13 +10,7 @@
  */
 
 import { useState, useMemo, useCallback, useEffect } from "react";
-import type {
-  GenerationState,
-  DraftViewModel,
-  DeckOption,
-  UseAIGenerationReturn,
-  GenerationErrorType,
-} from "@/components/generation/types";
+import type { GenerationState, DraftViewModel, DeckOption, UseAIGenerationReturn } from "@/components/generation/types";
 import type {
   ProfileResponseDTO,
   CreateGenerationRequestDTO,
@@ -164,6 +158,7 @@ export function useAIGeneration(options: UseAIGenerationOptions = {}): UseAIGene
    */
   const generate = useCallback(async (): Promise<void> => {
     if (!canGenerate) return;
+    if (!state.selectedDeckId) return;
 
     setState((prev) => ({ ...prev, stage: "generating", error: null }));
     setIsGenerating(true);
@@ -171,7 +166,7 @@ export function useAIGeneration(options: UseAIGenerationOptions = {}): UseAIGene
     try {
       const requestBody: CreateGenerationRequestDTO = {
         source_text: state.sourceText,
-        deck_id: state.selectedDeckId!,
+        deck_id: state.selectedDeckId,
       };
 
       const response = await fetch("/api/generations", {
@@ -246,12 +241,13 @@ export function useAIGeneration(options: UseAIGenerationOptions = {}): UseAIGene
     async (index: number): Promise<void> => {
       const draft = state.drafts[index];
       if (!draft || draft.status !== "pending") return;
+      if (!state.selectedDeckId) return;
 
       setDraftSubmitting(index, true);
 
       try {
         const requestBody: CreateFlashcardRequestDTO = {
-          deck_id: state.selectedDeckId!,
+          deck_id: state.selectedDeckId,
           front: draft.front,
           back: draft.back,
           source: "ai",

@@ -6,8 +6,6 @@
  * local UI state management.
  */
 
-import type { FlashcardDraftDTO } from "@/types";
-
 // ============================================================================
 // ViewModel Types (local UI state)
 // ============================================================================

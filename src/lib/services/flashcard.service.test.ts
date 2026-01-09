@@ -253,10 +253,7 @@ describe("FlashcardService", () => {
       });
       const deleteQueryBuilder = createMockQueryBuilder({ data: null, error: null });
 
-      mockSupabase.from = vi
-        .fn()
-        .mockReturnValueOnce(fetchQueryBuilder)
-        .mockReturnValueOnce(deleteQueryBuilder);
+      mockSupabase.from = vi.fn().mockReturnValueOnce(fetchQueryBuilder).mockReturnValueOnce(deleteQueryBuilder);
 
       // Act
       const result = await service.deleteFlashcard(flashcardId, mockUserId);

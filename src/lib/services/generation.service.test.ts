@@ -127,10 +127,7 @@ describe("GenerationService", () => {
       const deckQueryBuilder = createMockQueryBuilder({ data: mockDeck, error: null });
       const profileQueryBuilder = createMockQueryBuilder({ data: mockProfile, error: null });
 
-      mockSupabase.from = vi
-        .fn()
-        .mockReturnValueOnce(deckQueryBuilder)
-        .mockReturnValueOnce(profileQueryBuilder);
+      mockSupabase.from = vi.fn().mockReturnValueOnce(deckQueryBuilder).mockReturnValueOnce(profileQueryBuilder);
 
       // Act & Assert
       await expect(service.generateFlashcards(mockUserId, mockRequest)).rejects.toThrow(AILimitExceededError);
@@ -185,10 +182,7 @@ describe("GenerationService", () => {
       const deckQueryBuilder = createMockQueryBuilder({ data: mockDeck, error: null });
       const profileQueryBuilder = createMockQueryBuilder({ data: mockProfile, error: null });
 
-      mockSupabase.from = vi
-        .fn()
-        .mockReturnValueOnce(deckQueryBuilder)
-        .mockReturnValueOnce(profileQueryBuilder);
+      mockSupabase.from = vi.fn().mockReturnValueOnce(deckQueryBuilder).mockReturnValueOnce(profileQueryBuilder);
 
       // Mock OpenRouter API failure
       vi.mocked(openRouterService.generateFlashcards).mockRejectedValue(new Error("OpenRouter API failed"));
@@ -206,10 +200,7 @@ describe("GenerationService", () => {
       const deckQueryBuilder = createMockQueryBuilder({ data: mockDeck, error: null });
       const profileQueryBuilder = createMockQueryBuilder({ data: mockProfile, error: null });
 
-      mockSupabase.from = vi
-        .fn()
-        .mockReturnValueOnce(deckQueryBuilder)
-        .mockReturnValueOnce(profileQueryBuilder);
+      mockSupabase.from = vi.fn().mockReturnValueOnce(deckQueryBuilder).mockReturnValueOnce(profileQueryBuilder);
 
       vi.mocked(openRouterService.generateFlashcards).mockResolvedValue(mockDrafts);
 
@@ -308,10 +299,7 @@ describe("GenerationService", () => {
         error: { message: "Insert failed" },
       });
 
-      mockSupabase.from = vi
-        .fn()
-        .mockReturnValueOnce(verifyQueryBuilder)
-        .mockReturnValueOnce(insertQueryBuilder);
+      mockSupabase.from = vi.fn().mockReturnValueOnce(verifyQueryBuilder).mockReturnValueOnce(insertQueryBuilder);
 
       // Act & Assert
       await expect(service.rejectDraft(mockUserId, mockGenerationId, mockDraftIndex)).rejects.toThrow(
