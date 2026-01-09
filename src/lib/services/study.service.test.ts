@@ -237,10 +237,7 @@ describe("StudyService", () => {
         error: null,
       });
 
-      mockSupabase.from = vi
-        .fn()
-        .mockReturnValueOnce(decksQueryBuilder)
-        .mockReturnValueOnce(nextReviewQueryBuilder);
+      mockSupabase.from = vi.fn().mockReturnValueOnce(decksQueryBuilder).mockReturnValueOnce(nextReviewQueryBuilder);
 
       // Act
       const result = await getStudySummary(mockSupabase, mockUserId);
