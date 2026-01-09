@@ -416,5 +416,5 @@ Generate ${maxCards} flashcards based on the key concepts in this text.`;
  * Uses OPENROUTER_API_KEY from environment variables
  */
 export const openRouterService = new OpenRouterService({
-  apiKey: import.meta.env.OPENROUTER_API_KEY,
+  apiKey: import.meta.env.OPENROUTER_API_KEY ?? "test-key",
 });
