@@ -61,9 +61,6 @@ export function DeckSelector({
   const isCreateButtonDisabled =
     newDeckName.trim().length === 0 || newDeckName.length > MAX_DECK_NAME_LENGTH || isCreatingDeck;
 
-  // Find selected deck name for display
-  const selectedDeck = decks.find((d) => d.id === selectedDeckId);
-
   return (
     <div className="space-y-2">
       <Label htmlFor="deck-selector">
@@ -81,7 +78,6 @@ export function DeckSelector({
               placeholder="Nazwa nowej talii"
               maxLength={MAX_DECK_NAME_LENGTH}
               disabled={isCreatingDeck}
-              autoFocus
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !isCreateButtonDisabled) {
                   handleCreateDeck();
